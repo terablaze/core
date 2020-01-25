@@ -31,10 +31,15 @@ class Router extends Base
 	 */
 	protected $_controller;
 
-	/**
-	 * @read
-	 */
-	protected $_action;
+    /**
+     * @read
+     */
+    protected $_action;
+
+    /**
+     * @read
+     */
+    protected $_method;
 
 	protected $_routes = array();
 
