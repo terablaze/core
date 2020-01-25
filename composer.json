@@ -1,0 +1,23 @@
+{
+  "name": "terablaze/core",
+  "description": "TeraBlaze",
+  "keywords": ["php", "mvc", "framework", "terablaze"],
+  "homepage": "https://github.com/terablaze/terablaze",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tomiwa Ibiwoye",
+      "email": "tomiwa@teraboxx.com"
+    }
+  ],
+  "require": {
+    "php": "^7.2",
+    "ext-json": "*"
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "TeraBlaze\\": "src/TeraBlaze/"
+    }
+  }
+}
