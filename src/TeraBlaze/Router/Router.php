@@ -14,7 +14,7 @@ use TeraBlaze\Router\Exception as Exception;
  *
  * handles url routing
  */
-class Router extends Base
+class Router
 {
 	/**
 	 * @readwrite

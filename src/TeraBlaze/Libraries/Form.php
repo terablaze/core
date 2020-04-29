@@ -186,5 +186,124 @@ EOT;
 	}
 
 }
-
+/**
 ?>
+
+
+class Form
+{
+protected $sAction;
+
+protected $sMethod;
+
+protected $aElements = array();
+
+public function __construct($sAction, $sMethod = 'post')
+{
+$this->sAction = $sAction;
+$this->sMethod = $sMethod;
+}
+
+public function addElement(FormElement $oElement)
+{
+$this->aElements[] = $oElement;
+}
+
+public function render()
+{
+foreach ($this->aElements as $oElement)
+{
+$sElements .= $oElement->render() . "\\r\
+";
+}
+return sprintf(
+'<form action="&#37;s" method="%s">
+%s
+</form>',
+$this->sAction,
+$this->sMethod,
+$sElements
+);
+}
+}
+
+abstract class FormElement
+{
+protected $aAttributes;
+
+public function addAttribute($sName, $mValue)
+{
+$this->aAttributes[$sName] = $mValue;
+}
+
+abstract public function render();
+}
+
+class TextFormElement extends FormElement
+{
+public function render()
+{
+foreach ($this->aAttributes as $sName => $mValue)
+{
+$sAttributes .= sprintf('%s="%s" ', $sName, $mValue);
+}
+return sprintf(
+'<input type="text" %s/>',
+$sAttributes
+);
+}
+}
+
+class PasswordFormElement extends FormElement
+{
+public function render()
+{
+foreach ($this->aAttributes as $sName => $mValue)
+{
+$sAttributes .= sprintf('%s="%s" ', $sName, $mValue);
+}
+return sprintf(
+'<input type="password" %s/>',
+$sAttributes
+);
+}
+}
+
+class SubmitFormElement extends FormElement
+{
+public function render()
+{
+foreach ($this->aAttributes as $sName => $mValue)
+{
+$sAttributes .= sprintf('%s="%s" ', $sName, $mValue);
+}
+return sprintf(
+'<input type="submit" %s/>',
+$sAttributes
+);
+}
+}
+
+$oForm = new Form('/users/login/');
+
+$oUsernameField = new TextFormElement();
+$oUsernameField->addAttribute('name', 'username');
+
+$oPasswordField = new PasswordFormElement();
+$oPasswordField->addAttribute('name', 'password');
+
+$oSubmitButton = new SubmitFormElement();
+$oSubmitButton->addAttribute('name', 'submit');
+$oSubmitButton->addAttribute('value', 'login');
+
+$oForm->addElement($oUsernameField);
+$oForm->addElement($oPasswordField);
+$oForm->addElement($oSubmitButton);
+echo $oForm->render();
+/*
+<form action="/users/login/" method="post">
+<input type="text" name="username" />
+<input type="password" name="password" />
+<input type="submit" name="submit" value="login" />
+</form>
+ */
