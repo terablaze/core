@@ -5,6 +5,7 @@ namespace TeraBlaze\Container;
 use ReflectionClass;
 use ReflectionException;
 use TeraBlaze\Container\Exception\ContainerException;
+use TeraBlaze\Container\Exception\InvalidArgumentException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
 
@@ -72,6 +73,44 @@ class Container implements ContainerInterface
             self::$instance = new self($services, $parameters);
         }
         return self::$instance;
+    }
+
+    /**
+     * @param array $registrant
+     * @return Container
+     * @throws InvalidArgumentException
+     */
+    public function register(array $registrant): self
+    {
+        foreach ($registrant as $type => $value) {
+            switch ($type) {
+                case 'service':
+                    $this->registerService($value);
+                    break;
+                case 'parameter':
+                    $this->registerParameter($value);
+                    break;
+                default:
+                    throw new InvalidArgumentException('Invalid registration type: ' . $type);
+            }
+        }
+        return $this;
+    }
+
+    public function registerService(array $services): self
+    {
+        foreach ($services as $key => $service) {
+            $this->services[$key] = $service;
+        }
+        return $this;
+    }
+
+    public function registerParameter(array $parameters): self
+    {
+        foreach ($parameters as $key => $parameter) {
+            $this->parameters[$key] = $parameter;
+        }
+        return $this;
     }
 
     /**
