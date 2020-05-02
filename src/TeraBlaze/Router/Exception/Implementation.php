@@ -2,9 +2,9 @@
 
 namespace TeraBlaze\Router\Exception
 {
-    use TeraBlaze\Core as Core;
+    use TeraBlaze\Router\Exception\Exception;
     
-    class Implementation extends Core\Exception\Implementation
+    class Implementation extends Exception
     {
         
     }

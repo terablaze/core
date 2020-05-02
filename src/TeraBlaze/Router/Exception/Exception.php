@@ -3,7 +3,7 @@
 namespace TeraBlaze\Router\Exception
 {
     
-    class Argument extends \InvalidArgumentException
+    class Exception extends \Exception
     {
         
     }

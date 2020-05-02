@@ -2,9 +2,9 @@
 
 namespace TeraBlaze\Router\Exception
 {
-    use TeraBlaze\Router as Router;
+    use TeraBlaze\Router\Exception\Exception;
     
-    class Action extends Router\Exception
+    class Action extends Exception
     {
         
     }
