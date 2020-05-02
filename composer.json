@@ -14,7 +14,10 @@
     "php": "^7.2",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "psr/container": "^1.0@dev"
+    "psr/container": "^1.0@dev",
+    "nyholm/psr7": "^1.0@dev",
+    "nyholm/psr7-server": "dev-master",
+    "relay/relay": "2.x-dev"
   },
   "minimum-stability": "dev",
   "autoload": {
@@ -28,6 +31,5 @@
     }
   },
   "require-dev": {
-    "symfony/var-dumper": "^5.1@dev"
   }
 }
