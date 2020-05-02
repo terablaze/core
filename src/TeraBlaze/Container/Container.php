@@ -28,6 +28,11 @@ class Container implements ContainerInterface
     /**
      * @var array
      */
+    private $serviceAliases;
+
+    /**
+     * @var array
+     */
     private $parameters;
 
     /**
@@ -60,6 +65,36 @@ class Container implements ContainerInterface
         $this->services = $services;
         $this->parameters = $parameters;
         $this->serviceInstances = [];
+
+        foreach ($services as $key => $service) {
+            $this->setAliasInternally($key, $service);
+        }
+    }
+
+    /**
+     * @param string $key
+     * @param mixed[] $service
+     */
+    private function setAliasInternally(string $key, array $service): void
+    {
+        $alias = $service['alias'] ?? $service['class'];
+        $this->serviceAliases[$alias] = $key;
+    }
+
+    /**
+     * @param string $alias
+     * @param string $name
+     * @return Container
+     * @throws ServiceNotFoundException
+     */
+    public function setAlias(string $alias, string $name): self
+    {
+        if (!$this->has($name)) {
+            throw new ServiceNotFoundException('Setting alias for an unregistered service: ' . $name);
+        }
+        $this->serviceAliases[$alias] = $name;
+
+        return $this;
     }
 
     /**
@@ -82,13 +117,19 @@ class Container implements ContainerInterface
      */
     public function register(array $registrant): self
     {
-        foreach ($registrant as $type => $value) {
+        foreach ($registrant as $type => $values) {
             switch ($type) {
                 case 'service':
-                    $this->registerService($value);
+                case 'services':
+                    foreach ($values as $key => $value) {
+                        $this->registerService($key, $value);
+                    }
                     break;
                 case 'parameter':
-                    $this->registerParameter($value);
+                case 'parameters':
+                    foreach ($values as $key => $value) {
+                        $this->registerParameter($key, $value);
+                    }
                     break;
                 default:
                     throw new InvalidArgumentException('Invalid registration type: ' . $type);
@@ -97,19 +138,33 @@ class Container implements ContainerInterface
         return $this;
     }
 
-    public function registerService(array $services): self
+    /**
+     * @param string $key
+     * @param array $service
+     * @return Container
+     */
+    public function registerService(string $key, array $service): self
     {
-        foreach ($services as $key => $service) {
-            $this->services[$key] = $service;
-        }
+        $this->services[$key] = $service;
+        $this->setAliasInternally($key, $service);
         return $this;
     }
 
-    public function registerParameter(array $parameters): self
+    /**
+     * @param string $key
+     * @param mixed $parameter
+     * @return Container
+     */
+    public function registerParameter(string $key, $parameter): self
     {
-        foreach ($parameters as $key => $parameter) {
-            $this->parameters[$key] = $parameter;
+        if (array_key_exists($key, $this->parameters)) {
+            $newValue = (is_array($parameter)) ?
+                array_merge($this->parameters[$key], $parameter) :
+                array_merge($this->parameters[$key], [$parameter]);
+        } else {
+            $newValue = $parameter;
         }
+        $this->parameters[$key] = $newValue;
         return $this;
     }
 
