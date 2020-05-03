@@ -102,7 +102,7 @@ class Container implements ContainerInterface
      * @param array $parameters
      * @return Container
      */
-    public static function createContainer(array $services = [], array $parameters = []): self
+    public static function getContainer(array $services = [], array $parameters = []): self
     {
         if (empty(self::$instance)) {
             self::$instance = new self($services, $parameters);

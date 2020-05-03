@@ -51,7 +51,7 @@ $parameters = [
     ]
 ];
 
-$container = Container::createContainer($services, $parameters);
+$container = Container::getContainer($services, $parameters);
 
 $as = $container->get('service.anthony');
 dump($as);
