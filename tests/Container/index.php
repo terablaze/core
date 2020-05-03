@@ -7,8 +7,6 @@ ini_set('display_errors', 1);
 include_once __DIR__ . "/../../vendor/autoload.php";
 
 use TeraBlaze\Container\Container;
-use TeraBlaze\Container\Reference\ServiceReference;
-use TeraBlaze\Container\Reference\ParameterReference;
 use Tests\Container\BhutaniService;
 
 $services = [
