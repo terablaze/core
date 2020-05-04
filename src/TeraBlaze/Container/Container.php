@@ -152,6 +152,17 @@ class Container implements ContainerInterface
 
     /**
      * @param string $key
+     * @param object $service
+     * @return Container
+     */
+    public function registerServiceInstance(string $key, object $service): self
+    {
+        $this->serviceInstances[$key] = $service;
+        return $this;
+    }
+
+    /**
+     * @param string $key
      * @param mixed $parameter
      * @return Container
      */
