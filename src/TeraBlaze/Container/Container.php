@@ -190,7 +190,7 @@ class Container implements ContainerInterface
         }
 
         // If we haven't created it, create it and save to store
-        if (!isset($this->serviceInstances[$name])) {
+        if (!isset($this->serviceInstances[$name]) || !isset($this->serviceInstances[$this->serviceAliases[$name]])) {
             $this->serviceInstances[$name] = $this->createService($name);
         }
 
@@ -203,7 +203,7 @@ class Container implements ContainerInterface
      */
     public function has($name)
     {
-        return isset($this->services[$name]);
+        return isset($this->services[$name]) || isset($this->services[$this->serviceAliases[$name]]);
     }
 
     /**
