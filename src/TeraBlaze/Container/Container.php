@@ -189,8 +189,22 @@ class Container implements ContainerInterface
             throw new ServiceNotFoundException('Service not found: ' . $name);
         }
 
-        // If we haven't created it, create it and save to store
-        if (!isset($this->serviceInstances[$name]) || !isset($this->serviceInstances[$this->serviceAliases[$name]])) {
+        if (isset($this->serviceInstances[$name])) {
+            // Return service from store
+            return $this->serviceInstances[$name];
+        }
+
+        $resolvedAlias = $this->serviceAliases[$name] ?? null;
+
+        if (isset($this->serviceInstances[$resolvedAlias])) {
+            // Return service from store
+            return $this->serviceInstances[$resolvedAlias];
+        }
+
+        if (isset($this->services[$name])){
+            $this->serviceInstances[$name] = $this->createService($name);
+        } else {
+            $name = $resolvedAlias;
             $this->serviceInstances[$name] = $this->createService($name);
         }
 
