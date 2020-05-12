@@ -152,10 +152,10 @@ class Container implements ContainerInterface
 
     /**
      * @param string|object $key
-     * @param object $service
+     * @param object|null $service
      * @return Container
      */
-    public function registerServiceInstance($key, object $service): self
+    public function registerServiceInstance($key, object $service = null): self
     {
         if (is_object($key)) {
             $service = $key;
