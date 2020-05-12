@@ -157,6 +157,10 @@ class Container implements ContainerInterface
      */
     public function registerServiceInstance(string $key, object $service): self
     {
+        $class = [
+            'class' => get_class($service),
+        ];
+        $this->registerService($key, $class);
         $this->serviceInstances[$key] = $service;
         return $this;
     }
