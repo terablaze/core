@@ -151,12 +151,16 @@ class Container implements ContainerInterface
     }
 
     /**
-     * @param string $key
+     * @param string|object $key
      * @param object $service
      * @return Container
      */
-    public function registerServiceInstance(string $key, object $service): self
+    public function registerServiceInstance($key, object $service): self
     {
+        if (is_object($key)) {
+            $service = $key;
+            $key = get_class($key);
+        }
         $class = [
             'class' => get_class($service),
         ];
