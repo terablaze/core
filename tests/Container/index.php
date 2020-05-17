@@ -49,6 +49,8 @@ $parameters = [
     ]
 ];
 
+$date = new DateTime();
+
 $container = Container::getContainer($services, $parameters);
 
 $as = $container->get('service.anthony');
@@ -65,5 +67,7 @@ dump($pr);
 
 $pr = $container->getParameter('buthan.a1.a2.a3');
 dump($pr);
+
+$container->registerServiceInstance($date);
 
 dump($container);
