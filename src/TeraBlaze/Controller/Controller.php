@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -8,87 +9,140 @@
 
 namespace TeraBlaze\Controller;
 
-use TeraBlaze\Base as Base;
+use Nyholm\Psr7\Response;
+use Psr\Container\ContainerInterface;
+use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\Exception as Exception;
 use TeraBlaze\Events\Events;
 
+use function GuzzleHttp\json_encode;
+
 /**
  * Class Controller
- * @package TeraBlaze
+ * @package TeraBlaze\Controller
  */
-class Controller extends Base
+class Controller implements ControllerInterface
 {
-	/**
-	* @read
-	*/
-	protected $_name;
+    protected $_name;
 
-	/**
-	 * @readwrite
-	 */
-	protected $_parameters;
+    /**
+     * @readwrite
+     */
+    protected $_parameters;
 
-	/**
-	 * @return string
-	 */
-    protected function getName()
+    /**
+     * @var Container $frameworkContainer
+     */
+    protected $frameworkContainer;
+
+    public function setContainer(ContainerInterface $container): void
     {
-        if (empty($this->_name))
-        {
+        Events::fire("terablaze.controller.setContainer.before", array($this->getName()));
+
+        $this->frameworkContainer = $container;
+
+        Events::fire("terablaze.controller.setContainer.after", array($this->getName()));
+    }
+
+    public function getName(): string
+    {
+        if (empty($this->_name)) {
             $this->_name = get_class($this);
         }
         return $this->_name;
     }
 
-	/**
-	 * @param $method
-	 * @return Exception\Implementation
-	 */
-	protected function _getExceptionForImplementation($method)
-	{
-		return new Exception\Implementation("{$method} method not implemented");
-	}
+    /**
+     * @param $method
+     * @return Exception\Implementation
+     */
+    protected function _getExceptionForImplementation($method)
+    {
+        return new Exception\Implementation("{$method} method not implemented");
+    }
 
-	/**
-	 * @return Exception\Argument
-	 */
-	protected function _getExceptionForArgument()
-	{
-		return new Exception\Argument("Invalid argument");
-	}
+    /**
+     * @return Exception\Argument
+     */
+    protected function _getExceptionForArgument()
+    {
+        return new Exception\Argument("Invalid argument");
+    }
 
-	/**
-	 * Controller constructor.
-	 * @param array $options
-	 */
-	public function __construct($options = array())
-	{
-		Events::fire("terablaze.controller.construct.before", array($this->name));
+    /**
+     * Controller destructor
+     */
+    public function __destruct()
+    {
+        Events::fire("terablaze.controller.destruct.before", array($this->getName()));
 
-		parent::__construct($options);
+        //$this->render();
 
-		Events::fire("terablaze.controller.construct.after", array($this->name));
-	}
+        Events::fire("terablaze.controller.destruct.after", array($this->getName()));
+    }
 
-	/**
-	 * Controller destructor
-	 */
-	public function __destruct()
-	{
-		Events::fire("terablaze.controller.destruct.before", array($this->name));
+    public function has(string $key): bool
+    {
+        return $this->frameworkContainer->has($key);
+    }
 
-		//$this->render();
+    public function get(string $key): object
+    {
+        return $this->frameworkContainer->get($key);
+    }
 
-		Events::fire("terablaze.controller.destruct.after", array($this->name));
-	}
+    public function getParameter(string $key)
+    {
+        return $this->frameworkContainer->getParameter($key);
+    }
 
+    public function render($viewFile, $viewVars = array(), $responseCode = 200): Response
+    {
+        $content = $this->loadView($viewFile, $viewVars);
 
-	/**
-	 * serves as the default index method
-	 * in case it is not defined in inheriting controllers
-	 */
-	public function index()
-	{
+        return new Response($responseCode, [], $content);
+    }
 
-	}
+    public function renderJson($data, $responseCode = 200): Response
+    {
+        if (is_array($data) || is_object($data)) {
+            $data = json_encode($data);
+        }
+        return new Response($responseCode, [], $data);
+    }
+
+    public function loadView($viewFile, $viewVars = array()): string
+    {
+        Events::fire("terablaze.controller.view.load.before", array($viewFile, $viewVars));
+        $global = new static;
+        $string = "";
+
+        $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
+        $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
+        $viewFile = str_replace("::", "/views/", $viewFile);
+        $filename = $this->frameworkContainer->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
+
+        $viewVars = array_merge($viewVars, ['global' => $global]);
+
+        if (!file_exists($filename)) {
+            Events::fire("terablaze.controller.view.load.error", array($viewFile, $viewVars));
+            throw new Exception\Argument("Trying to Load Non Existing View: {$viewFile}");
+        }
+
+        ob_start();
+        extract($viewVars);
+        include $filename;
+        $string = ob_get_clean();
+        Events::fire("terablaze.controller.view.load.after", array($viewFile, $viewVars));
+
+        return $string;
+    }
+
+    /**
+     * serves as the default index method
+     * in case it is not defined in inheriting controllers
+     */
+    public function index()
+    {
+    }
 }

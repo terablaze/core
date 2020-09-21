@@ -8,8 +8,8 @@
 
 namespace TeraBlaze\Configuration\Driver;
 
-use InvalidArgumentException;
 use TeraBlaze\ArrayMethods as ArrayMethods;
+use TeraBlaze\Configuration\Driver\Driver;
 
 /**
  * Class PHPArray
@@ -22,21 +22,17 @@ use TeraBlaze\ArrayMethods as ArrayMethods;
 class PHPArray extends Driver
 {
 	/**
-	 * @param string $path
+	 * @param $path
 	 * @return \stdClass
 	 *
 	 * includes the php array configuration files
 	 * and creates an object from it's key/value pairs
 	 *
 	 */
-	public function parse(string $path)
+	public function parse($path)
 	{
-        if (empty($path))
-        {
-            throw new InvalidArgumentException("\$path argument is not valid");
-        }
-		$config = [];
-		include("{$path}.php");
+		$config = array();
+		include($this->container->get('app.kernel')->getProjectDir() . "/{$path}.php");
 		return ArrayMethods::toObject($config);
 	}
 }

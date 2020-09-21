@@ -1,9 +1,8 @@
 <?php
 
-namespace TeraBlaze\Core
-{
-    class Exception extends \Exception
-    {
-
-    }
+namespace TeraBlaze\Core {
+	class Exception extends \Exception
+	{
+	
+	}
 }

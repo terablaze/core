@@ -17,7 +17,7 @@ namespace TeraBlaze;
 class Registry
 {
 	private static $_instances = array();
-
+	
 	/**
 	 * Registry constructor.
 	 *
@@ -27,15 +27,7 @@ class Registry
 	{
 		// do nothing
 	}
-
-	/**
-	 * helps to prevent the creation of a Registry clone
-	 */
-	private function __clone()
-	{
-		// do nothing
-	}
-
+	
 	/**
 	 * @param $key
 	 * @param null $default
@@ -45,13 +37,12 @@ class Registry
 	 */
 	public static function get($key, $default = null)
 	{
-		if (isset(self::$_instances[$key]))
-		{
+		if (isset(self::$_instances[$key])) {
 			return self::$_instances[$key];
 		}
 		return $default;
 	}
-
+	
 	/**
 	 * @param $key
 	 * @param null $instance
@@ -62,7 +53,7 @@ class Registry
 	{
 		self::$_instances[$key] = $instance;
 	}
-
+	
 	/**
 	 * @param $key
 	 *
@@ -72,13 +63,22 @@ class Registry
 	{
 		unset(self::$_instances[$key]);
 	}
-
+	
 	/**
 	 * gets all the stored instances
 	 */
-	public static function getInstances(){
+	public static function getInstances()
+	{
 		foreach (self::$_instances as $key => $item) {
-			echo "\n" . $key . " = " . get_class($item)."\n";
+			echo "\n" . $key . " = " . get_class($item) . "\n";
 		}
+	}
+	
+	/**
+	 * helps to prevent the creation of a Registry clone
+	 */
+	private function __clone()
+	{
+		// do nothing
 	}
 }

@@ -17,7 +17,7 @@ namespace TeraBlaze;
 class StringMethods
 {
 	private static $_delimiter = "#";
-
+	
 	private static $_singular = array(
 		"(matr)ices$" => "\\1ix",
 		"(vert|ind)ices$" => "\\1ex",
@@ -47,7 +47,7 @@ class StringMethods
 		"(n)ews$" => "\\1\\2ews",
 		"([^u])s$" => "\\1"
 	);
-
+	
 	private static $_plural = array(
 		"^(ox)$" => "\\1\\2en",
 		"([m|l])ouse$" => "\\1ice",
@@ -69,7 +69,7 @@ class StringMethods
 		"s$" => "s",
 		"$" => "s"
 	);
-
+	
 	/**
 	 * StringMethods constructor.
 	 * helps to prevent the creation of a StringMethods instance
@@ -78,24 +78,7 @@ class StringMethods
 	{
 		// do nothing
 	}
-
-	/**
-	 * helps to prevent the creation of a StringMethods clone
-	 */
-	private function __clone()
-	{
-		// do nothing
-	}
-
-	/**
-	 * @param $pattern
-	 * @return string
-	 */
-	private static function _normalize($pattern)
-	{
-		return self::$_delimiter . trim($pattern, self::$_delimiter) . self::$_delimiter;
-	}
-
+	
 	/**
 	 * @return string
 	 */
@@ -103,7 +86,7 @@ class StringMethods
 	{
 		return self::$_delimiter;
 	}
-
+	
 	/**
 	 * @param $delimiter
 	 */
@@ -111,7 +94,7 @@ class StringMethods
 	{
 		self::$_delimiter = $delimiter;
 	}
-
+	
 	/**
 	 * @param $string
 	 * @param $pattern
@@ -120,18 +103,27 @@ class StringMethods
 	public static function match($string, $pattern)
 	{
 		preg_match_all(self::_normalize($pattern), $string, $matches, PREG_PATTERN_ORDER);
-
+		
 		if (!empty($matches[1])) {
 			return (array)$matches[1];
 		}
-
+		
 		if (!empty($matches[0])) {
 			return (array)$matches[0];
 		}
-
+		
 		return (array)null;
 	}
-
+	
+	/**
+	 * @param $pattern
+	 * @return string
+	 */
+	private static function _normalize($pattern)
+	{
+		return self::$_delimiter . trim($pattern, self::$_delimiter) . self::$_delimiter;
+	}
+	
 	/**
 	 * @param $string
 	 * @param $pattern
@@ -143,7 +135,7 @@ class StringMethods
 		$flags = PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE;
 		return preg_split(self::_normalize($pattern), $string, $limit, $flags);
 	}
-
+	
 	/**
 	 * @param $string
 	 * @param $mask
@@ -158,7 +150,7 @@ class StringMethods
 		} else {
 			return $string;
 		}
-
+		
 		foreach ($parts as $part) {
 			$normalized = self::_normalize("\\{$part}");
 			$string = preg_replace(
@@ -167,10 +159,10 @@ class StringMethods
 				$string
 			);
 		}
-
+		
 		return $string;
 	}
-
+	
 	/**
 	 * @param $string
 	 * @return string
@@ -179,16 +171,16 @@ class StringMethods
 	{
 		$unique = "";
 		$parts = str_split($string);
-
+		
 		foreach ($parts as $part) {
 			if (!strstr($unique, $part)) {
 				$unique .= $part;
 			}
 		}
-
+		
 		return $unique;
 	}
-
+	
 	/**
 	 * @param $string
 	 * @param $substring
@@ -203,7 +195,7 @@ class StringMethods
 		}
 		return $position;
 	}
-
+	
 	/**
 	 * @param $string
 	 * @return mixed
@@ -213,19 +205,19 @@ class StringMethods
 	public static function singular($string)
 	{
 		$result = $string;
-
+		
 		foreach (self::$_singular as $rule => $replacement) {
 			$rule = self::_normalize($rule);
-
+			
 			if (preg_match($rule, $string)) {
 				$result = preg_replace($rule, $replacement, $string);
 				break;
 			}
 		}
-
+		
 		return $result;
 	}
-
+	
 	/**
 	 * @param $string
 	 * @return mixed
@@ -235,18 +227,26 @@ class StringMethods
 	public static function plural($string)
 	{
 		$result = $string;
-
+		
 		foreach (self::$_plural as $rule => $replacement) {
 			$rule = self::_normalize($rule);
-
+			
 			if (preg_match($rule, $string)) {
 				$result = preg_replace($rule, $replacement, $string);
 				break;
 			}
 		}
-
+		
 		return $result;
 	}
-
+	
+	/**
+	 * helps to prevent the creation of a StringMethods clone
+	 */
+	private function __clone()
+	{
+		// do nothing
+	}
+	
 }
 

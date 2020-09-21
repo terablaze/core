@@ -2,13 +2,24 @@
 
 namespace TeraBlaze\Configuration\Driver;
 
+use TeraBlaze\Base as Base;
+use TeraBlaze\Configuration\Exception as Exception;
+use TeraBlaze\Container\Container;
+
 /**
- * Abstract Class Driver
- * @package TeraBlaze\Configuration\Driver
+ * Class Driver
+ * @package TeraBlaze\Configuration
  */
 abstract class Driver
 {
-    protected $_parsed = array();
-
-    abstract protected function parse(string $path);
+	protected $container;
+	
+	/**
+	 * Base constructor.
+	 * @param array $options
+	 */
+	public function __construct()
+	{
+		$this->container = Container::getContainer();
+	}
 }

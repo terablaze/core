@@ -1,11 +1,9 @@
 <?php
 
-namespace TeraBlaze\Configuration\Exception
+namespace TeraBlaze\Configuration\Exception;
+
+use TeraBlaze\Configuration\Exception;
+
+class Syntax extends Exception
 {
-    use TeraBlaze\Configuration as Configuration;
-    
-    class Syntax extends Configuration\Exception
-    {
-        
-    }
 }

@@ -6,28 +6,26 @@
  * Time: 11:56 PM
  */
 
-if(!function_exists('random_string')) {
+if (!function_exists('random_string')) {
 	/**
 	 * Create a Random String
 	 *
 	 * Useful for generating passwords or hashes.
 	 *
-	 * @param	string  type of random string.  basic, alpha, alnum, numeric, nozero, md5 and sha1
-	 * @param	int	number of characters
-	 * @return	string
+	 * @param    string  type of random string.  basic, alpha, alnum, numeric, nozero, md5 and sha1
+	 * @param    int    number of characters
+	 * @return    string
 	 */
 	function random_string($type = 'alnum', $len = 8)
 	{
-		switch ($type)
-		{
+		switch ($type) {
 			case 'basic':
 				return mt_rand();
 			case 'alnum':
 			case 'numeric':
 			case 'nozero':
 			case 'alpha':
-				switch ($type)
-				{
+				switch ($type) {
 					case 'alpha':
 						$pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 						break;

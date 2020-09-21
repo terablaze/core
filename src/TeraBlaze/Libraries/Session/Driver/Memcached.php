@@ -8,22 +8,19 @@
 
 namespace TeraBlaze\Libraries\Session\Driver;
 
+use TeraBlaze\Libraries\Session as Session;
+
 /**
  * Class Server
  * @package TeraBlaze\Libraries\Session\Driver
  */
-class Memcached extends Driver
+class Memcached extends Session\Driver
 {
 	/**
 	 * @readwrite
 	 */
-	protected $_host;
-
-	/**
-	 * @readwrite
-	 */
-	protected $_port;
-
+	protected $_savePath;
+	
 	/**
 	 * @readwrite
 	 */
@@ -33,87 +30,84 @@ class Memcached extends Driver
 	 * @readwrite
 	 */
 	protected $_type;
-
+	
 	/**
 	 * @readwrite
 	 */
 	protected $_duration;
-
-
+	
+	
 	// TODO: Add support for multiple servers
 	public function __construct($options = array())
 	{
 		parent::__construct($options);
 		switch ($this->_type) {
 			case 'memcached':
-				$session_save_path = "$this->_host:$this->_port?persistent=1&weight=2&timeout=2&retry_interval=10";
 				ini_set('session.save_handler', 'memcached');
 				break;
 			case 'memcache':
-				$session_save_path = "tcp://$this->_host:$this->_port?persistent=1&weight=2&timeout=2&retry_interval=10";
 				ini_set('session.save_handler', 'memcache');
 				break;
 			default:
-				$session_save_path = "$this->_host:$this->_port?persistent=1&weight=2&timeout=2&retry_interval=10";
 				ini_set('session.save_handler', 'memcached');
-
+			
 		}
-		ini_set('session.save_path', $session_save_path);
+
+        ini_set('session.save_path', $this->_savePath);
+
 		$TBMemcachedSessionHandler = new Memcached\TBMemcachedSessionHandler();
 		session_set_save_handler($TBMemcachedSessionHandler);
 		@session_start();
 	}
-
+	
 	public function get($key, $default = NULL)
 	{
-		if (isset($_SESSION[$this->prefix.$key]))
-		{
-			return $_SESSION[$this->prefix.$key];
+		if (isset($_SESSION[$this->_prefix . $key])) {
+			return $_SESSION[$this->_prefix . $key];
 		}
-
+		
 		return $default;
 	}
-
+	
 	public function set($key, $value = NULL)
 	{
-		if(is_array($key)){
-			foreach ($key as $new_key => $new_value){
+		if (is_array($key)) {
+			foreach ($key as $new_key => $new_value) {
 				$this->set($new_key, $new_value);
 			}
-		}else {
-			$_SESSION[$this->prefix . $key] = $value;
+		} else {
+			$_SESSION[$this->_prefix . $key] = $value;
 		}
 		return $this;
 	}
-
-
+	
+	
 	public function get_flash($key, $default = NULL)
 	{
-		if (isset($_SESSION["TB_flash_".$this->prefix.$key]))
-		{
-			$flash_data = $_SESSION["TB_flash_".$this->prefix.$key];
-			unset($_SESSION["TB_flash_".$this->prefix.$key]);
+		if (isset($_SESSION["TB_flash_" . $this->_prefix . $key])) {
+			$flash_data = $_SESSION["TB_flash_" . $this->_prefix . $key];
+			unset($_SESSION["TB_flash_" . $this->_prefix . $key]);
 			return $flash_data;
 		}
-
+		
 		return $default;
 	}
-
+	
 	public function set_flash($key, $value = NULL)
 	{
-		if(is_array($key)){
-			foreach ($key as $new_key => $new_value){
+		if (is_array($key)) {
+			foreach ($key as $new_key => $new_value) {
 				$this->set_flash($new_key, $new_value);
 			}
-		}else {
-			$_SESSION["TB_flash_".$this->prefix . $key] = $value;
+		} else {
+			$_SESSION["TB_flash_" . $this->_prefix . $key] = $value;
 		}
 		return $this;
 	}
-
+	
 	public function erase($key)
 	{
-		unset($_SESSION[$this->prefix.$key]);
+		unset($_SESSION[$this->_prefix . $key]);
 		return $this;
 	}
 }

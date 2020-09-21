@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -19,228 +20,245 @@ use TeraBlaze\StringMethods as StringMethods;
  */
 class Inspector
 {
-	protected $_class;
+    protected $_class;
 
-	protected $_meta = array(
-		"class" => array(),
-		"properties" => array(),
-		"methods" => array()
-	);
+    protected $_meta = array(
+        "class" => array(),
+        "properties" => array(),
+        "methods" => array()
+    );
 
-	protected $_properties = array();
-	protected $_methods = array();
-
-	/**
-	 * Inspector constructor.
-	 * @param $class
-	 */
-	public function __construct($class)
-	{
-		$this->_class = $class;
-	}
+    protected $_properties = array();
+    protected $_methods = array();
 
     /**
-     * @return string
-     *
-     * gets the comments of a class
-     * @throws \ReflectionException
+     * Inspector constructor.
+     * @param $class
      */
-	protected function _getClassComment()
-	{
-		$reflection = new \ReflectionClass($this->_class);
-		return $reflection->getDocComment();
-	}
+    public function __construct($class)
+    {
+        $this->_class = $class;
+    }
 
-    /**
-     * @return \ReflectionProperty[]
-     *
-     * gets the properties of a class
-     * @throws \ReflectionException
-     */
-	protected function _getClassProperties()
-	{
-		$reflection = new \ReflectionClass($this->_class);
-		return $reflection->getProperties();
-	}
-
-    /**
-     * @return \ReflectionMethod[]
-     *
-     * gets the methods of a class
-     * @throws \ReflectionException
-     */
-	protected function _getClassMethods()
-	{
-		$reflection = new \ReflectionClass($this->_class);
-		return $reflection->getMethods();
-	}
-
-    /**
-     * @param $property
-     * @return string
-     *
-     * gets the comments of a property
-     * @throws \ReflectionException
-     */
-	protected function _getPropertyComment($property)
-	{
-		$reflection = new \ReflectionProperty($this->_class, $property);
-		return $reflection->getDocComment();
-	}
-
-	/**
-	 * @param $method
-	 * @return string
-	 *
-	 * gets the comments of a method
-     * @throws \ReflectionException
-	 */
-	protected function _getMethodComment($method)
-	{
-		$reflection = new \ReflectionMethod($this->_class, $method);
-		return $reflection->getDocComment();
-	}
-
-	/**
-	 * @param $comment
-	 * @return array
-	 *
-	 * detects and passing the metas in a DocComment for further processing
-	 */
-	protected function _parse($comment)
-	{
-		$meta = array();
-		$pattern = "(@[a-zA-Z]+\s*[a-zA-Z0-9, ()_]*)";
-		$matches = StringMethods::match($comment, $pattern);
-
-		if ($matches != null) {
-			foreach ($matches as $match) {
-				$parts = ArrayMethods::clean(
-					ArrayMethods::trim(
-						StringMethods::split($match, "[\s]", 2)
-					)
-				);
-
-				$meta[$parts[0]] = true;
-
-				if (sizeof($parts) > 1) {
-					$meta[$parts[0]] = ArrayMethods::clean(
-						ArrayMethods::trim(
-							StringMethods::split($parts[1], ",")
-						)
-					);
-				}
-			}
-		}
-
-		return $meta;
-	}
+    public function getClassName(): string
+    {
+        $reflection = new \ReflectionClass($this->_class);
+        return $reflection->getShortName();
+    }
 
     /**
      * @return array|null
      *
      * gets the metas in the DocComment of a class
      * by wrapping around the _getClassComment() method
-     * @throws \ReflectionException
      */
-	public function getClassMeta()
-	{
-		if (!isset($_meta["class"])) {
-			$comment = $this->_getClassComment();
+    public function getClassMeta()
+    {
+        if (!isset($_meta["class"])) {
+            $comment = $this->_getClassComment();
 
-			if (!empty($comment)) {
-				$_meta["class"] = $this->_parse($comment);
-			} else {
-				$_meta["class"] = null;
-			}
-		}
+            if (!empty($comment)) {
+                $_meta["class"] = $this->_parse($comment);
+            } else {
+                $_meta["class"] = null;
+            }
+        }
 
-		return $_meta["class"];
-	}
+        return $_meta["class"];
+    }
 
-	/**
-	 * @return array
-	 *
-	 * gets the properties of a class
-	 * by wrapping around the _getClassProperties() method
-     * @throws \ReflectionException
-	 */
-	public function getClassProperties()
-	{
-		if (!isset($_properties)) {
-			$properties = $this->_getClassProperties();
+    /**
+     * @return string
+     *
+     * gets the comments of a class
+     */
+    protected function _getClassComment()
+    {
+        $reflection = new \ReflectionClass($this->_class);
+        return $reflection->getDocComment();
+    }
 
-			foreach ($properties as $property) {
-				$_properties[] = $property->getName();
-			}
-		}
+    /**
+     * @param $comment
+     * @return array
+     *
+     * detects and passing the metas in a DocComment for further processing
+     */
+    protected function _parse($comment)
+    {
+        $meta = array();
+        $pattern = "(@[\w]+[\w\"'@,.:;\\\\\/`= ()_\s]*)";
+        $matches = StringMethods::match($comment, $pattern);
 
-		return $_properties;
-	}
+        if ($matches != null) {
+            foreach ($matches as $match) {
+                $parts = ArrayMethods::clean(
+                    ArrayMethods::trim(
+                        StringMethods::split($match, "[\s([{=]", 2)
+                    )
+                );
 
-	/**
-	 * @return array
-	 *
-	 * gets the methods of a class
-	 * by wrapping around the _getClassMethods() method
-     * @throws \ReflectionException
-	 */
-	public function getClassMethods()
-	{
-		if (!isset($_methods)) {
-			$methods = $this->_getClassMethods();
+                $meta[$parts[0]] = true;
 
-			foreach ($methods as $method) {
-				$_methods[] = $method->getName();
-			}
-		}
+                if (sizeof($parts) > 1) {
+                    $meta[$parts[0]] = ArrayMethods::clean(
+                        ArrayMethods::trim(
+                            StringMethods::split($parts[1], "[,;]")
+                        )
+                    );
+                }
 
-		return $_methods;
-	}
+                if (is_array($meta[$parts[0]]) && !empty($meta[$parts[0]])) {
+                    $tempMeta = $meta[$parts[0]];
+                    $counter = 0;
+                    foreach ($tempMeta as $part) {
+                        if (count(StringMethods::split($part, "=")) == 2) {
+                            unset($meta[$parts[0]][$counter]);
+                            $tempParts = ArrayMethods::clean(
+                                ArrayMethods::trim(
+                                    StringMethods::split($part, "=")
+                                )
+                            );
+                            $value = $tempParts[1];
+                            if (count($tempMeta) - 1 == $counter) {
+                                $value = mb_substr($value, 0, -1);
+                            }
+                            $meta[$parts[0]][$tempParts[0]] = trim($value, " \t\n\r\0\x0B\"");
+                        }
+                        $counter++;
+                    }
+                }
+            }
+        }
 
-	/**
-	 * @param $property
-	 * @return mixed
-	 *
-	 * gets the metas in the DocComment of a property
-	 * by wrapping around the _getPropertyComment() method
-     * @throws \ReflectionException
-	 */
-	public function getPropertyMeta($property)
-	{
-		if (!isset($_meta["properties"][$property])) {
-			$comment = $this->_getPropertyComment($property);
+        return $meta;
+    }
 
-			if (!empty($comment)) {
-				$_meta["properties"][$property] = $this->_parse($comment);
-			} else {
-				$_meta["properties"][$property] = null;
-			}
-		}
+    /**
+     * gets the properties of a class
+     * by wrapping around the _getClassProperties() method
+     * 
+     * @return array
+     */
+    public function getClassProperties()
+    {
+        if (!isset($_properties)) {
+            $properties = $this->_getClassProperties();
 
-		return $_meta["properties"][$property];
-	}
+            foreach ($properties as $property) {
+                $_properties[] = $property->getName();
+            }
+        }
 
-	/**
-	 * @param $method
-	 * @return mixed
-	 *
-	 * gets the metas in the DocComment of a method
-	 * by wrapping around the _getMethodComment() method
-     * @throws \ReflectionException
-	 */
-	public function getMethodMeta($method)
-	{
-		if (!isset($_meta["actions"][$method])) {
-			$comment = $this->_getMethodComment($method);
+        return $_properties;
+    }
 
-			if (!empty($comment)) {
-				$_meta["methods"][$method] = $this->_parse($comment);
-			} else {
-				$_meta["methods"][$method] = null;
-			}
-		}
+    /**
+     * @return \ReflectionProperty[]
+     *
+     * gets the properties of a class
+     */
+    protected function _getClassProperties()
+    {
+        $reflection = new \ReflectionClass($this->_class);
+        return $reflection->getProperties();
+    }
 
-		return $_meta["methods"][$method];
-	}
+    /**
+     * @return array
+     *
+     * gets the methods of a class
+     * by wrapping around the _getClassMethods() method
+     */
+    public function getClassMethods()
+    {
+        if (!isset($_methods)) {
+            $methods = $this->_getClassMethods();
+
+            foreach ($methods as $method) {
+                $_methods[] = $method->getName();
+            }
+        }
+
+        return $_methods;
+    }
+
+    /**
+     * @return \ReflectionMethod[]
+     *
+     * gets the methods of a class
+     */
+    protected function _getClassMethods()
+    {
+        $reflection = new \ReflectionClass($this->_class);
+        return $reflection->getMethods();
+    }
+
+    /**
+     * @param $property
+     * @return mixed
+     *
+     * gets the metas in the DocComment of a property
+     * by wrapping around the _getPropertyComment() method
+     */
+    public function getPropertyMeta($property)
+    {
+        if (!isset($_meta["properties"][$property])) {
+            $comment = $this->_getPropertyComment($property);
+
+            if (!empty($comment)) {
+                $_meta["properties"][$property] = $this->_parse($comment);
+            } else {
+                $_meta["properties"][$property] = null;
+            }
+        }
+
+        return $_meta["properties"][$property];
+    }
+
+    /**
+     * @param $property
+     * @return string
+     *
+     * gets the comments of a property
+     */
+    protected function _getPropertyComment($property)
+    {
+        $reflection = new \ReflectionProperty($this->_class, $property);
+        return $reflection->getDocComment();
+    }
+
+    /**
+     * @param $method
+     * @return mixed
+     *
+     * gets the metas in the DocComment of a method
+     * by wrapping around the _getMethodComment() method
+     */
+    public function getMethodMeta($method)
+    {
+        if (!isset($_meta["actions"][$method])) {
+            $comment = $this->_getMethodComment($method);
+
+            if (!empty($comment)) {
+                $_meta["methods"][$method] = $this->_parse($comment);
+            } else {
+                $_meta["methods"][$method] = null;
+            }
+        }
+
+        return $_meta["methods"][$method];
+    }
+
+    /**
+     * @param $method
+     * @return string
+     *
+     * gets the comments of a method
+     */
+    protected function _getMethodComment($method)
+    {
+        $reflection = new \ReflectionMethod($this->_class, $method);
+        return $reflection->getDocComment();
+    }
 }

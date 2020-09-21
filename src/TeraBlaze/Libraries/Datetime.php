@@ -16,15 +16,15 @@ namespace TeraBlaze\Libraries;
  */
 class Datetime
 {
-	public function timeElapsedString($datetime, $full = false) {
-		$now = new \DateTime;
-		$ago = new \DateTime($datetime);
-		/** @var \DateInterval $diff */
+	public function time_elapsed_string($datetime, $full = false)
+	{
+		$now = new DateTime;
+		$ago = new DateTime($datetime);
 		$diff = $now->diff($ago);
-
+		
 		$diff->w = floor($diff->d / 7);
 		$diff->d -= $diff->w * 7;
-
+		
 		$string = array(
 			'y' => 'year',
 			'm' => 'month',
@@ -41,7 +41,7 @@ class Datetime
 				unset($string[$k]);
 			}
 		}
-
+		
 		if (!$full) $string = array_slice($string, 0, 1);
 		return $string ? implode(', ', $string) . ' ago' : 'just now';
 	}

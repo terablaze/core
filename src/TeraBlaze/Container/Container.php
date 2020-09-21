@@ -66,6 +66,8 @@ class Container implements ContainerInterface
         $this->parameters = $parameters;
         $this->serviceInstances = [];
 
+        $this->registerServiceInstance('terablaze.container', $this);
+
         foreach ($services as $key => $service) {
             $this->setAliasInternally($key, $service);
         }
@@ -243,11 +245,12 @@ class Container implements ContainerInterface
                 if (!isset($context[$token])) {
                     throw new ParameterNotFoundException('Parameter not found: ' . $name);
                 }
-
                 $context = $context[$token];
             }
 
-            if (self::isParameter($context)) {
+            if (!is_string($context)) {
+                // TODO: Resolve parameters
+            } elseif (self::isParameter($context)) {
                 $context = $this->getParameter(self::cleanParameterReference($context));
             }
 

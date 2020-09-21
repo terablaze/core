@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -8,62 +9,65 @@
 
 namespace TeraBlaze\Configuration;
 
-use InvalidArgumentException;
+use TeraBlaze\Configuration\Exception as Exception;
 use TeraBlaze\Events\Events;
-use TeraBlaze\Configuration\Driver\Ini;
-use TeraBlaze\Configuration\Driver\PHPArray;
+
 /**
  * Class Configuration
- * @package TeraBlaze\Configuration
+ * @package TeraBlaze
  *
  * loads the configuration to be used by the entire application
  */
 class Configuration
 {
-    /** @var string $type */
-    protected $type;
+	protected $type;
 
-    /**
-     * @var
-     */
-    protected $options;
+	protected $options;
 
-    public function __construct(string $type)
-    {
-        $this->type = $type;
-    }
+	public function __construct(string $type)
+	{
+		$this->type = $type;
+	}
 
-    /**
-     * @return Ini|PHPArray
-     */
-    public function initialize()
-    {
-        Events::fire("terablaze.configuration.initialize.before", array($this->type, $this->options));
+	/**
+	 * @return Configuration\Driver\Ini|Configuration\Driver\PHPArray
+	 * @throws Exception\Argument
+	 */
+	public function initialize()
+	{
+		Events::fire("terablaze.configuration.initialize.before", array($this->type, $this->options));
 
-        if (!$this->type) {
-            throw new InvalidArgumentException("Configuration type not supplied");
-        }
+		if (!$this->type) {
+			throw new Exception\Argument("Configuration type not supplied");
+		}
 
-        Events::fire("terablaze.configuration.initialize.after", array($this->type, $this->options));
+		Events::fire("terablaze.configuration.initialize.after", array($this->type, $this->options));
 
-        switch (strtolower($this->type)) {
-            case "ini":
-            {
-                return new Ini($this->options);
-                break;
-            }
-            case "php_array":
-            case "phparray":
-            case "php-array":
-            {
-                return new PHPArray($this->options);
-                break;
-            }
-            default:
-            {
-                throw new InvalidArgumentException("Invalid type");
-                break;
-            }
-        }
-    }
+		switch ($this->type) {
+			case "ini": {
+					return new Driver\Ini($this->options);
+					break;
+				}
+			case "PhpArray":
+			case "PHPArray":
+			case "php_array":
+			case "phparray": {
+					return new Driver\PHPArray($this->options);
+					break;
+				}
+			default: {
+					throw new Exception\Argument("Invalid type");
+					break;
+				}
+		}
+	}
+
+	/**
+	 * @param $method
+	 * @return Exception\Implementation
+	 */
+	protected function _getExceptionForImplementation($method)
+	{
+		return new Exception\Implementation("{$method} method not implemented");
+	}
 }

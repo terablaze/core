@@ -25,29 +25,28 @@ class Input extends Base
 	 */
 	public function get($key, $default = "")
 	{
-		if (!empty($_GET[$key]))
-		{
+		if (!empty($_GET[$key])) {
 			return $_GET[$key];
 		}
 		return $default;
 	}
-
+	
 	/**
+	 * accesses the $_POST superglobal
+	 *
 	 * @param $key
 	 * @param string $default
 	 * @return string
 	 *
-	 * accesses the $_POST superglobal
 	 */
 	public function post($key, $default = "")
 	{
-		if (!empty($_POST[$key]))
-		{
+		if (!empty($_POST[$key])) {
 			return $_POST[$key];
 		}
 		return $default;
 	}
-
+	
 	/**
 	 * @param $key
 	 * @param string $default
@@ -57,13 +56,12 @@ class Input extends Base
 	 */
 	public function files($key, $default = "")
 	{
-		if (!empty($_FILES[$key]))
-		{
+		if (!empty($_FILES[$key])) {
 			return $_FILES[$key];
 		}
 		return $default;
 	}
-
+	
 	/**
 	 * @param $key
 	 * @param string $default
@@ -73,13 +71,12 @@ class Input extends Base
 	 */
 	public function server($key, $default = "")
 	{
-		if (!empty($_SERVER[$key]))
-		{
+		if (!empty($_SERVER[$key])) {
 			return $_SERVER[$key];
 		}
 		return $default;
 	}
-
+	
 	/**
 	 * @param $key
 	 * @param string $default
@@ -89,8 +86,7 @@ class Input extends Base
 	 */
 	public function cookie($key, $default = "")
 	{
-		if (!empty($_COOKIE[$key]))
-		{
+		if (!empty($_COOKIE[$key])) {
 			return $_COOKIE[$key];
 		}
 		return $default;

@@ -1,4 +1,8 @@
 <?php
+
+use Symfony\Component\VarDumper\VarDumper;
+use TeraBlaze\Container\Container;
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -62,6 +66,14 @@ function make_dir($dir, $recursive = TRUE){
 	}
 }
 
+function makeDir($dir, $recursive = TRUE, $permissions = 0777){
+	if (!is_dir($dir)) {
+		return mkdir($dir, $permissions, $recursive);
+	} else {
+		return $dir;
+	}
+}
+
 function time_elapsed_string($datetime, $full = false){
 	$now = new \DateTime;
 	$ago = new \DateTime($datetime);
@@ -118,7 +130,8 @@ function slug($text){
 }
 
 function get_config($key){
-	global $config;
+	$container = Container::getContainer();
+	$config = $container->getParameter('config');
 	return $config->$key;
 }
 
@@ -198,14 +211,25 @@ if ( ! function_exists('log_error')){
 			echo ('<code style="color: #FF0000">An error occurred.</code>');
 		}
 		if($tofile) {
-			if (!is_dir(APPLICATION_DIR . 'logs/errors')) {
-				mkdir(APPLICATION_DIR . 'logs/errors/', 0777, true);
+			if (!is_dir(APP_DIR . 'logs/errors')) {
+				mkdir(APP_DIR . 'logs/errors/', 0777, true);
 			}
-			file_put_contents(APPLICATION_DIR . 'logs/errors/' . date("Y-F-d") . ".log", $message."\n\n", FILE_APPEND);
+			file_put_contents(APP_DIR . 'logs/errors/' . date("Y-F-d") . ".log", $message."\n\n", FILE_APPEND);
 		}
 	}
 }
 
-if(file_exists(APPLICATION_DIR.'configuration/functions.php')) {
-	include_once APPLICATION_DIR . 'configuration/functions.php';
+if(file_exists(dirname(dirname(APP_DIR)) . '/config/functions.php')) {
+	include_once dirname(dirname(APP_DIR)) . '/config/functions.php';
+}
+
+if (!function_exists('dd')) {
+    function dd(...$vars)
+    {
+        foreach ($vars as $v) {
+            VarDumper::dump($v);
+        }
+
+        exit(1);
+    }
 }
