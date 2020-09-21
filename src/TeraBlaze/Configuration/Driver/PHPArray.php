@@ -31,8 +31,7 @@ class PHPArray extends Driver
 	 */
 	public function parse($path)
 	{
-		$config = array();
-		include($this->container->get('app.kernel')->getProjectDir() . "/{$path}.php");
+		$config = include($this->container->get('app.kernel')->getProjectDir() . "/{$path}.php");
 		return ArrayMethods::toObject($config);
 	}
 }

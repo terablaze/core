@@ -3,6 +3,7 @@
 namespace TeraBlaze\Ripana;
 
 use Psr\Container\ContainerInterface;
+use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
@@ -28,6 +29,7 @@ class RipanaParcel extends Parcel implements ParcelInterface
     public function build(ContainerInterface $container)
     {
         $this->container = $container;
+        /** @var Configuration $configuration */
         $configuration = $this->container->get('configuration');
 
         if ($configuration) {
