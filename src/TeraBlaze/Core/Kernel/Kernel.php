@@ -62,6 +62,7 @@ abstract class Kernel implements KernelInterface
 
         $this->registerMiddlewares();
         $this->registerParcels();
+        include_once($this->getProjectDir() . '/config/functions.php');
 
         $this->booted = true;
     }
