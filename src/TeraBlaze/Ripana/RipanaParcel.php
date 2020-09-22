@@ -36,11 +36,11 @@ class RipanaParcel extends Parcel implements ParcelInterface
             $configuration = $configuration->initialize();
             $parsed = $configuration->parse("config/database");
 
-            foreach ($parsed->database as $key => $conf) {
-                if (!empty($parsed->database->{$key}) && !empty($parsed->database->{$key}->type)) {
-                    $this->type = $parsed->database->{$key}->type;
-                    //unset($parsed->database->{$conf}->type);
-                    $this->options = (array)$parsed->database->{$key};
+            foreach ($parsed as $key => $conf) {
+                if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {
+                    $this->type = $parsed->{$key}->type;
+                    //unset($parsed->{$conf}->type);
+                    $this->options = (array)$parsed->{$key};
                     $this->initialize($key);
                 }
             }
@@ -50,23 +50,16 @@ class RipanaParcel extends Parcel implements ParcelInterface
     public function initialize(string $dbConf = "default")
     {
         Events::fire("terablaze.ripana.database.initialize.before", array($this->type, $this->options));
+        $connectionName = "ripana.database.{$dbConf}";
 
         if (!$this->type) {
             throw new Argument("Invalid type");
         }
 
-        Events::fire("terablaze.ripana.database.initialize.after", array($this->type, $this->options));
-
         switch ($this->type) {
             case "mysql":
             case "mysqli": {
-                    $db = new Mysql($this->options);
-                    $this->container->registerServiceInstance(get_config('app_id') . '_db_' . $dbConf, $db);
-                    $this->container->setAlias('database.connector.' . $dbConf, get_config('app_id') . '_db_' . $dbConf);
-                    $this->container->setAlias('database_connector_' . $dbConf, get_config('app_id') . '_db_' . $dbConf);
-                    $this->container->setAlias('database.' . $dbConf, get_config('app_id') . '_db_' . $dbConf);
-                    $this->container->setAlias('database_' . $dbConf, get_config('app_id') . '_db_' . $dbConf);
-                    return $db;
+                    $this->container->registerServiceInstance($connectionName, new Mysql($this->options));
                     break;
                 }
             default: {
@@ -74,5 +67,6 @@ class RipanaParcel extends Parcel implements ParcelInterface
                     break;
                 }
         }
+        Events::fire("terablaze.ripana.database.initialize.after", array($this->type, $this->options));
     }
 }

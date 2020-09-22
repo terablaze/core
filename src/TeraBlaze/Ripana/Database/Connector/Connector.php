@@ -10,9 +10,7 @@
 namespace TeraBlaze\Ripana\Database\Connector;
 
 use TeraBlaze\Base as Base;
-use TeraBlaze\Ripana\Database\Exception as Exception;
 use TeraBlaze\Ripana\Database\Query\Query;
-use TeraBlaze\Ripana\ORM\Model;
 
 abstract class Connector extends Base
 {
@@ -20,7 +18,7 @@ abstract class Connector extends Base
     public function __construct(array $options = array())
     {
         parent::__construct($options);
-        return $this->connect();
+        $this->connect();
     }
 
     abstract protected function _isValidService();
@@ -34,21 +32,4 @@ abstract class Connector extends Base
     abstract public function getLastError();
     abstract public function buildSyncSQL($model);
     abstract public function sync($model);
-
-    /**
-     * @return $this
-     */
-    public function initialize()
-    {
-        return $this;
-    }
-
-    /**
-     * @param $method
-     * @return Exception\Implementation
-     */
-    protected function _getExceptionForImplementation($method)
-    {
-        return new Exception\Implementation("{$method} method not implemented");
-    }
 }
