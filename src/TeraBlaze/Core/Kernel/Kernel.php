@@ -169,6 +169,9 @@ abstract class Kernel implements KernelInterface
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
                 if (class_exists($class)) {
                     $this->container->registerService($class, ['class' => $class]);
+                    if (defined("$class::SERVICE_ALIAS")) {
+                        $this->container->setAlias($class::SERVICE_ALIAS, $class);
+                    }
                 }
                 $this->middlewares[] = $this->container->get($class);
             }

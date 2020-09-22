@@ -24,6 +24,8 @@ use TeraBlaze\Router\Route\Route;
  */
 class Router implements MiddlewareInterface
 {
+    public const SERVICE_ALIAS = "routing";
+
     /** @var Container $container */
     protected $container;
     /**
