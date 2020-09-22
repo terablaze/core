@@ -40,10 +40,10 @@ class Ftp extends Base
 				$configuration = $configuration->initialize();
 				$parsed = $configuration->parse("config/ftp");
 				
-				if (!empty($parsed->ftp->{$ftp_conf}) && !empty($parsed->ftp->{$ftp_conf}->type)) {
-					$this->type = $parsed->ftp->{$ftp_conf}->type;
+				if (!empty($parsed->{$ftp_conf}) && !empty($parsed->{$ftp_conf}->type)) {
+					$this->type = $parsed->{$ftp_conf}->type;
 					//unset($parsed->ftp->{$ftp_conf}->type);
-					$this->options = (array)$parsed->ftp->{$ftp_conf};
+					$this->options = (array)$parsed->{$ftp_conf};
 				}
 			}
 		}

@@ -12,7 +12,7 @@ use TeraBlaze\RequestMethods;
  * Extends the core Http class
  * for easy loading in controllers and models
  */
-class Http extends \TeraBlaze\Http
+class Http extends \TeraBlaze\Http\Http
 {
 	public function initialize($http_conf = "default")
 	{
@@ -22,9 +22,10 @@ class Http extends \TeraBlaze\Http
 			$configuration = $configuration->initialize();
 			$parsed = $configuration->parse("config/http");
 			
-			if (!empty($parsed->http->{$http_conf})) {
-				$this->agent = empty($parsed->http->{$http_conf}->agent) ? RequestMethods::server("HTTP_USER_AGENT", "Curl/PHP " . PHP_VERSION) : $parsed->http->{$http_conf}->agent;
-				// $this->options = (array)$parsed->cookie->{$http_conf};
+			if (!empty($parsed->{$http_conf})) {
+				$this->agent = empty($parsed->{$http_conf}->agent) ?
+				RequestMethods::server("HTTP_USER_AGENT", "Curl/PHP " . PHP_VERSION) :
+				$parsed->{$http_conf}->agent;
 			}
 		}
 		

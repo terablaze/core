@@ -17,7 +17,7 @@ class Driver extends Base
 	public function __construct(array $options = array())
 	{
 		parent::__construct($options);
-		return $this->connect();
+		$this->connect();
 	}
 	
 	public function initialize()

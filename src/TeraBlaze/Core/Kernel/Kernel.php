@@ -51,18 +51,12 @@ abstract class Kernel implements KernelInterface
 
         $configuration = new Configuration("phparray");
 
-        $config = '';
-
-        $conf = "default";
+        $config = [];
 
         if ($configuration) {
             $this->container->registerServiceInstance('configuration', $configuration);
             $configuration = $configuration->initialize();
-            $parsed = $configuration->parse("config/configuration");
-
-            if (!empty($parsed->configuration->{$conf})) {
-                $config = $parsed->configuration->{$conf};
-            }
+            $config = $configuration->parse("config/configuration");
         }
         $this->container->registerParameter('config', $config);
 

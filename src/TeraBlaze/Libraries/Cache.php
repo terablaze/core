@@ -36,10 +36,10 @@ class Cache extends Base
 				$configuration = $configuration->initialize();
 				$parsed = $configuration->parse("config/cache");
 				
-				if (!empty($parsed->cache->{$cache_conf}) && !empty($parsed->cache->{$cache_conf}->type)) {
-					$this->type = $parsed->cache->{$cache_conf}->type;
+				if (!empty($parsed->{$cache_conf}) && !empty($parsed->{$cache_conf}->type)) {
+					$this->type = $parsed->{$cache_conf}->type;
 					//unset($parsed->cache->{$cache_conf}->type);
-					$this->options = (array)$parsed->cache->{$cache_conf};
+					$this->options = (array)$parsed->{$cache_conf};
 				}
 			}
 		}
