@@ -138,6 +138,15 @@ class Controller implements ControllerInterface
         return $string;
     }
 
+    public function includeView($viewFile): void
+    {
+        $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
+        $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
+        $viewFile = str_replace("::", "/views/", $viewFile);
+        $filename = $this->frameworkContainer->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
+        include $filename;
+    }
+
     /**
      * serves as the default index method
      * in case it is not defined in inheriting controllers
