@@ -132,7 +132,7 @@ function slug($text){
 function get_config($key){
 	$container = Container::getContainer();
 	$config = $container->getParameter('config');
-	return $config->$key;
+	return $config[$key];
 }
 
 if (!function_exists('get_include_contents')) {
