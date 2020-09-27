@@ -186,9 +186,10 @@ class Mysql extends Connector
 
     public function buildSyncSQL($modelClass)
     {
+        $queries = [];
         $model = new $modelClass;
-        $lines = array();
-        $indices = array();
+        $lines = [];
+        $indices = [];
         $columns = $model->getColumns();
         $template = "CREATE TABLE `%s` (\n%s,\n%s\n) ENGINE=%s DEFAULT CHARSET=%s;";
         foreach ($columns as $column) {
@@ -198,15 +199,21 @@ class Mysql extends Connector
             $length = $column["length"];
             $default = $column["default"] ? " DEFAULT '{$this->escape($column["default"])}'" : "";
             $nullable = $column["nullable"] ? "" : " NOT NULL";
+            $isForeignKey = isset($column['foreignKey']) && $column['foreignKey'] == true;
             if ($column["primary"]) {
                 $indices[] = "PRIMARY KEY (`{$name}`)";
             }
             if ($column["index"]) {
                 $indices[] = "KEY `{$name}` (`{$name}`)";
             }
+            if ($isForeignKey) {
+                $queries = array_merge($queries, $this->buildSyncSQL($column['foreignClass']));
+                $indices[] = "CONSTRAINT fk_{$name} FOREIGN KEY ({$name}) REFERENCES {$column['table']}({$column['foreignKeyName']})";
+            }
             switch ($type) {
                 case Model::DATA_TYPES['autonumber']: {
-                        $lines[] = "`{$name}` int(11) NOT NULL AUTO_INCREMENT";
+                        $length = $length ?? 11;
+                        $lines[] = $isForeignKey ? "`{$name}` int({$length})" : "`{$name}` int({$length}) NOT NULL AUTO_INCREMENT";
                         break;
                     }
                 case Model::DATA_TYPES['text']: {

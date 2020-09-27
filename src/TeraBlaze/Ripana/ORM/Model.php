@@ -9,15 +9,14 @@
 
 namespace TeraBlaze\Ripana\ORM;
 
-use Doctrine\Inflector\Inflector;
-use Doctrine\Inflector\InflectorFactory;
 use TeraBlaze\Base as Base;
 use TeraBlaze\Collections\ArrayCollection;
 use TeraBlaze\Configuration\PolymorphismTrait;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
-use TeraBlaze\Registry;
 use TeraBlaze\Ripana\Database\Connector\Connector;
+use TeraBlaze\Ripana\ORM\Column\Column;
+use TeraBlaze\Ripana\ORM\Column\OneToMany;
 use TeraBlaze\Ripana\ORM\Exception\Connector as ConnectorException;
 use TeraBlaze\Ripana\ORM\Exception\Implementation;
 use TeraBlaze\Ripana\ORM\Exception\Primary;
@@ -51,9 +50,6 @@ abstract class Model
     protected $__columnsReverseMap;
     protected $__primary;
 
-    /** @var Inflector $__inflector */
-    protected $__inflector;
-
     /** @var Inspector $__inspector */
     protected $__inspector;
 
@@ -67,7 +63,6 @@ abstract class Model
 
     public function __construct($initData = null)
     {
-        $this->__inflector = InflectorFactory::create()->build();
         $this->__inspector = new Inspector($this);
         $this->__columns = $this->getColumns();
         $this->__container = Container::getContainer();
@@ -300,7 +295,7 @@ abstract class Model
         return $this->__table;
     }
 
-    public function getConnector()
+    public function getConnector(): Connector
     {
         if (empty($this->__connector)) {
             $database = $this->__container->get('database.connector.' . $this->__dbConf);
@@ -324,54 +319,28 @@ abstract class Model
             $columns = [];
             $columnsReverseMap = [];
             $class = get_class($this);
-            $types = self::DATA_TYPES;
             $properties = $this->__inspector->getClassProperties();
-            $first = function ($array, $key) {
-                if (!empty($array[$key]) && sizeof($array[$key]) == 1) {
-                    return $array[$key][0];
-                }
-                return null;
-            };
+            
             foreach ($properties as $property) {
                 $propertyMeta = $this->__inspector->getPropertyMeta($property);
                 if (!empty($propertyMeta['@column'])) {
                     $primary = !empty($propertyMeta['@primary']);
-                    $index = !empty($propertyMeta['@index']);
-                    $readwrite = !empty($propertyMeta['@readwrite']);
-                    $read = !empty($propertyMeta['@read']) || $readwrite;
-                    $write = !empty($propertyMeta['@write']) || $readwrite;
-                    $validate = !empty($propertyMeta['@validate']) ? $propertyMeta['@validate'] : false;
-
-                    $column = $propertyMeta['@column'];
-                    $name = $column['name'] ?? $first($propertyMeta, '@name') ?? $property;
-                    $type = $column['type'] ?? $first($propertyMeta, '@type');
-                    $length = $column['length'] ?? $first($propertyMeta, '@length');
-                    $default = $column['default'] ?? $first($propertyMeta, '@default');
-                    $label = $column['label'] ?? $first($propertyMeta, '@label');
-
-                    $nullableValue = $column['nullable'] ?? $first($propertyMeta, '@nullable') ?? true;
-                    $nullable = in_array(mb_strtolower($nullableValue), self::falsy) ? false : true;
-
-                    // if (!in_array($type, $types)) {
-                    //     throw new Type("{$type} is not a valid type");
-                    // }
                     if ($primary) {
                         $primaries++;
                     }
-                    $columns[$name] = [
-                        'raw' => $property,
-                        'name' => $name,
-                        'primary' => $primary,
-                        'type' => $type,
-                        'length' => $length,
-                        'index' => $index,
-                        'read' => $read,
-                        'write' => $write,
-                        'validate' => $validate,
-                        'label' => $label,
-                        'default' => $default,
-                        'nullable' => $nullable,
-                    ];
+                    $column = (new Column($propertyMeta))->getColumn($property);
+                    $name = $column['name'];
+                    $columns[$name] = $column;
+                    $columnsReverseMap[$property] = $name;
+                }
+                if (!empty($propertyMeta['@column/OneToMany'])) {
+                    $primary = !empty($propertyMeta['@primary']);
+                    if ($primaries > 1) {
+                        throw new Primary("A foreign key cannot be used as a primary column");
+                    }
+                    $column = (new OneToMany($propertyMeta))->getColumn($property);
+                    $name = $column['name'];
+                    $columns[$name] = $column;
                     $columnsReverseMap[$property] = $name;
                 }
             }
