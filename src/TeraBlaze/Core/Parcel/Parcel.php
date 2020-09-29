@@ -6,8 +6,5 @@ use Psr\Container\ContainerInterface;
 
 abstract class Parcel implements ParcelInterface
 {
-    public function build(ContainerInterface $container)
-    {
-
-    }
+    public abstract function build(ContainerInterface $container);
 }

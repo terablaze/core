@@ -22,6 +22,8 @@ abstract class Connector extends Base
     }
 
     abstract protected function _isValidService();
+    abstract public function setDatabaseConfName(string $confName);
+    abstract public function getDatabaseConfName(): string;
     abstract public function connect();
     abstract public function disconnect();
     abstract public function query(): Query;

@@ -298,7 +298,7 @@ abstract class Model
     public function getConnector(): Connector
     {
         if (empty($this->__connector)) {
-            $database = $this->__container->get('database.connector.' . $this->__dbConf);
+            $database = $this->__container->get('ripana.database.connector.' . $this->__dbConf);
             if (!$database) {
                 throw new ConnectorException('No connector availible');
             }

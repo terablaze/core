@@ -59,6 +59,19 @@ class Mysql extends Connector
      */
     protected $_isConnected = false;
 
+    protected $dbConfName = 'default';
+
+    public function setDatabaseConfName(string $dbConfName): self
+    {
+        $this->dbConfName = $dbConfName;
+        return $this;
+    }
+
+    public function getDatabaseConfName(): string
+    {
+        return $this->dbConfName;
+    }
+
     /**
      * connects to the database
      */
