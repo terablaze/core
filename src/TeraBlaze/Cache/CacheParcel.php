@@ -19,7 +19,7 @@ use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 
-class Cache extends Parcel implements ParcelInterface
+class CacheParcel extends Parcel implements ParcelInterface
 {
     /** @var Container $container */
     private $container;
