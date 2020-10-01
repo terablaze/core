@@ -2,10 +2,9 @@
 
 namespace TeraBlaze\Core\Parcel;
 
-use Psr\Container\ContainerInterface;
+use TeraBlaze\Container\ContainerInterface;
 
 interface ParcelInterface
 {
     public function build(ContainerInterface $container);
-
 }

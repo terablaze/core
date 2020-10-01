@@ -2,9 +2,9 @@
 
 namespace TeraBlaze\Ripana;
 
-use Psr\Container\ContainerInterface;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
+use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Events\Events;
@@ -46,6 +46,7 @@ class RipanaParcel extends Parcel implements ParcelInterface
         Events::fire("terablaze.ripana.database.initialize.before", array($this->type, $this->options));
         $connectionName = "ripana.database.connection.{$dbConf}";
         $entityManagerName = "ripana.orm.entity_manager.{$dbConf}";
+        $dbConnection = null;
 
         if (!$this->type) {
             throw new Argument("Invalid type");
@@ -54,7 +55,7 @@ class RipanaParcel extends Parcel implements ParcelInterface
         switch ($this->type) {
             case "mysql":
             case "mysqli": {
-                    $this->container->registerServiceInstance($connectionName, (new Mysql($this->options))->setConfName($dbConf));
+                    $dbConnection = (new Mysql($this->options))->setDatabaseConfName($dbConf);
                     break;
                 }
             default: {
@@ -62,8 +63,10 @@ class RipanaParcel extends Parcel implements ParcelInterface
                     break;
                 }
         }
+        $this->container->registerServiceInstance($connectionName, $dbConnection);
         $entityManager = new EntityManager($this->container->get($connectionName));
         $this->container->registerServiceInstance($entityManagerName, $entityManager);
         Events::fire("terablaze.ripana.database.initialize.after", array($this->type, $this->options));
+        return;
     }
 }

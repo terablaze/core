@@ -6,12 +6,11 @@
  * Time: 4:17 PM
  */
 
-namespace TeraBlaze\Libraries\Cache\Driver;
+namespace TeraBlaze\Cache\Driver;
 
-use TeraBlaze\Libraries\Cache as Cache;
-use TeraBlaze\Libraries\Cache\Exception as Exception;
+use TeraBlaze\Cache\Exception as Exception;
 
-class Memcache extends Cache\Driver
+class Memcache extends Driver
 {
 	protected $_service;
 	
@@ -40,7 +39,7 @@ class Memcache extends Cache\Driver
 	 */
 	protected $_isConnected = false;
 	
-	private $memcached_compressed = MEMCACHE_COMPRESSED;
+	private $memcached_compressed = \MEMCACHE_COMPRESSED;
 	
 	public function connect()
 	{

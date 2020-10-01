@@ -6,13 +6,11 @@
  * Time: 4:17 PM
  */
 
-namespace TeraBlaze\Libraries\Cache\Driver;
+namespace TeraBlaze\Cache\Driver;
 
-use TeraBlaze\ArrayMethods;
-use TeraBlaze\Libraries\Cache as Cache;
-use TeraBlaze\Libraries\Cache\Exception as Exception;
+use TeraBlaze\Cache\Exception as Exception;
 
-class Memcached extends Cache\Driver
+class Memcached extends Driver
 {
 	protected $_service;
 	

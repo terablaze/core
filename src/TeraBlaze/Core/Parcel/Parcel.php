@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Core\Parcel;
 
-use Psr\Container\ContainerInterface;
+use TeraBlaze\Container\ContainerInterface;
 
 abstract class Parcel implements ParcelInterface
 {

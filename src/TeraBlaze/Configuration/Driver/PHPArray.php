@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -10,6 +11,7 @@ namespace TeraBlaze\Configuration\Driver;
 
 use TeraBlaze\ArrayMethods as ArrayMethods;
 use TeraBlaze\Configuration\Driver\Driver;
+use TeraBlaze\Configuration\Exception\Argument;
 
 /**
  * Class PHPArray
@@ -19,19 +21,26 @@ use TeraBlaze\Configuration\Driver\Driver;
  * and passing it's values
  *
  */
-class PHPArray extends Driver
+class PHPArray extends Driver implements DriverInterface
 {
-	/**
-	 * @param $path
-	 * @return \stdClass
-	 *
-	 * includes the php array configuration files
-	 * and creates an object from it's key/value pairs
-	 *
-	 */
-	public function parse($path)
-	{
-		$config = include($this->container->get('app.kernel')->getProjectDir() . "/{$path}.php");
-		return ArrayMethods::toObject($config);
-	}
+    /**
+     * @param $path
+     * @return \stdClass
+     *
+     * includes the php array configuration files
+     * and creates an object from it's key/value pairs
+     *
+     */
+    public function parse(string $path): ?object
+    {
+        if (empty($path)) {
+            throw new Argument("\$path argument is not valid");
+        }
+
+        $config = include($this->container->get('app.kernel')->getProjectDir() . "/{$path}.php");
+        if (!file_exists($config)) {
+            throw new Argument("Configuration file does not exist");
+        }
+        return ArrayMethods::toObject($config);
+    }
 }
