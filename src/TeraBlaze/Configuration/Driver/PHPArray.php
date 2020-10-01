@@ -36,11 +36,12 @@ class PHPArray extends Driver implements DriverInterface
         if (empty($path)) {
             throw new Argument("\$path argument is not valid");
         }
-
-        $config = include($this->container->get('app.kernel')->getProjectDir() . "/{$path}.php");
-        if (!file_exists($config)) {
+        $configFile = $this->container->get('app.kernel')->getProjectDir() . "/{$path}.php";
+        if (!file_exists($configFile)) {
             throw new Argument("Configuration file does not exist");
         }
+        $config = include($configFile);
+        
         return ArrayMethods::toObject($config);
     }
 }
