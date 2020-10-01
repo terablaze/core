@@ -131,6 +131,7 @@ class Controller implements ControllerInterface
 
         ob_start();
         extract($viewVars);
+        $GLOBALS['viewVars'] = $viewVars;
         include $filename;
         $string = ob_get_clean();
         Events::fire("terablaze.controller.view.load.after", array($viewFile, $viewVars));
@@ -140,9 +141,11 @@ class Controller implements ControllerInterface
 
     public function includeView($viewFile): void
     {
+        $viewVars = $GLOBALS['viewVars'];
         $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
         $viewFile = str_replace("::", "/views/", $viewFile);
+        extract($viewVars);
         $filename = $this->frameworkContainer->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
         include $filename;
     }
