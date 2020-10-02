@@ -24,7 +24,10 @@
   "autoload": {
     "psr-4": {
       "TeraBlaze\\": "src/TeraBlaze/"
-    }
+    },
+    "files": [
+      "src/TeraBlaze/Functions.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
