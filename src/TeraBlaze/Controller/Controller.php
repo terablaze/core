@@ -9,9 +9,8 @@
 
 namespace TeraBlaze\Controller;
 
-use ContainerAwareTrait;
 use Nyholm\Psr7\Response;
-use Terablaze\Container\ContainerAwareTrait as ContainerContainerAwareTrait;
+use Terablaze\Container\ContainerAwareTrait;
 use TeraBlaze\Controller\Exception as Exception;
 use TeraBlaze\Events\Events;
 
@@ -23,7 +22,7 @@ use function GuzzleHttp\json_encode;
  */
 class Controller implements ControllerInterface
 {
-    use ContainerContainerAwareTrait;
+    use ContainerAwareTrait;
 
     protected $name;
 
