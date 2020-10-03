@@ -23,33 +23,33 @@ use function GuzzleHttp\json_encode;
  */
 class Controller implements ControllerInterface
 {
-    protected $_name;
+    protected $name;
 
     /**
-     * @readwrite
+     * @var Container $container
      */
-    protected $_parameters;
+    protected $container;
 
-    /**
-     * @var Container $frameworkContainer
-     */
-    protected $frameworkContainer;
+    public function __construct()
+    {
+        $this->container = Container::getContainer();
+    }
 
     public function setContainer(ContainerInterface $container): void
     {
         Events::fire("terablaze.controller.setContainer.before", array($this->getName()));
 
-        $this->frameworkContainer = $container;
+        $this->container = $container;
 
         Events::fire("terablaze.controller.setContainer.after", array($this->getName()));
     }
 
     public function getName(): string
     {
-        if (empty($this->_name)) {
-            $this->_name = get_class($this);
+        if (empty($this->name)) {
+            $this->name = get_class($this);
         }
-        return $this->_name;
+        return $this->name;
     }
 
     /**
@@ -83,17 +83,17 @@ class Controller implements ControllerInterface
 
     public function has(string $key): bool
     {
-        return $this->frameworkContainer->has($key);
+        return $this->container->has($key);
     }
 
     public function get(string $key): object
     {
-        return $this->frameworkContainer->get($key);
+        return $this->container->get($key);
     }
 
     public function getParameter(string $key)
     {
-        return $this->frameworkContainer->getParameter($key);
+        return $this->container->getParameter($key);
     }
 
     public function render($viewFile, $viewVars = array(), $responseCode = 200): Response
@@ -120,7 +120,7 @@ class Controller implements ControllerInterface
         $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
         $viewFile = str_replace("::", "/views/", $viewFile);
-        $filename = $this->frameworkContainer->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
+        $filename = $this->container->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
 
         $viewVars = array_merge($viewVars, ['global' => $global]);
 
@@ -146,7 +146,7 @@ class Controller implements ControllerInterface
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
         $viewFile = str_replace("::", "/views/", $viewFile);
         extract($viewVars);
-        $filename = $this->frameworkContainer->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
+        $filename = $this->container->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
         include $filename;
     }
 
