@@ -43,14 +43,18 @@ class Ini extends Driver implements DriverInterface
             $config = array();
 
             ob_start();
-            include("{$path}.ini");
+            $configFile = "{$path}.ini";
+            if (!file_exists($configFile)) {
+                $this->throwConfigFileDoesNotExistException($configFile);
+            }
+            include($configFile);
             $string = ob_get_contents();
             ob_end_clean();
 
             $pairs = parse_ini_string($string);
 
             if ($pairs == false) {
-                throw new Exception\Syntax("Could not parse configuration file");
+                throw new Exception\Syntax("Could not parse configuration file: {$configFile}");
             }
 
             foreach ($pairs as $key => $value) {

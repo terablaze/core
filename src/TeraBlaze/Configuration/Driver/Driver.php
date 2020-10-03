@@ -4,6 +4,7 @@ namespace TeraBlaze\Configuration\Driver;
 
 use TeraBlaze\Base as Base;
 use TeraBlaze\Configuration\Exception as Exception;
+use TeraBlaze\Configuration\Exception\Argument;
 use TeraBlaze\Container\Container;
 
 /**
@@ -21,5 +22,10 @@ abstract class Driver
 	public function __construct()
 	{
 		$this->container = Container::getContainer();
-	}
+    }
+    
+    protected function throwConfigFileDoesNotExistException(string $file)
+    {
+        throw new Argument("Configuration file: {$file} does not exist");
+    }
 }

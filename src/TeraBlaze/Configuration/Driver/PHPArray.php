@@ -38,7 +38,7 @@ class PHPArray extends Driver implements DriverInterface
         }
         $configFile = $this->container->get('app.kernel')->getProjectDir() . "/{$path}.php";
         if (!file_exists($configFile)) {
-            throw new Argument("Configuration file does not exist");
+            $this->throwConfigFileDoesNotExistException($configFile);
         }
         $config = include($configFile);
         
