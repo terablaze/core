@@ -9,9 +9,9 @@
 
 namespace TeraBlaze\Controller;
 
+use ContainerAwareTrait;
 use Nyholm\Psr7\Response;
-use Psr\Container\ContainerInterface;
-use TeraBlaze\Container\Container;
+use Terablaze\Container\ContainerAwareTrait as ContainerContainerAwareTrait;
 use TeraBlaze\Controller\Exception as Exception;
 use TeraBlaze\Events\Events;
 
@@ -23,21 +23,9 @@ use function GuzzleHttp\json_encode;
  */
 class Controller implements ControllerInterface
 {
+    use ContainerContainerAwareTrait;
+
     protected $name;
-
-    /**
-     * @var Container $container
-     */
-    protected $container;
-
-    public function setContainer(ContainerInterface $container): void
-    {
-        Events::fire("terablaze.controller.setContainer.before", array($this->getName()));
-
-        $this->container = $container;
-
-        Events::fire("terablaze.controller.setContainer.after", array($this->getName()));
-    }
 
     public function getName(): string
     {
@@ -74,30 +62,6 @@ class Controller implements ControllerInterface
         //$this->render();
 
         Events::fire("terablaze.controller.destruct.after", array($this->getName()));
-    }
-
-    public function has(string $key): bool
-    {
-        if (!$this->container instanceof Container) {
-            $this->container = Container::getContainer();
-        }
-        return $this->container->has($key);
-    }
-
-    public function get(string $key): object
-    {
-        if (!$this->container instanceof Container) {
-            $this->container = Container::getContainer();
-        }
-        return $this->container->get($key);
-    }
-
-    public function getParameter(string $key)
-    {
-        if (!$this->container instanceof Container) {
-            $this->container = Container::getContainer();
-        }
-        return $this->container->getParameter($key);
     }
 
     public function render($viewFile, $viewVars = array(), $responseCode = 200): Response
