@@ -62,8 +62,8 @@ class Container implements ContainerInterface
      */
     private function __construct(array $services = [], array $parameters = [])
     {
-        $this->services = $services;
-        $this->parameters = $parameters;
+        $this->services = array_merge($this->services, $services);
+        $this->parameters = array_merge($this->parameters, $parameters);
         $this->serviceInstances = [];
 
         $this->registerServiceInstance('terablaze.container', $this);

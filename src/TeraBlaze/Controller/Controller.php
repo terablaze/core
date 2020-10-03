@@ -30,11 +30,6 @@ class Controller implements ControllerInterface
      */
     protected $container;
 
-    public function __construct()
-    {
-        $this->container = Container::getContainer();
-    }
-
     public function setContainer(ContainerInterface $container): void
     {
         Events::fire("terablaze.controller.setContainer.before", array($this->getName()));
@@ -83,16 +78,25 @@ class Controller implements ControllerInterface
 
     public function has(string $key): bool
     {
+        if (!$this->container instanceof Container) {
+            $this->container = Container::getContainer();
+        }
         return $this->container->has($key);
     }
 
     public function get(string $key): object
     {
+        if (!$this->container instanceof Container) {
+            $this->container = Container::getContainer();
+        }
         return $this->container->get($key);
     }
 
     public function getParameter(string $key)
     {
+        if (!$this->container instanceof Container) {
+            $this->container = Container::getContainer();
+        }
         return $this->container->getParameter($key);
     }
 
