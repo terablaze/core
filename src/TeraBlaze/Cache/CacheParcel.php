@@ -72,6 +72,9 @@ class CacheParcel extends Parcel implements ParcelInterface
                 }
         }
         $this->container->registerServiceInstance('cache.' . $cacheConf, $cache);
+        if ($cacheConf == 'default') {
+            $this->container->setAlias('cache', 'cache.default');
+        }
 
         Events::fire("terablaze.libraries.cache.initialize.after", array($this->type, $this->options));
         return;
