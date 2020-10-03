@@ -39,7 +39,7 @@ class Session extends Base
 				$configuration = $configuration->initialize();
 				$parsed = $configuration->parse("config/session");
 				
-				if (!empty($parsed->session->{$session_conf}) && !empty($parsed->{$session_conf}->type)) {
+				if (!empty($parsed->{$session_conf}) && !empty($parsed->{$session_conf}->type)) {
 					$this->type = $parsed->{$session_conf}->type;
 					//unset($parsed->session->{$session_conf}->type);
 					$this->options = (array)$parsed->{$session_conf};
