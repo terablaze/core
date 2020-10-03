@@ -10,7 +10,7 @@
 namespace TeraBlaze\Controller;
 
 use Nyholm\Psr7\Response;
-use Psr\Container\ContainerInterface;
+use TeraBlaze\Container\ContainerInterface;
 
 /**
  * Class Controller

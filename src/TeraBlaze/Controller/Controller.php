@@ -10,7 +10,7 @@
 namespace TeraBlaze\Controller;
 
 use Nyholm\Psr7\Response;
-use Terablaze\Container\ContainerAwareTrait;
+use TeraBlaze\Container\ContainerAwareTrait;
 use TeraBlaze\Controller\Exception as Exception;
 use TeraBlaze\Events\Events;
 
