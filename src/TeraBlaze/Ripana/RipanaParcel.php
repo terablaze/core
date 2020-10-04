@@ -67,9 +67,7 @@ class RipanaParcel extends Parcel implements ParcelInterface
         $entityManager = new EntityManager($this->container->get($connectionName));
         $this->container->registerServiceInstance($entityManagerName, $entityManager);
         if ($dbConf == 'default') {
-            $this->container->setAlias('ripana.database.connection', $connectionName);
-            $this->container->setAlias('ripana.database.connection', $connectionName);
-            $this->container->setAlias('ripana.orm.entity_manager', $entityManagerName);
+            $this->container->setAlias('ripana.database.connector', $connectionName);
             $this->container->setAlias('ripana.orm.entity_manager', $entityManagerName);
         }
         Events::fire("terablaze.ripana.database.initialize.after", array($this->type, $this->options));
