@@ -48,5 +48,10 @@ class EntityManager
         ]);
         return $this->container->get($repositoryClass);
     }
+
+    public function getConnector(): Connector
+    {
+        return $this->connector;
+    }
 }
 
