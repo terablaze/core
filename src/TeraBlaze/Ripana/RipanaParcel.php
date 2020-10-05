@@ -44,7 +44,7 @@ class RipanaParcel extends Parcel implements ParcelInterface
     public function initialize(string $dbConf = "default")
     {
         Events::fire("terablaze.ripana.database.initialize.before", array($this->type, $this->options));
-        $connectionName = "ripana.database.connection.{$dbConf}";
+        $connectionName = "ripana.database.connector.{$dbConf}";
         $entityManagerName = "ripana.orm.entity_manager.{$dbConf}";
         $dbConnection = null;
 

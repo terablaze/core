@@ -33,6 +33,8 @@ abstract class Kernel implements KernelInterface
 
         $relay = new Relay($this->middlewares);
 
+        $this->container->registerServiceInstance('request', $request);
+
         return $relay->handle($request);
     }
 

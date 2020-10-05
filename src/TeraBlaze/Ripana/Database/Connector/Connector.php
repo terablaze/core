@@ -14,6 +14,9 @@ use TeraBlaze\Ripana\Database\Query\Query;
 
 abstract class Connector extends Base
 {
+    public const SQL_FUNCTIONS = [
+        'NOW()',
+    ];
 
     public function __construct(array $options = array())
     {
