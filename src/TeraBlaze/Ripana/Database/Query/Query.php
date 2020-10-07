@@ -74,7 +74,7 @@ abstract class Query extends Base
 		$result = $this->_connector->execute($sql);
 		
 		if ($result === false) {
-			throw new Exception\Sql();
+			throw new Exception\Sql("An error occured while executing your query: " . $sql);
 		}
 		
 		if ($isInsert) {
