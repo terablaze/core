@@ -36,4 +36,3 @@ dump($userRepo->getQueryBuilder());
 $user = new User();
 
 dump($connector->buildSyncSQL($user));
-

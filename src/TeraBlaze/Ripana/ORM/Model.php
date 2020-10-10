@@ -30,6 +30,7 @@ abstract class Model
         'integer' => 'integer',
         'decimal' => 'decimal',
         'boolean' => 'boolean',
+        'bool' => 'bool',
         'datetime' => 'datetime',
     ];
 

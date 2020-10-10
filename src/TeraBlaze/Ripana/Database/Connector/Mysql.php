@@ -251,8 +251,9 @@ class Mysql extends Connector
                         $lines[] = "`{$name}` float{$nullable}{$default}";
                         break;
                     }
-                case Model::DATA_TYPES['boolean']: {
-                        $lines[] = "`{$name}` tinyint(4){$nullable}{$default}";
+                case Model::DATA_TYPES['boolean']:
+                case Model::DATA_TYPES['bool']: {
+                        $lines[] = "`{$name}` tinyint(1){$nullable}{$default}";
                         break;
                     }
                 case Model::DATA_TYPES['datetime']: {
