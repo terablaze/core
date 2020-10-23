@@ -9,13 +9,14 @@
 
 namespace TeraBlaze\Ripana\ORM;
 
-use TeraBlaze\Base as Base;
+use DateTime;
 use TeraBlaze\Collections\ArrayCollection;
 use TeraBlaze\Configuration\PolymorphismTrait;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
 use TeraBlaze\Ripana\Database\Connector\Connector;
 use TeraBlaze\Ripana\ORM\Column\Column;
+use TeraBlaze\Ripana\ORM\Column\ManyToOne;
 use TeraBlaze\Ripana\ORM\Column\OneToMany;
 use TeraBlaze\Ripana\ORM\Exception\Connector as ConnectorException;
 use TeraBlaze\Ripana\ORM\Exception\Implementation;
@@ -70,75 +71,44 @@ abstract class Model
         $this->__connector = $this->getConnector();
         $this->__table = $this->getTable();
         $this->__primary = $this->getPrimaryColumn();
-        $this->initData($initData);
-        $this->load();
+        if (is_array($initData) && (!empty($initData))) {
+            $this->initData($initData);
+        }
     }
 
-    protected function initData($initData): void
-    {
-        if (is_null($initData)) {
-            return;
-        }
-        if (is_array($initData) && count($initData) > 1) {
-            foreach ($initData as $key => $value) {
-                if (isset($this->__columns[$key])) {
-                    $prop = $this->__columns[$key]['raw'];
-                } else if (isset($this->__columnsReverseMap[$key])) {
-                    $prop = $key;
-                } else {
-                    throw new Property("Entity property with property name or column name '{$key}' not found");
-                }
-                if (!empty($initData[$key]) && !isset($this->$prop)) {
-                    $this->$prop = $value;
-                }
-            }
-            return;
-        }
-        $raw = $this->__primary["raw"];
-        $this->$raw = $initData;
-        return;
-    }
-
-    protected function forceInitData($initData): void
+    protected function initData(array $initData): void
     {
         if (is_null($initData)) {
             return;
         }
         foreach ($initData as $key => $value) {
-            if (isset($this->__columns[$key])) {
-                $prop = $this->__columns[$key]['raw'];
-            } else if (isset($this->__columnsReverseMap[$key])) {
-                $prop = $key;
-            } else {
-                throw new Property("Entity property with property name or column name '{$key}' not found");
+            $prop = $this->getInitProp($key);
+            if ((!isset($this->__columns[$key])) && isset($this->__columnsReverseMap[$key])) {
+                $key = $this->__columnsReverseMap[$key];
+            }
+            if (
+                in_array($this->__columns[$key]['type'], ['date', 'time', 'datetime']) &&
+                (!$value instanceof DateTime) &&
+                (!empty($value))
+            ) {
+                try {
+                    $value = new DateTime($value);
+                } catch (\Exception $exception) {
+                }
             }
             $this->$prop = $value;
         }
         return;
     }
 
-    public function load()
+    private function getInitProp(string $key): string
     {
-        $primary = $this->__primary;
-        $raw = $primary["raw"];
-        $name = $primary["name"];
-        if (!empty($this->$raw)) {
-            $previous = $this->__connector
-                ->query()
-                ->from($this->__table)
-                ->where("{$name} = ?", $this->$raw)
-                ->first();
-            if ($previous == null) {
-                throw new Primary("No record on the table {$this->__table} of entity class " .
-                    get_class($this) . " found with primary key {$this->$raw}");
-            }
-            foreach ($previous as $key => $value) {
-                $prop = $this->__columns[$key]['raw'];
-                if (!empty($previous[$key]) && !isset($this->$prop)) {
-                    $this->$prop = $value;
-                }
-            }
+        if (isset($this->__columns[$key])) {
+            return $this->__columns[$key]['raw'];
+        } else if (isset($this->__columnsReverseMap[$key])) {
+            return $key;
         }
+        throw new Property("Entity property with property name or column name '{$key}' not found");
     }
 
     public function save()
@@ -156,8 +126,8 @@ abstract class Model
         foreach ($this->__columns as $key => $column) {
             $prop = $column["raw"];
             if ($column != $primary && $column) {
-                $method = "get" . ucfirst($prop);
-                $data[$key] = $this->$method();
+                $datum = $this->saveDatum($prop, $column['type']);
+                $data[$key] = $datum;
                 continue;
             }
         }
@@ -166,6 +136,25 @@ abstract class Model
             $this->$raw = $result;
         }
         return $result;
+    }
+
+    private function saveDatum($prop, $columnType)
+    {
+        $datum = $this->$prop;
+        if ($datum instanceof DateTime) {
+            switch ($columnType) {
+                case 'date':
+                    $datum = $datum->format('Y-m-d');
+                    break;
+                case 'time':
+                    $datum = $datum->format('H:i:s.u');
+                    break;
+                case 'datetime':
+                    $datum = $datum->format('Y-m-d H:i:s.u');
+                    break;
+            }
+        }
+        return $datum;
     }
 
     public function delete()
@@ -180,7 +169,9 @@ abstract class Model
                 ->where("{$name} = ?", $this->$raw)
                 ->delete();
         }
+        return null;
     }
+
     public static function deleteAll($where = array())
     {
         $instance = new static();
@@ -200,7 +191,8 @@ abstract class Model
         $direction = null,
         $limit = null,
         $page = null
-    ) {
+    )
+    {
         $model = new static();
         return $model->_all($where, $fields, $order, $direction, $limit, $page);
     }
@@ -220,10 +212,10 @@ abstract class Model
         if ($limit != null) {
             $query->limit($limit, $page);
         }
-        $rows = array();
+        $rows = [];
         foreach ($query->all() as $row) {
             $object = clone $this;
-            $object->forceInitData($row);
+            $object->initData($row);
             $rows[] = $object;
             $object = null;
         }
@@ -235,7 +227,8 @@ abstract class Model
         $fields = ["*"],
         $order = null,
         $direction = null
-    ) {
+    )
+    {
         $model = new static();
         return $model->_first($where, $fields, $order, $direction);
     }
@@ -245,7 +238,8 @@ abstract class Model
         $fields = ["*"],
         $order = null,
         $direction = null
-    ) {
+    )
+    {
         $query = $this
             ->__connector
             ->query()
@@ -269,6 +263,7 @@ abstract class Model
         $model = new static();
         return $model->_count($where);
     }
+
     protected function _count($where = array())
     {
         $query = $this
@@ -321,7 +316,7 @@ abstract class Model
             $columnsReverseMap = [];
             $class = get_class($this);
             $properties = $this->__inspector->getClassProperties();
-            
+
             foreach ($properties as $property) {
                 $propertyMeta = $this->__inspector->getPropertyMeta($property);
                 if (!empty($propertyMeta['@column'])) {
@@ -334,12 +329,23 @@ abstract class Model
                     $columns[$name] = $column;
                     $columnsReverseMap[$property] = $name;
                 }
-                if (!empty($propertyMeta['@column/OneToMany'])) {
+                if (!empty($propertyMeta['@column/OneToMany']) || !empty($propertyMeta['@column\OneToMany'])) {
                     $primary = !empty($propertyMeta['@primary']);
                     if ($primaries > 1) {
                         throw new Primary("A foreign key cannot be used as a primary column");
                     }
+                    https://
                     $column = (new OneToMany($propertyMeta))->getColumn($property);
+                    $name = $column['name'];
+                    $columns[$name] = $column;
+                    $columnsReverseMap[$property] = $name;
+                }
+                if (!empty($propertyMeta['@column/ManyToOne']) || !empty($propertyMeta['@column\ManyToOne'])) {
+                    $primary = !empty($propertyMeta['@primary']);
+                    if ($primaries > 1) {
+                        throw new Primary("A foreign key cannot be used as a primary column");
+                    }
+                    $column = (new ManyToOne($propertyMeta))->getColumn($property);
                     $name = $column['name'];
                     $columns[$name] = $column;
                     $columnsReverseMap[$property] = $name;
@@ -349,7 +355,7 @@ abstract class Model
                 throw new Primary("{$class} cannot have more than once primary column");
             }
             $this->__columnsReverseMap = $columnsReverseMap;
-            return $columns;
+            $this->__columns = $columns;
         }
         return $this->__columns;
     }
