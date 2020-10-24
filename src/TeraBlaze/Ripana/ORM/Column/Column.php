@@ -17,20 +17,16 @@ class Column
     {
         $primary = !empty($this->propertyMeta['@primary']);
         $index = !empty($this->propertyMeta['@index']);
-        $readwrite = !empty($this->propertyMeta['@readwrite']);
-        $read = !empty($this->propertyMeta['@read']) || $readwrite;
-        $write = !empty($this->propertyMeta['@write']) || $readwrite;
-        $validate = !empty($this->propertyMeta['@validate']) ? $this->propertyMeta['@validate'] : false;
 
         $column = $this->propertyMeta['@column'];
         $name = $column['name'] ?? $this->getFirst($this->propertyMeta, '@name') ?? $property;
         $type = $column['type'] ?? $this->getFirst($this->propertyMeta, '@type');
         $length = $column['length'] ?? $this->getFirst($this->propertyMeta, '@length');
         $default = $column['default'] ?? $this->getFirst($this->propertyMeta, '@default');
-        $label = $column['label'] ?? $this->getFirst($this->propertyMeta, '@label');
-
         $nullableValue = $column['nullable'] ?? $this->getFirst($this->propertyMeta, '@nullable') ?? true;
         $nullable = in_array(mb_strtolower($nullableValue), Model::falsy) ? false : true;
+        $autoConvertValue = $column['autoconvert'] ?? $this->getFirst($this->propertyMeta, '@autoconvert') ?? true;
+        $autoConvert = in_array(mb_strtolower($autoConvertValue), Model::falsy) ? false : true;
 
         return [
             'raw' => $property,
@@ -39,12 +35,9 @@ class Column
             'type' => $type,
             'length' => $length,
             'index' => $index,
-            'read' => $read,
-            'write' => $write,
-            'validate' => $validate,
-            'label' => $label,
             'default' => $default,
             'nullable' => $nullable,
+            'autoconvert' => $autoConvert,
         ];
     }
 

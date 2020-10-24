@@ -1,15 +1,8 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 2/1/2017
- * Time: 4:47 AM
- */
-
 namespace TeraBlaze\Ripana\Database\Connector;
 
-use TeraBlaze\Ripana\Database as Database;
+use MySQLi;
 use TeraBlaze\Ripana\Database\Exception as Exception;
 use TeraBlaze\Ripana\Database\Query\Mysql as QueryMysql;
 use TeraBlaze\Ripana\Database\Query\Query;
@@ -78,7 +71,7 @@ class Mysql extends Connector
     public function connect()
     {
         if (!$this->_isValidService()) {
-            $this->_service = new \MySQLi(
+            $this->_service = new MySQLi(
                 $this->_host,
                 $this->_username,
                 $this->_password,
@@ -102,7 +95,7 @@ class Mysql extends Connector
     protected function _isValidService()
     {
         $isEmpty = empty($this->_service);
-        $isInstance = $this->_service instanceof \MySQLi;
+        $isInstance = $this->_service instanceof MySQLi;
 
         if ($this->isConnected && $isInstance && !$isEmpty) {
             return true;
@@ -223,48 +216,72 @@ class Mysql extends Connector
                 $indices[] = "PRIMARY KEY (`{$name}`)";
             }
             if ($column["index"]) {
-                $indices[] = "KEY `{$name}` (`{$name}`)";
+                switch (strtolower($column["index"])) {
+                    case "index":
+                        $indices[] = "INDEX `INDEX_{$name}` (`{$name}`)";
+                        break;
+                    case "uniqueindex":
+                    case "unique-index":
+                    case "unique_index":
+                        $indices[] = "UNIQUE INDEX `UNIQUE_INDEX_{$name}` (`{$name}`)";
+                        break;
+                    case "key":
+                        $indices[] = "KEY `KEY_{$name}` (`{$name}`)";
+                        break;
+                    case "uniquekey":
+                    case "unique-key":
+                    case "unique_key":
+                        $indices[] = "UNIQUE KEY `UNIQUE_KEY_{$name}` (`{$name}`)";
+                        break;
+                }
             }
             if ($isForeignKey) {
                 $queries = array_merge($queries, $this->buildSyncSQL($column['foreignClass']));
                 $indices[] = "CONSTRAINT fk_{$name} FOREIGN KEY ({$name}) REFERENCES {$column['table']}({$column['foreignKeyName']})";
             }
             switch ($type) {
-                case Model::DATA_TYPES['autonumber']: {
-                        $length = $length ?? 11;
-                        $lines[] = $isForeignKey ? "`{$name}` int({$length})" : "`{$name}` int({$length}) NOT NULL AUTO_INCREMENT";
-                        break;
+                case Model::DATA_TYPES['autonumber']:
+                {
+                    $length = $length ?? 11;
+                    $lines[] = $isForeignKey ? "`{$name}` int({$length})" : "`{$name}` int({$length}) NOT NULL AUTO_INCREMENT";
+                    break;
+                }
+                case Model::DATA_TYPES['text']:
+                {
+                    if ($length !== null && $length <= 255) {
+                        $lines[] = "`{$name}` varchar({$length}){$nullable}{$default}";
+                    } else {
+                        $lines[] = "`{$name}` text{$nullable}";
                     }
-                case Model::DATA_TYPES['text']: {
-                        if ($length !== null && $length <= 255) {
-                            $lines[] = "`{$name}` varchar({$length}){$nullable}{$default}";
-                        } else {
-                            $lines[] = "`{$name}` text{$nullable}";
-                        }
-                        break;
-                    }
-                case Model::DATA_TYPES['integer']: {
-                        $lines[] = "`{$name}` int(11){$nullable}{$default}";
-                        break;
-                    }
-                case Model::DATA_TYPES['decimal']: {
-                        $lines[] = "`{$name}` float{$nullable}{$default}";
-                        break;
-                    }
+                    break;
+                }
+                case Model::DATA_TYPES['integer']:
+                {
+                    $lines[] = "`{$name}` int(11){$nullable}{$default}";
+                    break;
+                }
+                case Model::DATA_TYPES['decimal']:
+                {
+                    $lines[] = "`{$name}` float{$nullable}{$default}";
+                    break;
+                }
                 case Model::DATA_TYPES['boolean']:
-                case Model::DATA_TYPES['bool']: {
-                        $lines[] = "`{$name}` tinyint(1){$nullable}{$default}";
-                        break;
-                    }
-                case Model::DATA_TYPES['datetime']: {
-                        $lines[] = "`{$name}` datetime{$nullable}{$default}";
-                        break;
-                    }
-                default: {
-                        $typePart = $length ? " {$type}({$length})" : " {$type}";
-                        $lines[] = "`{$name}`{$typePart}{$nullable}{$default}";
-                        break;
-                    }
+                case Model::DATA_TYPES['bool']:
+                {
+                    $lines[] = "`{$name}` tinyint(1){$nullable}{$default}";
+                    break;
+                }
+                case Model::DATA_TYPES['datetime']:
+                {
+                    $lines[] = "`{$name}` datetime{$nullable}{$default}";
+                    break;
+                }
+                default:
+                {
+                    $typePart = $length ? " {$type}({$length})" : " {$type}";
+                    $lines[] = "`{$name}`{$typePart}{$nullable}{$default}";
+                    break;
+                }
             }
         }
         $table = $model->getTable();

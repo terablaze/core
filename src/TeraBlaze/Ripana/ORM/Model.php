@@ -89,7 +89,8 @@ abstract class Model
             if (
                 in_array($this->__columns[$key]['type'], ['date', 'time', 'datetime']) &&
                 (!$value instanceof DateTime) &&
-                (!empty($value))
+                (!empty($value)) &&
+                $this->__columns[$key]['autoconvert'] != false
             ) {
                 try {
                     $value = new DateTime($value);
@@ -126,7 +127,7 @@ abstract class Model
         foreach ($this->__columns as $key => $column) {
             $prop = $column["raw"];
             if ($column != $primary && $column) {
-                $datum = $this->saveDatum($prop, $column['type']);
+                $datum = $this->saveDatum($prop, $column);
                 $data[$key] = $datum;
                 continue;
             }
@@ -138,11 +139,11 @@ abstract class Model
         return $result;
     }
 
-    private function saveDatum($prop, $columnType)
+    private function saveDatum($prop, $column)
     {
         $datum = $this->$prop;
-        if ($datum instanceof DateTime) {
-            switch ($columnType) {
+        if ($datum instanceof DateTime && $column['autoconvert'] != false) {
+            switch ($column['type']) {
                 case 'date':
                     $datum = $datum->format('Y-m-d');
                     break;
