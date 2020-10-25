@@ -76,6 +76,14 @@ abstract class Model
         }
     }
 
+    public function __clone()
+    {
+        $primary = $this->__primary;
+        $primaryRaw = $primary["raw"];
+
+        unset($this->$primaryRaw);
+    }
+
     protected function initData(array $initData): void
     {
         if (is_null($initData)) {
@@ -115,13 +123,13 @@ abstract class Model
     public function save()
     {
         $primary = $this->__primary;
-        $raw = $primary["raw"];
-        $name = $primary["name"];
+        $primaryRaw = $primary["raw"];
+        $primaryName = $primary["name"];
         $query = $this->__connector
             ->query()
             ->from($this->__table);
-        if (!empty($this->$raw)) {
-            $query->where("{$name} = ?", $this->$raw);
+        if (!empty($this->$primaryRaw)) {
+            $query->where("{$primaryName} = ?", $this->$primaryRaw);
         }
         $data = array();
         foreach ($this->__columns as $key => $column) {
@@ -134,7 +142,7 @@ abstract class Model
         }
         $result = $query->save($data);
         if ($result !== true) {
-            $this->$raw = $result;
+            $this->$primaryRaw = $result;
         }
         return $result;
     }
@@ -161,13 +169,13 @@ abstract class Model
     public function delete()
     {
         $primary = $this->__primary;
-        $raw = $primary["raw"];
-        $name = $primary["name"];
-        if (!empty($this->$raw)) {
+        $primaryRaw = $primary["raw"];
+        $primaryName = $primary["name"];
+        if (!empty($this->$primaryRaw)) {
             return $this->__connector
                 ->query()
                 ->from($this->__table)
-                ->where("{$name} = ?", $this->$raw)
+                ->where("{$primaryName} = ?", $this->$primaryRaw)
                 ->delete();
         }
         return null;
