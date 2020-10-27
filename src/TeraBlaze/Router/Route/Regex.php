@@ -10,7 +10,7 @@ class Regex extends Route
 {
     /**
     * @readwrite
-    */w
+    */
     protected $keys;
 
 	/**

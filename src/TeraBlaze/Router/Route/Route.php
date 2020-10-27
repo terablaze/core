@@ -17,30 +17,20 @@ use TeraBlaze\Router\Exception as Exception;
  */
 abstract class Route
 {
-	/**
-	 * @readwrite
-	 */
+	/** @var string $path */
 	public $path;
 
-	/**
-	 * @readwrite
-	 */
+	/** @var string $action */
 	public $action;
 
-    /**
-     * @readwrite
-     */
+	/** @var string|array|null $method */
     public $method;
 
-    /**
-     * @readwrite
-     */
+	/** @var string $controller */
     public $controller;
 
-	/**
-	 * @readwrite
-	 */
-	public $parameters = array();
+	/** @var array $parameters */
+	public $parameters = [];
 
 	public function __construct($route)
     {
@@ -48,7 +38,6 @@ abstract class Route
         $this->controller = $route['controller'] ?? null;
         $this->action = $route['action'] ?? null;
         $this->method = $route['method'] ?? null;
-        $this->parameters = $route['parameters'] ?? [];
     }
 
     abstract function matches($url): bool;

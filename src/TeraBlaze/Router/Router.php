@@ -11,6 +11,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
+use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Events\Events;
 use TeraBlaze\Inspector;
 use TeraBlaze\Router\Exception as Exception;
@@ -97,18 +98,26 @@ class Router implements MiddlewareInterface
         return $this;
     }
 
+    // /**
+    //  * @return array
+    //  */
+    // public function getRoutes()
+    // {
+    //     $list = array();
+
+    //     foreach ($this->routes as $route) {
+    //         $list[$route->path] = get_class($route);
+    //     }
+
+    //     return $list;
+    // }
+
     /**
      * @return array
      */
     public function getRoutes()
     {
-        $list = array();
-
-        foreach ($this->routes as $route) {
-            $list[$route->path] = get_class($route);
-        }
-
-        return $list;
+        return $this->routes;
     }
 
     /**
@@ -129,7 +138,7 @@ class Router implements MiddlewareInterface
         $this->method = $method;
 
         Events::fire("terablaze.router.controller.before", array($controller, $parameters));
-        
+
         if (!class_exists($className)) {
             $nameArray = explode(":", $className);
             $className = implode("\\Controller\\", $nameArray);
@@ -203,14 +212,14 @@ class Router implements MiddlewareInterface
 
     /**
      *
-     * @param ServerRequestInterface $request
+     * @param ServerRequestInterface|null $request
      * @return ResponseInterface
      * @throws Exception\Action
      * @throws Exception\Controller
      * @throws Exception\RequestMethod
      * @throws \ReflectionException
      */
-    public function dispatch(ServerRequestInterface $request): ResponseInterface
+    public function dispatch(ServerRequestInterface $request = null): ResponseInterface
     {
         $url = $request->getServerParams()['PATH_INFO'] ?? "/";
         $parameters = array();
@@ -231,7 +240,10 @@ class Router implements MiddlewareInterface
 
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
-                if (@in_array($request_method, $method) || $request_method === $method || empty($method)) {
+                if (
+                    (is_array($method) && in_array($request_method, $method)) || 
+                    $request_method === $method || empty($method)
+                ) {
                     return $this->pass($controller, $action, $parameters, $request_method);
                 } else {
                     http_response_code(405);
@@ -261,7 +273,7 @@ class Router implements MiddlewareInterface
     {
         $this->container = Container::getContainer();
 
-        /** @var \Kernel $kernel */
+        /** @var Kernel $kernel */
         $kernel = $this->container->get('app.kernel');
 
         $routes = require $kernel->getProjectDir() . '/config/routes.php';
