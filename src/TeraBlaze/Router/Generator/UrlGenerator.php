@@ -2,19 +2,7 @@
 
 namespace TeraBlaze\Router\Generator;
 
-use Nyholm\Psr7\Response;
-use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Collections\ArrayCollection;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Controller\ControllerInterface;
-use TeraBlaze\Core\Kernel\Kernel;
-use TeraBlaze\Events\Events;
-use TeraBlaze\Inspector;
 use TeraBlaze\Router\Exception as Exception;
 use TeraBlaze\Router\Exception\RouteNotFoundException;
 use TeraBlaze\Router\Route\Route;
@@ -107,7 +95,6 @@ class UrlGenerator
             }
 
             if ($diff = array_diff_key($requiredKeyNames, $resolvedKeyValue)) {
-                dump($diff);
                 throw new Exception\MissingParametersException(sprintf('Some mandatory parameters are missing ("%s") to generate a URL for route "%s".', implode('", "', array_keys($diff)), $name));
             }
             $url = str_replace($keys, array_keys($resolvedKeyValue), $url);
