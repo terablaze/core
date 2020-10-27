@@ -19,6 +19,20 @@ class Simple extends Route
 		$url = trim($url, '/');
 		$pattern = $this->path;
 
+		preg_match_all("#({[a-zA-Z0-9\:]+})|:([a-zA-Z0-9]+)#", $pattern, $keys);
+
+		$keysToReplace = [];
+		$keyPatterns = [];
+		foreach ($keys[0] as $key) {
+			$keysToReplace[] = "#({$key})#";
+			$keyParts = explode(":", trim($key, "{}"));
+			$keyPatterns[] = isset($keyParts[1]) ? ":" . $keyParts[1] : ":any";
+		}
+
+		$pattern = preg_replace($keysToReplace, $keyPatterns, $pattern);
+
+		unset($keys);
+
 		// get keys
 		preg_match_all("#:([a-zA-Z0-9]+)#", $pattern, $keys);
 
