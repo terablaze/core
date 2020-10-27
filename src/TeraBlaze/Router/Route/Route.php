@@ -32,7 +32,7 @@ abstract class Route
 	/** @var array $parameters */
 	public $parameters = [];
 
-	public function __construct($route)
+    public function __construct($route)
     {
         $this->path = $route['pattern'] ?? null;
         $this->controller = $route['controller'] ?? null;
@@ -41,6 +41,46 @@ abstract class Route
     }
 
     abstract function matches($url): bool;
+
+    /**
+     * @return string
+     */
+    public function getPath(): ?string
+    {
+        return $this->path;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAction(): ?string
+    {
+        return $this->action;
+    }
+
+    /**
+     * @return array|string|null
+     */
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
+    /**
+     * @return string
+     */
+    public function getController(): ?string
+    {
+        return $this->controller;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters(): array
+    {
+        return $this->parameters;
+    }
 
     /**
 	 * @param $method

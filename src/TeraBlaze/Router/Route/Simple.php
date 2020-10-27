@@ -3,6 +3,7 @@
 namespace TeraBlaze\Router\Route;
 
 use TeraBlaze\ArrayMethods as ArrayMethods;
+use TeraBlaze\Router\Router;
 
 /**
  * Class Simple
@@ -17,19 +18,23 @@ class Simple extends Route
 	public function matches($url): bool
 	{
 		$url = trim($url, '/');
-		$pattern = $this->path;
+        $path = explode("#", $this->path);
+        $pattern = $path[0];
+        $path = explode("?", $pattern);
+        $pattern = $path[0];
 
-		preg_match_all("#({[a-zA-Z0-9\:]+})|:([a-zA-Z0-9]+)#", $pattern, $keys);
+		preg_match_all("#" . Router::NAMED_ROUTE_MATCH . "|:([a-zA-Z0-9]+)#", $pattern, $keys);
 
 		$keysToReplace = [];
 		$keyPatterns = [];
 		foreach ($keys[0] as $key) {
-			$keysToReplace[] = "#({$key})#";
+			$keysToReplace[] = "{$key}";
 			$keyParts = explode(":", trim($key, "{}"));
-			$keyPatterns[] = isset($keyParts[1]) ? ":" . $keyParts[1] : ":any";
+			$keyPattern = $keyParts[1] ?? "any";
+			$keyPatterns[] = in_array("#(:". $keyPattern . ")#", Router::PATTERN_KEYS) ? ":" .$keyPattern : $keyPattern;
 		}
 
-		$pattern = preg_replace($keysToReplace, $keyPatterns, $pattern);
+		$pattern = str_replace($keysToReplace, $keyPatterns, $pattern);
 
 		unset($keys);
 
@@ -44,9 +49,7 @@ class Simple extends Route
 		}
 
 		// normalize route pattern
-		$pattern_keys = array("#(:any)#", "#(:alpha)#", "#(:alphabet)#", "#(:num)#", "#(:numeric)#", "#(:mention)#");
-		$replacements = array("([^/]+)", "([a-zA-Z]+)", "([a-zA-Z]+)", "([0-9]+)", "([0-9]+)", "(@[a-zA-Z0-9-_]+)");
-		$pattern = preg_replace($pattern_keys, $replacements, $pattern);
+		$pattern = preg_replace(Router::PATTERN_KEYS, Router::PATTERN_KEYS_REPLACEMENTS, $pattern);
 
 		// check values
 		preg_match_all("#^{$pattern}$#", $url, $values);

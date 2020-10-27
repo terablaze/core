@@ -27,6 +27,12 @@ class Router implements MiddlewareInterface
 {
     public const SERVICE_ALIAS = "routing";
 
+    public const NAMED_ROUTE_MATCH = "{(\w[\w:.,\-'\"{}^$+*?\#\[\]()\\\\\ ]+)}";
+    public const PATTERN_KEYS =
+        ["#(:any)#", "#(:alpha)#", "#(:alphabet)#", "#(:num)#", "#(:numeric)#", "#(:mention)#"];
+    public const PATTERN_KEYS_REPLACEMENTS =
+        ["([^/]+)", "([a-zA-Z]+)", "([a-zA-Z]+)", "([\d]+)", "([\d]+)", "(@[a-zA-Z0-9-_]+)"];
+
     /** @var Container $container */
     protected $container;
     /**
