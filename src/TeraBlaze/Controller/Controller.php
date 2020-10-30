@@ -9,18 +9,18 @@
 
 namespace TeraBlaze\Controller;
 
-use Nyholm\Psr7\Response;
+use ReflectionException;
+use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Container\ContainerAwareTrait;
 use TeraBlaze\Controller\Exception as Exception;
 use TeraBlaze\Events\Events;
-
-use function GuzzleHttp\json_encode;
+use TeraBlaze\Router\Generator\UrlGeneratorInterface;
 
 /**
  * Class Controller
  * @package TeraBlaze\Controller
  */
-class Controller implements ControllerInterface
+abstract class Controller implements ControllerInterface
 {
     use ContainerAwareTrait;
 
@@ -35,23 +35,6 @@ class Controller implements ControllerInterface
     }
 
     /**
-     * @param $method
-     * @return Exception\Implementation
-     */
-    protected function _getExceptionForImplementation($method)
-    {
-        return new Exception\Implementation("{$method} method not implemented");
-    }
-
-    /**
-     * @return Exception\Argument
-     */
-    protected function _getExceptionForArgument()
-    {
-        return new Exception\Argument("Invalid argument");
-    }
-
-    /**
      * Controller destructor
      */
     public function __destruct()
@@ -63,22 +46,7 @@ class Controller implements ControllerInterface
         Events::fire("terablaze.controller.destruct.after", array($this->getName()));
     }
 
-    public function render($viewFile, $viewVars = array(), $responseCode = 200): Response
-    {
-        $content = $this->loadView($viewFile, $viewVars);
-
-        return new Response($responseCode, [], $content);
-    }
-
-    public function renderJson($data, $responseCode = 200): Response
-    {
-        if (is_array($data) || is_object($data)) {
-            $data = json_encode($data);
-        }
-        return new Response($responseCode, [], $data);
-    }
-
-    public function loadView($viewFile, $viewVars = array()): string
+    protected function loadView($viewFile, $viewVars = array()): string
     {
         Events::fire("terablaze.controller.view.load.before", array($viewFile, $viewVars));
         $global = new static;
@@ -106,7 +74,7 @@ class Controller implements ControllerInterface
         return $string;
     }
 
-    public function includeView($viewFile): void
+    protected function includeView($viewFile): void
     {
         $viewVars = $GLOBALS['viewVars'];
         $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
@@ -117,11 +85,69 @@ class Controller implements ControllerInterface
         include $filename;
     }
 
-    /**
-     * serves as the default index method
-     * in case it is not defined in inheriting controllers
-     */
-    public function index()
+    protected function render($viewFile, $viewVars = array(), $responseCode = 200, $headers = []): Response
     {
+        $content = $this->loadView($viewFile, $viewVars);
+
+        return new Response($content, $responseCode, $headers);
+    }
+
+    protected function json(
+        $data,
+        int $responseCode = 200,
+        array $headers = ['Content-Type' => 'text/javascript'],
+        $jsonOptions = null
+    ): Response {
+        if (is_array($data) || is_object($data)) {
+            $data = json_encode($data, $jsonOptions);
+        }
+        return new Response($data, $responseCode, $headers);
+    }
+
+    /**
+     * Generates a URL from the given parameters.
+     *
+     * @param string $routeName
+     * @param array $parameters
+     * @param int $referenceType
+     * @return string
+     * @throws ReflectionException
+     * @see UrlGeneratorInterface
+     */
+    protected function generateUrl(
+        string $routeName,
+        array $parameters = [],
+        int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
+    ): string {
+        return $this->container->get('router')->generate($routeName, $parameters, $referenceType);
+    }
+
+    /**
+     * @param string $url
+     * @param int $status
+     * @return Response
+     */
+    protected function redirect(string $url, int $status = 302): Response
+    {
+        return new Response('', $status, [
+            'Location' => $url
+        ]);
+    }
+
+    /**
+     * @param string $routeName
+     * @param array $parameters
+     * @param int $status
+     * @param int $referenceType
+     * @return Response
+     * @throws ReflectionException
+     */
+    protected function redirectToRoute(
+        string $routeName,
+        array $parameters = [],
+        int $status = 302,
+        int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
+    ): Response {
+        return $this->redirect($this->generateUrl($routeName, $parameters, $referenceType), $status);
     }
 }
