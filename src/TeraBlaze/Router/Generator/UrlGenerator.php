@@ -14,31 +14,8 @@ use TeraBlaze\Router\Router;
  *
  * handles url generation
  */
-class UrlGenerator
+class UrlGenerator implements UrlGeneratorInterface
 {
-    /**
-     * Generates an absolute URL, e.g. "http://example.com/dir/file".
-     */
-    public const ABSOLUTE_URL = 0;
-
-    /**
-     * Generates an absolute path, e.g. "/dir/file".
-     */
-    public const ABSOLUTE_PATH = 1;
-
-    /**
-     * Generates a relative path based on the current request path, e.g. "../parent-file".
-     *
-     * @see UrlGenerator::getRelativePath()
-     */
-    public const RELATIVE_PATH = 2;
-
-    /**
-     * Generates a network path, e.g. "//example.com/dir/file".
-     * Such reference reuses the current scheme but specifies the host.
-     */
-    public const NETWORK_PATH = 3;
-
     /** @var Route[] $routes */
     protected $routes;
 
@@ -48,10 +25,7 @@ class UrlGenerator
     }
 
     /**
-     * @param string $name
-     * @param array $parameters
-     * @param int $referenceType
-     * @throws RouteNotFoundException
+     * {@inheritDoc}
      */
     public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
     {

@@ -2,19 +2,19 @@
 
 namespace TeraBlaze\Router;
 
-use Nyholm\Psr7\Response;
-use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use ReflectionException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Events\Events;
 use TeraBlaze\Inspector;
 use TeraBlaze\Router\Exception as Exception;
+use TeraBlaze\Router\Generator\UrlGenerator;
+use TeraBlaze\Router\Generator\UrlGeneratorInterface;
 use TeraBlaze\Router\Route\Route;
 
 /**
@@ -25,7 +25,7 @@ use TeraBlaze\Router\Route\Route;
  */
 class Router implements MiddlewareInterface
 {
-    public const SERVICE_ALIAS = "routing";
+    public const SERVICE_ALIAS = "router";
 
     public const NAMED_ROUTE_MATCH = "{(\w[\w:.,\-'\"{}^$+*?\#\[\]()\\\\\ ]+)}";
     public const PATTERN_KEYS =
@@ -133,7 +133,7 @@ class Router implements MiddlewareInterface
      * @param string $method
      * @throws Exception\Action
      * @throws Exception\Controller
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function pass($controller, $action, $parameters = array(), $method = ''): ResponseInterface
     {
@@ -223,7 +223,7 @@ class Router implements MiddlewareInterface
      * @throws Exception\Action
      * @throws Exception\Controller
      * @throws Exception\RequestMethod
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function dispatch(ServerRequestInterface $request = null): ResponseInterface
     {
@@ -247,7 +247,7 @@ class Router implements MiddlewareInterface
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
                 if (
-                    (is_array($method) && in_array($request_method, $method)) || 
+                    (is_array($method) && in_array($request_method, $method)) ||
                     $request_method === $method || empty($method)
                 ) {
                     return $this->pass($controller, $action, $parameters, $request_method);
@@ -294,5 +294,26 @@ class Router implements MiddlewareInterface
         $response = $this->dispatch($request);
 
         return $response;
+    }
+
+    public function generate(string $name, array $parameters = [], int $referenceType = UrlGenerator::ABSOLUTE_PATH): string
+    {
+        return $this->getGenerator()->generate($name, $parameters, $referenceType);
+    }
+
+    /**
+     * @return UrlGeneratorInterface
+     * @throws ReflectionException
+     */
+    public function getGenerator(): UrlGeneratorInterface
+    {
+        if (!$this->container->has(UrlGenerator::class)) {
+            $this->container->registerService(UrlGenerator::class, [
+                'class' => UrlGenerator::class,
+                'arguments' => [$this->getRoutes()]
+            ]);
+
+        }
+        return $this->container->get(UrlGenerator::class);
     }
 }
