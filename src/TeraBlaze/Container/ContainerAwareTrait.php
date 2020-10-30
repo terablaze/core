@@ -1,9 +1,10 @@
 <?php
 
-namespace Terablaze\Container;
+namespace TeraBlaze\Container;
 
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerInterface;
+use ReflectionException;
+use TeraBlaze\Container\Exception\ContainerException;
+use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Events\Events;
 
 trait ContainerAwareTrait
@@ -13,6 +14,9 @@ trait ContainerAwareTrait
      */
     protected $container;
 
+    /**
+     * @param ContainerInterface $container
+     */
     public function setContainer(ContainerInterface $container): void
     {
         Events::fire("terablaze.controller.setContainer.before", array($this->getName()));
@@ -22,6 +26,10 @@ trait ContainerAwareTrait
         Events::fire("terablaze.controller.setContainer.after", array($this->getName()));
     }
 
+    /**
+     * @param string $key
+     * @return bool
+     */
     public function has(string $key): bool
     {
         if (!$this->container instanceof Container) {
@@ -30,6 +38,11 @@ trait ContainerAwareTrait
         return $this->container->has($key);
     }
 
+    /**
+     * @param string $key
+     * @return object
+     * @throws ReflectionException
+     */
     public function get(string $key): object
     {
         if (!$this->container instanceof Container) {
@@ -38,6 +51,12 @@ trait ContainerAwareTrait
         return $this->container->get($key);
     }
 
+    /**
+     * @param string $key
+     * @return array|mixed|string
+     * @throws ContainerException
+     * @throws ParameterNotFoundException
+     */
     public function getParameter(string $key)
     {
         if (!$this->container instanceof Container) {
