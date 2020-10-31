@@ -7,7 +7,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Relay\Relay;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 
 abstract class Kernel implements KernelInterface
@@ -170,7 +169,8 @@ abstract class Kernel implements KernelInterface
         foreach ($middlewares as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
                 if (class_exists($class)) {
-                    $this->container->registerService($class, ['class' => $class]);
+                    $middlewareInstance = new $class();
+                    $this->container->registerServiceInstance($class, $middlewareInstance);
                     if (defined("$class::SERVICE_ALIAS")) {
                         $this->container->setAlias($class::SERVICE_ALIAS, $class);
                     }

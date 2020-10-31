@@ -361,15 +361,15 @@ class Container implements ContainerInterface
      * @throws ParameterNotFoundException
      * @throws ReflectionException
      */
-    private function resolveArguments(array $argumentDefinitions, array $reflectionParameters = []): array
+    public function resolveArguments(array $argumentDefinitions, array $reflectionParameters = []): array
     {
         $arguments = [];
         $resolvedArguments = [];
 
         foreach ($argumentDefinitions as $key => $argumentDefinition) {
-            if ($this->isService($argumentDefinition)) {
+            if (is_string($argumentDefinition) && $this->isService($argumentDefinition)) {
                 $arguments[$key] = $this->get($this->cleanServiceReference($argumentDefinition));
-            } elseif ($this->isParameter($argumentDefinition)) {
+            } elseif (is_string($argumentDefinition) && $this->isParameter($argumentDefinition)) {
                 $arguments[$key] = $this->getParameter($this->cleanParameterReference($argumentDefinition));
             } else {
                 $arguments[$key] = $argumentDefinition;
@@ -386,7 +386,8 @@ class Container implements ContainerInterface
             $position = $reflectionParameter->getPosition();
             $class = $reflectionParameter->getClass();
             $className = is_null($class) ? null : $class->getName();
-            $type = $reflectionParameter->getType()->getName();
+            $type = $reflectionParameter->getType();
+            $typeName = is_null($type) ? null : $type->getName();
             try {
                 $defaultValue = $reflectionParameter->getDefaultValue();
             } catch (ReflectionException $reflectionException) {
@@ -394,7 +395,7 @@ class Container implements ContainerInterface
             }
             $resolvedArgument = $defaultValue ?? $className;
             foreach ($arguments as $key => $argument) {
-                if (is_object($argument) && $className == get_class($argument)) {
+                if (is_object($argument) && ($className == get_class($argument) || $argument instanceof $className || $argument instanceof $key)) {
                     $resolvedArgument = $argument;
                     continue;
                 }
@@ -450,7 +451,7 @@ class Container implements ContainerInterface
 
             $methodArguments = $this->resolveArguments($callDefinition['arguments'], $reflectionParameters);
 
-            call_user_func_array([$service, $callDefinition['method']], $methodArguments);
+            return call_user_func_array([$service, $callDefinition['method']], $methodArguments);
         }
         return $service;
     }

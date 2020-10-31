@@ -13,6 +13,7 @@ use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Events\Events;
+use TeraBlaze\HttpBase\Request;
 use TeraBlaze\Inspector;
 use TeraBlaze\Router\Exception as Exception;
 use TeraBlaze\Router\Generator\UrlGenerator;
@@ -206,27 +207,14 @@ class Router implements MiddlewareInterface
 
         Events::fire("terablaze.router.action.before", array($action, $parameters));
 
-        try {
-            $response = $this->container->initializeServiceCalls($controllerInstance, $className, [
-                'calls' => [
-                    'method' => $method,
-                    'arguments' => [
-                        'request' => $request,
-                    ],
-                ],
-            ]);
-        } catch (ReflectionException $e) {
-            throw new Exception\Action(sprintf('Error calling action: %s', $method));
-        } catch (ContainerException $e) {
-            throw new Exception\Action(sprintf('Error calling action: %s', $method));
-        } catch (ParameterNotFoundException $e) {
-            throw new Exception\Action(sprintf('Error calling action: %s', $method));
-        }
 
-//        $response = call_user_func_array([
-//            $controllerInstance,
-//            $action
-//        ], is_array($parameters) ? $parameters : array());
+        $reflectionMethod = new \ReflectionMethod($controllerInstance, $action);
+        $reflectionParameters = $reflectionMethod->getParameters();
+        $methodArguments = $this->container->resolveArguments([Request::class => $request], $reflectionParameters);
+        $response = call_user_func_array([
+            $controllerInstance,
+            $action
+        ], $methodArguments);
 
         Events::fire("terablaze.router.action.after", array($action, $parameters));
         Events::fire("terablaze.router.afterhooks.before", array($action, $parameters));
@@ -270,7 +258,7 @@ class Router implements MiddlewareInterface
 
                 if (
                     (is_array($method) && in_array($requestMethod, $method)) ||
-                    $requestMethod === $method || empty($method)
+                    strtolower($requestMethod) === $method || empty($method)
                 ) {
                     return $this->pass($request, $controller, $action, $parameters, $requestMethod);
                 } else {
