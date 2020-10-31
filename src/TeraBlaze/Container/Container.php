@@ -376,6 +376,10 @@ class Container implements ContainerInterface
             }
         }
 
+        if (count($argumentDefinitions) === count($reflectionParameters)) {
+            return $arguments;
+        }
+
         if (empty($arguments)) {
             $arguments = [1];
         }
