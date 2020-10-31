@@ -28,7 +28,7 @@ class Mysql extends Query
 		
 		if ($result === false) {
 			$error = $this->connector->lastError;
-			throw new Exception\Sql("There was an error with your SQL query: {$error}");
+			throw new Exception\Sql("There was an error with your SQL query: {$error} in \n {$sql}");
 		}
 		
 		$rows = array();
