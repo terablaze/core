@@ -11,7 +11,7 @@
     }
   ],
   "require": {
-    "php": "^7.2",
+    "php": "^7.3",
     "ext-json": "*",
     "ext-mbstring": "*",
     "psr/container": "^1.0@dev",
@@ -26,7 +26,8 @@
       "TeraBlaze\\": "src/TeraBlaze/"
     },
     "files": [
-      "src/TeraBlaze/Functions.php"
+      "src/TeraBlaze/Functions.php",
+      "src/TeraBlaze/Router/Generator/path.php"
     ]
   },
   "autoload-dev": {
