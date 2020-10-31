@@ -426,11 +426,12 @@ class Container implements ContainerInterface
      * @param string $name The service name.
      * @param array $callDefinitions The service calls definition.
      *
+     * @return object|mixed
      * @throws ContainerException On failure.
      * @throws ParameterNotFoundException
      * @throws ReflectionException
      */
-    private function initializeServiceCalls(object $service, string $name, array $callDefinitions): void
+    public function initializeServiceCalls(object $service, string $name, array $callDefinitions)
     {
         foreach ($callDefinitions as $callDefinition) {
             if (!is_array($callDefinition) || !isset($callDefinition['method'])) {
@@ -451,6 +452,7 @@ class Container implements ContainerInterface
 
             call_user_func_array([$service, $callDefinition['method']], $methodArguments);
         }
+        return $service;
     }
 
     /**

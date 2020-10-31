@@ -8,6 +8,8 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
 use TeraBlaze\Container\Container;
+use TeraBlaze\Container\Exception\ContainerException;
+use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Events\Events;
@@ -127,16 +129,23 @@ class Router implements MiddlewareInterface
     }
 
     /**
-     * @param $controller
-     * @param $action
+     * @param ServerRequestInterface $request
+     * @param string $controller
+     * @param string $action
      * @param array $parameters
      * @param string $method
+     * @return ResponseInterface
      * @throws Exception\Action
      * @throws Exception\Controller
      * @throws ReflectionException
      */
-    protected function pass($controller, $action, $parameters = array(), $method = ''): ResponseInterface
-    {
+    protected function pass(
+        ServerRequestInterface $request,
+        string $controller,
+        string $action,
+        array $parameters = array(),
+        string $method = ''
+    ): ResponseInterface {
         $className = ucfirst($controller);
 
         $this->controller = $controller;
@@ -154,14 +163,10 @@ class Router implements MiddlewareInterface
             throw new Exception\Controller("Controller {$className} not found");
         }
 
-        try {
-            $this->container->registerService($className, ['class' => $className]);
-            /** @var ControllerInterface $controllerInstance */
-            $controllerInstance = $this->container->get($className);
-            $controllerInstance->setContainer($this->container);
-        } catch (Exception\Controller $e) {
-            throw new Exception\Controller("An error occured while loading controller {$className}");
-        }
+        $this->container->registerService($className, ['class' => $className]);
+        /** @var ControllerInterface $controllerInstance */
+        $controllerInstance = $this->container->get($className);
+        $controllerInstance->setContainer($this->container);
 
         Events::fire("terablaze.router.controller.after", array($controller, $parameters));
 
@@ -201,10 +206,27 @@ class Router implements MiddlewareInterface
 
         Events::fire("terablaze.router.action.before", array($action, $parameters));
 
-        $response = call_user_func_array([
-            $controllerInstance,
-            $action
-        ], is_array($parameters) ? $parameters : array());
+        try {
+            $response = $this->container->initializeServiceCalls($controllerInstance, $className, [
+                'calls' => [
+                    'method' => $method,
+                    'arguments' => [
+                        'request' => $request,
+                    ],
+                ],
+            ]);
+        } catch (ReflectionException $e) {
+            throw new Exception\Action(sprintf('Error calling action: %s', $method));
+        } catch (ContainerException $e) {
+            throw new Exception\Action(sprintf('Error calling action: %s', $method));
+        } catch (ParameterNotFoundException $e) {
+            throw new Exception\Action(sprintf('Error calling action: %s', $method));
+        }
+
+//        $response = call_user_func_array([
+//            $controllerInstance,
+//            $action
+//        ], is_array($parameters) ? $parameters : array());
 
         Events::fire("terablaze.router.action.after", array($action, $parameters));
         Events::fire("terablaze.router.afterhooks.before", array($action, $parameters));
@@ -232,6 +254,8 @@ class Router implements MiddlewareInterface
         $controller = '';
         $action = '';
 
+        $requestMethod = $request->getMethod();
+
         Events::fire("terablaze.router.dispatch.before", array($url));
 
         foreach ($this->routes as $route) {
@@ -242,18 +266,16 @@ class Router implements MiddlewareInterface
                 $parameters = $route->parameters;
                 $method = $route->method;
 
-                $request_method = strtolower($_SERVER['REQUEST_METHOD']);
-
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
                 if (
-                    (is_array($method) && in_array($request_method, $method)) ||
-                    $request_method === $method || empty($method)
+                    (is_array($method) && in_array($requestMethod, $method)) ||
+                    $requestMethod === $method || empty($method)
                 ) {
-                    return $this->pass($controller, $action, $parameters, $request_method);
+                    return $this->pass($request, $controller, $action, $parameters, $requestMethod);
                 } else {
                     http_response_code(405);
-                    throw new Exception\RequestMethod("Request method {$_SERVER['REQUEST_METHOD']} not implemented for this endpoint");
+                    throw new Exception\RequestMethod("Request method {$request->getMethod()} not implemented for this endpoint");
                 }
             }
         }
@@ -272,7 +294,7 @@ class Router implements MiddlewareInterface
         }
 
         Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters));
-        return $this->pass($controller, $action, $parameters);
+        return $this->pass($request, $controller, $action, $parameters, $requestMethod);
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
