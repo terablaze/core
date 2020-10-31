@@ -4,7 +4,7 @@ use TeraBlaze\Container\Container;
 use TeraBlaze\Router\Router;
 
 if (!function_exists('path')) {
-    function path(string $path, array $parameters = [])
+    function path(string $path = '', array $parameters = [])
     {
         $container = Container::getContainer();
         /** @var Router $router */
