@@ -210,11 +210,15 @@ class Router implements MiddlewareInterface
 
         $reflectionMethod = new \ReflectionMethod($controllerInstance, $action);
         $reflectionParameters = $reflectionMethod->getParameters();
-        $methodArguments = $this->container->resolveArguments([Request::class => $request], $reflectionParameters);
+        $reflectionClass = $reflectionParameters[0]->getClass();
+        $reflectionClassName = is_null($reflectionClass) ? "" : $reflectionClass->getName();
+        if ($reflectionClassName === Request::class) {
+            array_unshift($parameters, $request);
+        }
         $response = call_user_func_array([
             $controllerInstance,
             $action
-        ], $methodArguments);
+        ], $parameters);
 
         Events::fire("terablaze.router.action.after", array($action, $parameters));
         Events::fire("terablaze.router.afterhooks.before", array($action, $parameters));
