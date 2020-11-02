@@ -48,11 +48,6 @@ abstract class Query extends Base
     /**
      * @read
      */
-    protected $_direction;
-
-    /**
-     * @read
-     */
     protected $_join = [];
 
     /**
@@ -60,7 +55,15 @@ abstract class Query extends Base
      */
     protected $_where = [];
 
+    protected $_dumpSql = false;
+
     abstract public function all(): array;
+
+    public function dumpSql($dumpSql = true)
+    {
+        $this->_dumpSql = $dumpSql;
+        return $this;
+    }
 
     public function save($data)
     {
@@ -72,7 +75,7 @@ abstract class Query extends Base
             $sql = $this->_buildUpdate($data);
         }
 
-        $result = $this->_connector->execute($sql);
+        $result = $this->_connector->execute($sql, $this->dumpSql());
 
         if ($result === false) {
             $error = $this->connector->lastError;
@@ -162,7 +165,7 @@ abstract class Query extends Base
     public function delete()
     {
         $sql = $this->_buildDelete();
-        $result = $this->_connector->execute($sql);
+        $result = $this->_connector->execute($sql, $this->_dumpSql);
 
         if ($result === false) {
             throw new Exception\Sql();
@@ -256,7 +259,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function left_join($join, $on, $fields = [])
+    public function leftJoin($join, $on, $fields = [])
     {
         if (empty($join)) {
             throw new Exception\Argument("Invalid argument");
@@ -272,7 +275,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function right_join($join, $on, $fields = [])
+    public function rightJoin($join, $on, $fields = [])
     {
         if (empty($join)) {
             throw new Exception\Argument("Invalid argument");
@@ -288,7 +291,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function cross_join($join)
+    public function crossJoin($join)
     {
         if (empty($join)) {
             throw new Exception\Argument("Invalid argument");
@@ -299,15 +302,17 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function order($order, $direction = "asc")
+    public function order($order)
     {
         if (empty($order)) {
             throw new Exception\Argument("Invalid argument");
         }
 
-        $this->_order = $order;
-        $this->_direction = $direction;
-
+        if (empty($this->_order)) {
+            $this->_order = $order;
+            return $this;
+        }
+        $this->_order[] = $order;
         return $this;
     }
 
@@ -374,7 +379,7 @@ abstract class Query extends Base
         }
 
         $this->_limit = $limit;
-        $this->_offset = $limit * ($page - 1);
+        $this->_offset = ($limit * ($page - 1)) + 1;
 
         return $this;
     }
@@ -433,10 +438,21 @@ abstract class Query extends Base
             $where = "WHERE {$joined}";
         }
 
-        $_order = $this->order;
+        $orderArray = [];
+        if (is_array($this->_order)) {
+            foreach ($this->_order as $thisKey => $thisOrder) {
+                if (is_string($thisKey)) {
+                    $orderArray[] = "{$thisKey} {$thisOrder}";
+                } else {
+                    $orderArray[] = "{$thisOrder}";
+                }
+            }
+            $_order = implode(", ", $orderArray);
+        } else {
+            $order = $this->_order;
+        }
         if (!empty($_order)) {
-            $_direction = $this->direction;
-            $order = "ORDER BY {$_order} {$_direction}";
+            $order = "ORDER BY {$_order}";
         }
 
         $_limit = $this->limit;
@@ -444,7 +460,7 @@ abstract class Query extends Base
             $_offset = $this->offset;
 
             if ($_offset) {
-                $limit = "LIMIT  {$_offset}, {$_limit}";
+                $limit = "LIMIT {$_offset}, {$_limit}";
             } else {
                 $limit = "LIMIT {$_limit}";
             }

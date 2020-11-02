@@ -10,7 +10,6 @@
 namespace TeraBlaze\Ripana\ORM;
 
 use DateTime;
-use TeraBlaze\Collections\ArrayCollection;
 use TeraBlaze\Configuration\PolymorphismTrait;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
@@ -197,16 +196,14 @@ abstract class Model
         $where = array(),
         $fields = array("*"),
         $order = null,
-        $direction = null,
         $limit = null,
         $page = null
-    )
-    {
+    ): ?EntityCollection {
         $model = new static();
-        return $model->_all($where, $fields, $order, $direction, $limit, $page);
+        return $model->_all($where, $fields, $order, $limit, $page);
     }
 
-    protected function _all($where = [], $fields = ["*"], $order = null, $direction = null, $limit = null, $page = null)
+    protected function _all($where = [], $fields = ["*"], $order = null, $limit = null, $page = null)
     {
         $query = $this
             ->__connector
@@ -216,7 +213,7 @@ abstract class Model
             $query->where($clause, $value);
         }
         if ($order != null) {
-            $query->order($order, $direction);
+            $query->order($order);
         }
         if ($limit != null) {
             $query->limit($limit, $page);
@@ -228,27 +225,23 @@ abstract class Model
             $rows[] = $object;
             $object = null;
         }
-        return new ArrayCollection($rows, static::class);
+        return new EntityCollection($rows, static::class);
     }
 
     public static function first(
         $where = [],
         $fields = ["*"],
-        $order = null,
-        $direction = null
-    )
-    {
+        $order = null
+    ): ?self {
         $model = new static();
-        return $model->_first($where, $fields, $order, $direction);
+        return $model->_first($where, $fields, $order);
     }
 
     protected function _first(
         $where = [],
         $fields = ["*"],
-        $order = null,
-        $direction = null
-    )
-    {
+        $order = null
+    ): ?self {
         $query = $this
             ->__connector
             ->query()
@@ -257,7 +250,7 @@ abstract class Model
             $query->where($clause, $value);
         }
         if ($order != null) {
-            $query->order($order, $direction);
+            $query->order($order);
         }
         $first = $query->first();
         if ($first) {
@@ -265,6 +258,37 @@ abstract class Model
             return $this;
         }
         return null;
+    }
+
+    public static function find($modelId): ?self
+    {
+        $model = new static();
+        $primaryKey = $model->getPrimaryColumn()['name'];
+        return $model->_first([
+            "{$primaryKey} = ?" => $modelId,
+        ]);
+    }
+
+    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    {
+        $persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
+
+        return $persister->loadAll($criteria, $orderBy, $limit, $offset);
+    }
+
+    /**
+     * Finds a single entity by a set of criteria.
+     *
+     * @param array      $criteria
+     * @param array|null $orderBy
+     *
+     * @return object|null The entity instance or NULL if the entity can not be found.
+     */
+    public function findOneBy(array $criteria, array $orderBy = null)
+    {
+        $persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
+
+        return $persister->load($criteria, null, null, [], null, 1, $orderBy);
     }
 
     public static function count($where = array())
@@ -312,7 +336,7 @@ abstract class Model
         return $this->__connector;
     }
 
-    public function getDatabase()
+    public function getDatabase(): Connector
     {
         return $this->getConnector();
     }

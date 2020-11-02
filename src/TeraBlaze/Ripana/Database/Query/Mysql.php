@@ -24,7 +24,7 @@ class Mysql extends Query
 	public function all(): array
 	{
 		$sql = $this->_buildSelect();
-		$result = $this->connector->execute($sql);
+		$result = $this->connector->execute($sql, $this->_dumpSql);
 		
 		if ($result === false) {
 			$error = $this->connector->lastError;

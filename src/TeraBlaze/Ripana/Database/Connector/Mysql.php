@@ -129,9 +129,24 @@ class Mysql extends Connector
 
     /**
      * executes the provided SQL statement
+     * @param string $sql
+     * @param string|bool $dumpSql
+     * @return
+     * @throws Exception\Service
      */
-    public function execute(string $sql)
+    public function execute(string $sql, $dumpSql = '')
     {
+        if (!empty($dumpSql)) {
+            if (function_exists($dumpSql)) {
+                $dumpSql($sql);
+            } else {
+                if (function_exists('dump')) {
+                    dump($sql);
+                } else {
+                    echo $sql;
+                }
+            }
+        }
         \TeraBlaze\Events\Events::fire("terablaze.libraries.database.query", array($sql, ""));
         if (!$this->_isValidService()) {
             throw new Exception\Service("Not connected to a valid service");

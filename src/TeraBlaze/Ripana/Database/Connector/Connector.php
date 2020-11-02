@@ -30,7 +30,7 @@ abstract class Connector extends Base
     abstract public function connect();
     abstract public function disconnect();
     abstract public function query(): Query;
-    abstract public function execute(string $sql);
+    abstract public function execute(string $sql, $dumpSql);
     abstract public function escape(string $value);
     abstract public function getLastInsertId();
     abstract public function getAffectedRows();
