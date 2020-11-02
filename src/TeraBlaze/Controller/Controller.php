@@ -49,15 +49,11 @@ abstract class Controller implements ControllerInterface
     protected function loadView($viewFile, $viewVars = array()): string
     {
         Events::fire("terablaze.controller.view.load.before", array($viewFile, $viewVars));
-        $global = new static;
-        $string = "";
 
         $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
         $viewFile = str_replace("::", "/views/", $viewFile);
         $filename = $this->container->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
-
-        $viewVars = array_merge($viewVars, ['global' => $global]);
 
         if (!file_exists($filename)) {
             Events::fire("terablaze.controller.view.load.error", array($viewFile, $viewVars));
