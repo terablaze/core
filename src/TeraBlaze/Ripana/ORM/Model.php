@@ -269,28 +269,6 @@ abstract class Model
         ]);
     }
 
-    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
-    {
-        $persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
-
-        return $persister->loadAll($criteria, $orderBy, $limit, $offset);
-    }
-
-    /**
-     * Finds a single entity by a set of criteria.
-     *
-     * @param array      $criteria
-     * @param array|null $orderBy
-     *
-     * @return object|null The entity instance or NULL if the entity can not be found.
-     */
-    public function findOneBy(array $criteria, array $orderBy = null)
-    {
-        $persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
-
-        return $persister->load($criteria, null, null, [], null, 1, $orderBy);
-    }
-
     public static function count($where = array())
     {
         $model = new static();
