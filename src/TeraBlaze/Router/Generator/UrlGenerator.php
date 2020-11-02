@@ -61,7 +61,7 @@ class UrlGenerator implements UrlGeneratorInterface
                 // Supplied value from url parameters. Defaults to null
                 $keyValue = $params->get($keyName);
                 $requiredKeyNames[$keyName] = $keyName;
-                $keyValue = urlencode($keyValue ?? $keyDefault);
+                $keyValue = rawurlencode($keyValue ?? $keyDefault);
                 if (!empty($keyValue)){
                     $resolvedKeyValue[$keyName] = $keyValue;
                 }

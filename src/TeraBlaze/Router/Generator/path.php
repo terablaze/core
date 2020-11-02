@@ -16,8 +16,7 @@ if (!function_exists('path')) {
         $virtualLocation = $container->hasParameter('virtualLocation') ?
             rtrim($container->getParameter('virtualLocation'), '/\\') :
             preg_replace('#public/[\w-]*.php(.*)$#', '', $scriptName);
-        $link = "{$virtualLocation}{$path}";
-        return htmlspecialchars($link, ENT_QUOTES);
+        return "{$virtualLocation}{$path}";
     }
 }
 
@@ -29,7 +28,6 @@ if (!function_exists('asset')) {
         $virtualLocation = $container->hasParameter('virtualLocation') ?
             rtrim($container->getParameter('virtualLocation'), '/\\') :
             preg_replace('#[\w-]*.php(.*)$#', '', $scriptName);
-        $link = "{$virtualLocation}assets/{$uri}";
-        return htmlspecialchars($link, ENT_QUOTES);
+        return "{$virtualLocation}assets/{$uri}";
     }
 }
