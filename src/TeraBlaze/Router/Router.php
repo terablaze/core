@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
+use TeraBlaze\ArrayMethods;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
@@ -259,14 +260,17 @@ class Router implements MiddlewareInterface
                 $controller = $route->controller;
                 $action = $route->action;
                 $parameters = $route->parameters;
-                $method = $route->method;
+                $method = is_array($route->method) ? $route->method : [$route->method];
 
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
-                if (
-                    (is_array($method) && in_array($requestMethod, $method)) ||
-                    strtolower($requestMethod) === $method || empty($method)
-                ) {
+                $method = array_map(function($methodItem) {
+                    return strtolower($methodItem);
+                }, $method);
+
+                $method = ArrayMethods::clean($method);
+
+                if (in_array(strtolower($requestMethod), $method) || empty($method)) {
                     return $this->pass($request, $controller, $action, $parameters, $requestMethod);
                 } else {
                     http_response_code(405);
