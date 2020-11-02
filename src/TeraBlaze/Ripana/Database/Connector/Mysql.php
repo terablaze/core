@@ -218,13 +218,16 @@ class Mysql extends Connector
             $name = $column["name"];
             $type = $column["type"];
             $length = $column["length"];
-            $dd = $column["default"] ? $this->escape($column["default"]) : "";
-            if ($dd) {
-                if (!in_array($dd, ['NOW()'])) {
-                    $dd = "'{$dd}'";
+            $tempDefault = isset($column["default"]) ? $this->escape($column["default"]) : null;
+            if (isset($tempDefault)) {
+                if (
+                    !in_array(mb_strtolower($tempDefault), ['now()'], true) &&
+                    (!in_array(mb_strtolower($type), ["boolean", "bool", "date", "time", "datetime"], true) && !is_numeric($tempDefault))
+                ) {
+                    $tempDefault = "'{$tempDefault}'";
                 }
             }
-            $default = $column["default"] ? " DEFAULT $dd" : "";
+            $default = isset($tempDefault) ? " DEFAULT $tempDefault" : "";
             $nullable = $column["nullable"] ? "" : " NOT NULL";
             $isForeignKey = isset($column['foreignKey']) && $column['foreignKey'] == true;
             if ($column["primary"]) {

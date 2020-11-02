@@ -94,7 +94,7 @@ abstract class Model
                 $key = $this->__columnsReverseMap[$key];
             }
             if (
-                in_array($this->__columns[$key]['type'], ['date', 'time', 'datetime']) &&
+                in_array(mb_strtolower($this->__columns[$key]['type']), ['date', 'time', 'datetime'], 'true') &&
                 (!$value instanceof DateTime) &&
                 (!empty($value)) &&
                 $this->__columns[$key]['autoconvert'] != false
@@ -345,7 +345,6 @@ abstract class Model
                     if ($primaries > 1) {
                         throw new Primary("A foreign key cannot be used as a primary column");
                     }
-                    https://
                     $column = (new OneToMany($propertyMeta))->getColumn($property);
                     $name = $column['name'];
                     $columns[$name] = $column;

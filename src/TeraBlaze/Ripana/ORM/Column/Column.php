@@ -22,11 +22,19 @@ class Column
         $name = $column['name'] ?? $this->getFirst($this->propertyMeta, '@name') ?? $property;
         $type = $column['type'] ?? $this->getFirst($this->propertyMeta, '@type');
         $length = $column['length'] ?? $this->getFirst($this->propertyMeta, '@length');
-        $default = $column['default'] ?? $this->getFirst($this->propertyMeta, '@default');
+        $defaultValue = $column['default'] ?? $this->getFirst($this->propertyMeta, '@default');
+        if (in_array(mb_strtolower($type), ["bool", "boolean"])) {
+            $default = (in_array(mb_strtolower($defaultValue), Model::falsy, true)) ? 0 : 1;
+        } else {
+            $default = $defaultValue;
+        }
+        if (is_null($defaultValue)) {
+            $default = null;
+        }
         $nullableValue = $column['nullable'] ?? $this->getFirst($this->propertyMeta, '@nullable') ?? true;
-        $nullable = in_array(mb_strtolower($nullableValue), Model::falsy) ? false : true;
+        $nullable = in_array(mb_strtolower($nullableValue), Model::falsy, true) ? false : true;
         $autoConvertValue = $column['autoconvert'] ?? $this->getFirst($this->propertyMeta, '@autoconvert') ?? true;
-        $autoConvert = in_array(mb_strtolower($autoConvertValue), Model::falsy) ? false : true;
+        $autoConvert = in_array(mb_strtolower($autoConvertValue), Model::falsy, true) ? false : true;
 
         return [
             'raw' => $property,
