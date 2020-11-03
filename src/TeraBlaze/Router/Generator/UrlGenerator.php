@@ -49,6 +49,9 @@ class UrlGenerator implements UrlGeneratorInterface
                 $keyDetails = explode(":", $key);
                 // Name of the key
                 $keyName = $keyDetails[0] ?? "";
+                if (empty($keyName)) {
+                    throw new Exception\MissingRouteParameterNameException('Route key must have a name');
+                }
                 $keyPattern = $keyDetails[1] ?? "any";
                 $keyMatch = in_array("#(:". $keyPattern . ")#", Router::PATTERN_KEYS) ? ":" .$keyPattern : $keyPattern;
 
@@ -71,8 +74,14 @@ class UrlGenerator implements UrlGeneratorInterface
             if ($diff = array_diff_key($requiredKeyNames, $resolvedKeyValue)) {
                 throw new Exception\MissingParametersException(sprintf('Some mandatory parameters are missing ("%s") to generate a URL for route "%s".', implode('", "', array_keys($diff)), $name));
             }
-            $url = str_replace($keys, array_keys($resolvedKeyValue), $url);
-            $url = str_replace(array_keys($resolvedKeyValue), $resolvedKeyValue, $url);
+            $newKeys = array_map(function ($newKey) {
+                return "{{$newKey}}";
+            }, $keys);
+            $keysToChange = array_map(function ($resolvedKey) {
+                return "{{$resolvedKey}}";
+            }, array_keys($resolvedKeyValue));
+            $url = str_replace($newKeys, $keysToChange, $url);
+            $url = str_replace($keysToChange, $resolvedKeyValue, $url);
             $pathArray = explode("/", $url);
             $pathArray = array_map(function ($part) {
                 return trim($part, "{}");
