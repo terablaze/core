@@ -379,7 +379,7 @@ abstract class Query extends Base
         }
 
         $this->_limit = $limit;
-        $this->_offset = ($limit * ($page - 1)) + 1;
+        $this->_offset = $limit * ($page - 1);
 
         return $this;
     }
