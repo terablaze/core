@@ -449,7 +449,7 @@ abstract class Query extends Base
             }
             $_order = implode(", ", $orderArray);
         } else {
-            $order = $this->_order;
+            $_order = $this->_order;
         }
         if (!empty($_order)) {
             $order = "ORDER BY {$_order}";
