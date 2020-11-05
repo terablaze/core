@@ -43,8 +43,16 @@ abstract class Kernel implements KernelInterface
             return;
         }
 
-        $services = include_once($this->getProjectDir() . '/config/services.php');
-        $parameters = include_once($this->getProjectDir() . '/config/parameters.php');
+        $services = [];
+        $servicesConfigFile = $this->getProjectDir() . '/config/services.php';
+        if (file_exists($servicesConfigFile)) {
+            $services = include_once($servicesConfigFile);
+        }
+        $parameters = [];
+        $parametersConfigFile = $this->getProjectDir() . '/config/parameters.php';
+        if (file_exists($parametersConfigFile)) {
+            $parameters = include_once($parametersConfigFile);
+        }
         $this->container = Container::getContainer($services, $parameters);
         $this->container->registerService(static::class, ['class' => static::class]);
         $this->container->setAlias('app.kernel', static::class);
@@ -165,7 +173,11 @@ abstract class Kernel implements KernelInterface
 
     public function registerMiddlewares(): void
     {
-        $middlewares = require $this->getProjectDir() . '/config/middlewares.php';
+        $middlewares = [];
+        $configFile = $this->getProjectDir() . '/config/middlewares.php';
+        if (file_exists($configFile)) {
+            $middlewares = require $configFile;
+        }
         foreach ($middlewares as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
                 if (class_exists($class)) {
@@ -182,7 +194,11 @@ abstract class Kernel implements KernelInterface
 
     public function registerParcels(): void
     {
-        $parcels = require $this->getProjectDir() . '/config/parcels.php';
+        $parcels = [];
+        $configFile = $this->getProjectDir() . '/config/parcels.php';
+        if (file_exists($configFile)) {
+            $parcels = require $configFile;
+        }
         foreach ($parcels as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
                 if (!class_exists($class)) {

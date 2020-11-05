@@ -20,6 +20,7 @@ use TeraBlaze\Router\Exception as Exception;
 use TeraBlaze\Router\Generator\UrlGenerator;
 use TeraBlaze\Router\Generator\UrlGeneratorInterface;
 use TeraBlaze\Router\Route\Route;
+use TeraBlaze\Router\Route\Simple;
 
 /**
  * Class Router
@@ -147,8 +148,7 @@ class Router implements MiddlewareInterface
         string $action,
         array $parameters = array(),
         string $method = ''
-    ): ResponseInterface
-    {
+    ): ResponseInterface {
         $className = ucfirst($controller);
 
         $this->controller = $controller;
@@ -303,12 +303,15 @@ class Router implements MiddlewareInterface
         /** @var Kernel $kernel */
         $kernel = $this->container->get('app.kernel');
 
-        $routes = require $kernel->getProjectDir() . '/config/routes.php';
+        $routeConfigFile = $kernel->getProjectDir() . '/config/routes.php';
+        if (file_exists($routeConfigFile)) {
+            $routes = require_once $routeConfigFile;
+        }
 
         // add defined routes
         if (!empty($routes) && is_array($routes)) {
             foreach ($routes as $name => $route) {
-                $this->addRoute($name, new \TeraBlaze\Router\Route\Simple($route));
+                $this->addRoute($name, new Simple($route));
             }
         }
 
