@@ -85,7 +85,7 @@ abstract class Controller implements ControllerInterface
         $viewFile,
         $viewVars = [],
         $responseCode = 200,
-        $headers = ['Content-Type' => 'text/javascript']
+        $headers = ['Content-Type' => 'text/html']
     ): Response {
         $content = $this->loadView($viewFile, $viewVars);
 
