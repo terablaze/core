@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Libraries\Session\Exception {
+namespace TeraBlaze\HttpBase\Session\Exception {
 	
 	use TeraBlaze\Core as Core;
 	

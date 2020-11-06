@@ -6,7 +6,7 @@
  * Time: 9:15 AM
  */
 
-namespace TeraBlaze\Libraries;
+namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
 use TeraBlaze\Events\Events as Events;
@@ -51,20 +51,20 @@ class Session extends Base
 		
 		switch (strtolower($this->type)) {
 			case "server": {
-				$session = new Session\Driver\Server($this->options);
+				$session = new Driver\Server($this->options);
 				\TeraBlaze\Registry::set(get_config('app_id') . 'session_' . $session_conf, $session);
 				return $session;
 				break;
 			}
 			case "memcache":
 			case "memcached": {
-				$session = new Session\Driver\Memcached($this->options);
+				$session = new Driver\Memcached($this->options);
 				\TeraBlaze\Registry::set(get_config('app_id') . 'session_' . $session_conf, $session);
 				return $session;
 				break;
 			}
 			case "file": {
-				$session = new Session\Driver\File($this->options);
+				$session = new Driver\File($this->options);
 				\TeraBlaze\Registry::set(get_config('app_id') . 'session_' . $session_conf, $session);
 				return $session;
 				break;

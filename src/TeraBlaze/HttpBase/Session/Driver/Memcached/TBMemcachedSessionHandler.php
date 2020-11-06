@@ -7,7 +7,7 @@
  * Time: 9:54 PM
  */
 
-namespace TeraBlaze\Libraries\Session\Driver\Memcached;
+namespace TeraBlaze\HttpBase\Session\Driver\Memcached;
 
 class TBMemcachedSessionHandler extends \SessionHandler
 {

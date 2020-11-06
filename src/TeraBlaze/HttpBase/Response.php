@@ -3,6 +3,7 @@
 namespace TeraBlaze\HttpBase;
 
 use Nyholm\Psr7\Response as Psr7Response;
+use Psr\Http\Message\ResponseInterface;
 
 class Response extends Psr7Response
 {
@@ -73,5 +74,11 @@ class Response extends Psr7Response
     public function __construct($body = null, int $status = self::HTTP_OK, array $headers = [], string $version = '1.1', string $reason = null)
     {
         parent::__construct($status, $headers, $body, $version, $reason);
+    }
+
+    public function withCookie(Cookie $cookie): ResponseInterface
+    {
+        $new = clone $this;
+        return $new->withHeader('Set-Cookie', $cookie);
     }
 }

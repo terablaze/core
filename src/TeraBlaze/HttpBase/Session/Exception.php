@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Libraries\Session {
+namespace TeraBlaze\HttpBase\Session {
 	
 	use TeraBlaze\Core as Core;
 	

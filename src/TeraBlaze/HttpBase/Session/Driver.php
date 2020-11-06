@@ -6,7 +6,7 @@
  * Time: 9:19 AM
  */
 
-namespace TeraBlaze\Libraries\Session;
+namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
 use TeraBlaze\Libraries\Session\Exception as Exception;

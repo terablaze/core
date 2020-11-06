@@ -1,7 +1,7 @@
 <?php
 
 
-namespace TeraBlaze\Libraries\Session\Driver;
+namespace TeraBlaze\HttpBase\Session\Driver;
 
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\Libraries\Session as Session;

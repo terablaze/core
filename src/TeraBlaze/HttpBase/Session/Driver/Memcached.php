@@ -6,7 +6,7 @@
  * Time: 9:18 AM
  */
 
-namespace TeraBlaze\Libraries\Session\Driver;
+namespace TeraBlaze\HttpBase\Session\Driver;
 
 use TeraBlaze\Libraries\Session as Session;
 
