@@ -81,8 +81,12 @@ abstract class Controller implements ControllerInterface
         include $filename;
     }
 
-    protected function render($viewFile, $viewVars = array(), $responseCode = 200, $headers = []): Response
-    {
+    protected function render(
+        $viewFile,
+        $viewVars = [],
+        $responseCode = 200,
+        $headers = ['Content-Type' => 'text/javascript']
+    ): Response {
         $content = $this->loadView($viewFile, $viewVars);
 
         return new Response($content, $responseCode, $headers);
