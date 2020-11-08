@@ -7,12 +7,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Relay\Relay;
 use RuntimeException;
-use TeraBlaze\Configuration\Configuration;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\HttpBase\Response;
 
 class Handler implements RequestHandlerInterface
 {

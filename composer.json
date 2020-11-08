@@ -15,10 +15,11 @@
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-mysqli": "*",
+    "laminas/laminas-httphandlerrunner": "^1.1@dev",
+    "psr/http-server-middleware": "1.0.x-dev",
     "psr/container": "^1.0@dev",
     "terablaze/psr7": "dev-master",
-    "terablaze/psr7-server": "dev-master",
-    "laminas/laminas-httphandlerrunner": "^1.1@dev"
+    "terablaze/psr7-server": "dev-master"
   },
   "minimum-stability": "dev",
   "autoload": {

@@ -6,7 +6,7 @@ use DateTimeInterface;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 
-final class Cookie
+class Cookie
 {
     private $name;
     private $value;

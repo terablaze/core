@@ -4,7 +4,6 @@ namespace TeraBlaze\Core\Kernel;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Relay\Relay;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Parcel\ParcelInterface;
