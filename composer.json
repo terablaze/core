@@ -14,6 +14,7 @@
     "php": "^7.3",
     "ext-json": "*",
     "ext-mbstring": "*",
+    "ext-mysqli": "*",
     "psr/container": "^1.0@dev",
     "terablaze/psr7": "dev-master",
     "terablaze/psr7-server": "dev-master",
@@ -23,7 +24,7 @@
   "minimum-stability": "dev",
   "autoload": {
     "psr-4": {
-      "TeraBlaze\\": "src/TeraBlaze/"
+      "TeraBlaze\\": "src/"
     },
     "files": [
       "src/TeraBlaze/Functions.php",
@@ -32,7 +33,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/"
+      "Tests\\TeraBlaze\\": "tests/"
     }
   },
   "require-dev": {

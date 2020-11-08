@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Model;
+namespace Tests\TeraBlaze\Model;
 
 use TeraBlaze\Ripana\ORM\Model;
 
@@ -27,8 +27,18 @@ class User extends Model
      */
     protected $email;
 
+//    /**
+//     * @column/OneToMany(name="password", type="Tests\Model\Book", mappedBy="")
+//     */
+//    protected $book;
+
     /**
-     * @column/OneToMany(name="password", type="Tests\Model\Book")
+     * @column(name="used", type="boolean", nullable=false, default=neh)
      */
-    protected $book;
+    protected $used;
+
+    /**
+     * @column(name="awards", type="int", nullable=false, default=200)
+     */
+    protected $awards;
 }

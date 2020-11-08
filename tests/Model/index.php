@@ -16,7 +16,7 @@ $connector = new Mysql([
     "host" => 'localhost',
     "username" => 'root',
     "password" => 'teraboxx',
-    "schema" => 'billy',
+    "schema" => 'ripana',
     "port" => 3306,
 ]);
 
@@ -24,15 +24,23 @@ $container = Container::getContainer();
 
 $container->registerServiceInstance('ripana.database.connector.default', $connector);
 
+dd($connector->buildSyncSQL(User::class));
+
 $entityManager = new EntityManager($container->get('ripana.database.connector.default'));
 $container->registerServiceInstance('ripana.orm.entity_manager.default', $entityManager);
 
 dump($entityManager);
-
+//
 $userRepo = $entityManager->getRepository(User::class);
 
 dump($userRepo->getQueryBuilder());
 
 $user = new User();
 
-dump($connector->buildSyncSQL($user));
+dump($connector->sync($user));
+
+$users = User::all(
+    ['user_id IN ?' => [["fni", 2, 3, 4, 5]]]
+);
+
+dump($users);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Repository;
+namespace Tests\TeraBlaze\Repository;
 
 use TeraBlaze\Ripana\ORM\Repository\EntityRepository;
 

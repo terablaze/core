@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Container;
+namespace Tests\TeraBlaze\Container;
 
 class AnthonyService
 {

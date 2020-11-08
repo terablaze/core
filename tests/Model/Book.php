@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Model;
+namespace Tests\TeraBlaze\Model;
 
 use TeraBlaze\Ripana\ORM\Model;
 
@@ -18,7 +18,7 @@ class Book extends Model
     protected $name;
 
     /**
-     * @column(name="last_name", type="text", length="100", default="Ibi`woye")
+     * @column/ManyToOne(name="author", type="text", length="100", default="Ibi`woye")
      */
     protected $author;
 }
