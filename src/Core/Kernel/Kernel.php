@@ -8,6 +8,7 @@ use Relay\Relay;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Parcel\ParcelInterface;
+use TeraBlaze\HttpBase\Response;
 
 abstract class Kernel implements KernelInterface
 {
@@ -24,7 +25,7 @@ abstract class Kernel implements KernelInterface
     /**
      * Handle a Request and turn it in to a response.
      * @param ServerRequestInterface $request
-     * @return ResponseInterface
+     * @return ResponseInterface|Response
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {

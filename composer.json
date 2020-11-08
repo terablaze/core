@@ -27,8 +27,8 @@
       "TeraBlaze\\": "src/"
     },
     "files": [
-      "src/TeraBlaze/Functions.php",
-      "src/TeraBlaze/Router/Generator/path.php"
+      "src/Functions.php",
+      "src/Router/Generator/path.php"
     ]
   },
   "autoload-dev": {

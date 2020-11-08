@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\HttpBase;
 
+use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use TeraBlaze\Psr7\Response as Psr7Response;
 use Psr\Http\Message\ResponseInterface;
 
@@ -80,5 +81,18 @@ class Response extends Psr7Response
     {
         $new = clone $this;
         return $new->withHeader('Set-Cookie', $cookie);
+    }
+
+    /**
+     * Commented out code allows previous output before this emit display without raising exception
+     * @see Request::createFromGlobals() for ob_start() counterpart
+     * @return bool
+     */
+    public function send()
+    {
+//        $unsafeOutput = ob_get_clean();
+//        $new = $this->withBody(\TeraBlaze\Psr7\Stream::create($unsafeOutput . (string)$this->getBody()));
+//        return (new SapiEmitter())->emit($new);
+        return (new SapiEmitter())->emit($this);
     }
 }
