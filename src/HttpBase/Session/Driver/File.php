@@ -4,7 +4,7 @@
 namespace TeraBlaze\HttpBase\Session\Driver;
 
 use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\Libraries\Session as Session;
+use TeraBlaze\HttpBase\Session as Session;
 
 class File extends Session\Driver
 {

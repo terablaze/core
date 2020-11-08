@@ -10,7 +10,7 @@ namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
 use TeraBlaze\Events\Events as Events;
-use TeraBlaze\Libraries\Session\Exception as Exception;
+use TeraBlaze\HttpBase\Session\Exception as Exception;
 use TeraBlaze\Registry as Registry;
 
 class Session extends Base

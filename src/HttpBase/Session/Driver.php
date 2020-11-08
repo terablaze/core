@@ -9,7 +9,7 @@
 namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
-use TeraBlaze\Libraries\Session\Exception as Exception;
+use TeraBlaze\HttpBase\Session\Exception as Exception;
 
 class Driver extends Base
 {

@@ -8,11 +8,11 @@
 
 namespace TeraBlaze\HttpBase\Session\Driver;
 
-use TeraBlaze\Libraries\Session as Session;
+use TeraBlaze\HttpBase\Session as Session;
 
 /**
  * Class Server
- * @package TeraBlaze\Libraries\Session\Driver
+ * @package TeraBlaze\HttpBase\Session\Driver
  */
 class Server extends Session\Driver
 {
