@@ -17,7 +17,7 @@ abstract class Kernel implements KernelInterface
     private $environment;
     private $projectDir;
     private $parcels;
-    private $middlewares;
+    private $middlewares = [];
 
     /** @var Container */
     private $container;
@@ -31,11 +31,11 @@ abstract class Kernel implements KernelInterface
     {
         $this->boot();
 
-        $relay = new Relay($this->middlewares);
+        $handler = new Handler($this->middlewares);
 
         $this->container->registerServiceInstance('request', $request);
 
-        return $relay->handle($request);
+        return $handler->handle($request);
     }
 
     public function boot(): void
