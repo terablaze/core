@@ -148,6 +148,10 @@ abstract class Controller implements ControllerInterface
         int $status = 302,
         int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
     ): Response {
-        return $this->redirect($this->generateUrl($routeName, $parameters, $referenceType), $status);
+        $scriptName = $this->container->get('request')->getServerParams()['SCRIPT_NAME'];
+        $virtualLocation = $this->container->hasParameter('virtualLocation') ?
+            rtrim($this->container->getParameter('virtualLocation'), '/\\') :
+            preg_replace('#public/[\w-]*.php(.*)$#', '', $scriptName);
+        return $this->redirect($virtualLocation.$this->generateUrl($routeName, $parameters, $referenceType), $status);
     }
 }

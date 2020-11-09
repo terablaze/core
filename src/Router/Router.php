@@ -195,15 +195,20 @@ class Router implements MiddlewareInterface
                         continue;
                     }
 
-                    $controllerInstance->$method();
+                    $result = $controllerInstance->$method();
                     $run[] = $method;
+                    return $result;
                 }
             }
         };
 
         Events::fire("terablaze.router.beforehooks.before", array($action, $parameters));
 
-        $hooks($methodMeta, "@before");
+        $result = $hooks($methodMeta, "@before");
+
+        if ($result instanceof ResponseInterface) {
+            return $result;
+        }
 
         Events::fire("terablaze.router.beforehooks.after", array($action, $parameters));
 
