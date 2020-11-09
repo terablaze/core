@@ -77,10 +77,10 @@ class Response extends Psr7Response
         parent::__construct($status, $headers, $body, $version, $reason);
     }
 
-    public function withCookie(Cookie $cookie): ResponseInterface
+    public function withCookie(Cookie $cookie): self
     {
         $new = clone $this;
-        return $new->withHeader('Set-Cookie', $cookie);
+        return $new->withHeader('Set-Cookie', (string) $cookie);
     }
 
     /**
