@@ -75,7 +75,7 @@ abstract class Query extends Base
             $sql = $this->_buildUpdate($data);
         }
 
-        $result = $this->_connector->execute($sql, $this->dumpSql());
+        $result = $this->_connector->execute($sql, $this->_dumpSql);
 
         if ($result === false) {
             $error = $this->connector->lastError;
