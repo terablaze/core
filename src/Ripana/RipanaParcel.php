@@ -14,6 +14,8 @@ use TeraBlaze\Ripana\ORM\EntityManager;
 
 class RipanaParcel extends Parcel implements ParcelInterface
 {
+    public const RIPANA_INITIALIZE_BEFORE_EVENT = "terablaze.ripana.initialize.before",
+        RIPANA_INITIALIZE_AFTER_EVENT = "terablaze.ripana.initialize.after";
     /** @var Container $container */
     private $container;
 
@@ -43,7 +45,7 @@ class RipanaParcel extends Parcel implements ParcelInterface
 
     public function initialize(string $dbConf = "default")
     {
-        Events::fire("terablaze.ripana.database.initialize.before", array($this->type, $this->options));
+        Events::fire(self::RIPANA_INITIALIZE_BEFORE_EVENT, array($this->type, $this->options));
         $connectionName = "ripana.database.connector.{$dbConf}";
         $entityManagerName = "ripana.orm.entity_manager.{$dbConf}";
         $dbConnection = null;
@@ -70,7 +72,7 @@ class RipanaParcel extends Parcel implements ParcelInterface
             $this->container->setAlias('ripana.database.connector', $connectionName);
             $this->container->setAlias('ripana.orm.entity_manager', $entityManagerName);
         }
-        Events::fire("terablaze.ripana.database.initialize.after", array($this->type, $this->options));
+        Events::fire(self::RIPANA_INITIALIZE_AFTER_EVENT, array($this->type, $this->options));
         return;
     }
 }

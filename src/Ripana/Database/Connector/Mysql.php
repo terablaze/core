@@ -3,6 +3,7 @@
 namespace TeraBlaze\Ripana\Database\Connector;
 
 use MySQLi;
+use TeraBlaze\Events\Events;
 use TeraBlaze\Ripana\Database\Exception as Exception;
 use TeraBlaze\Ripana\Database\Query\Mysql as QueryMysql;
 use TeraBlaze\Ripana\Database\Query\Query;
@@ -10,6 +11,9 @@ use TeraBlaze\Ripana\ORM\Model;
 
 class Mysql extends Connector
 {
+    public const QUERY_BEFORE_EVENT = "terablaze.ripana.database.connector.mysql.query.before",
+        QUERY_AFTER_EVENT = "terablaze.ripana.database.connector.mysql.query.after";
+
     protected $_service;
 
     /**
@@ -147,12 +151,14 @@ class Mysql extends Connector
                 }
             }
         }
-        \TeraBlaze\Events\Events::fire("terablaze.libraries.database.query", array($sql, ""));
+        Events::fire(self::QUERY_BEFORE_EVENT, array($sql, ""));
         if (!$this->_isValidService()) {
             throw new Exception\Service("Not connected to a valid service");
         }
 
-        return $this->_service->query($sql);
+        $result = $this->_service->query($sql);
+        Events::fire(self::QUERY_AFTER_EVENT, array($sql, ""));
+        return $result;
     }
 
     /**
