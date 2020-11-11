@@ -136,7 +136,7 @@ abstract class Model
             if ($column != $primary && $column) {
                 $datum = $this->saveDatum($prop, $column);
                 if (is_null($datum) && $column['nullable'] == false) {
-                    $datum = $column['default'];
+                    continue;
                 }
                 $data[$key] = $datum;
                 continue;
