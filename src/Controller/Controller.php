@@ -95,7 +95,7 @@ abstract class Controller implements ControllerInterface
     protected function json(
         $data,
         int $responseCode = 200,
-        array $headers = ['Content-Type' => 'text/javascript'],
+        array $headers = ['Content-Type' => 'application/json'],
         $jsonOptions = null
     ): Response {
         if (is_array($data) || is_object($data)) {
