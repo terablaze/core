@@ -1,16 +1,9 @@
 <?php
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 1/29/2017
- * Time: 5:29 PM
- */
 
 namespace TeraBlaze;
 
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception as Exception;
-use TeraBlaze\Events\Events;
 use TeraBlaze\Inspector as Inspector;
 use TeraBlaze\StringMethods as StringMethods;
 
@@ -138,48 +131,6 @@ class Base
 	{
 		$function = "set" . ucfirst($name);
 		return $this->$function($value);
-	}
-	
-	/**
-	 * @param $view_file
-	 * @param array $view_vars
-	 * @param $return
-	 *
-	 * @return bool|Exception\Argument
-	 *
-	 * includes the specified $view_file and extracts the $view_vars
-	 * for use in the view
-	 */
-	public function load_view($view_file, $view_vars = array(), $return = FALSE)
-	{
-		Events::fire("terablaze.loader.view.before", array($view_file, $view_vars));
-		$global = new static;
-		
-		$ext = pathinfo($view_file, PATHINFO_EXTENSION);
-		$view_file = ($ext === '') ? $view_file . '.php' : $view_file;
-		$view_file = str_replace("::", "/", $view_file);
-		$filename = APP_DIR . 'views/' . $view_file;
-
-		$view_vars = array_merge($view_vars, ['global' => $global]);
-		
-		if (file_exists($filename)) {
-			
-			if ((boolean)$return) {
-				
-				$string = get_include_contents($filename, $view_vars);
-				return $string;
-				
-			} else {
-				@extract($view_vars);
-				include $filename;
-			}
-		} else {
-			Events::fire("terablaze.loader.view.error", array($view_file, $view_vars));
-			return new Exception\Argument("Trying to Load Non Existing View: {$view_file}");
-		}
-		Events::fire("terablaze.loader.view.after", array($view_file, $view_vars));
-		
-		return TRUE;
 	}
 	
 	/**

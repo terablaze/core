@@ -2,13 +2,17 @@
 
 namespace TeraBlaze\Ripana;
 
+use ReflectionException;
 use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Configuration\Exception\Argument as ConfigArgumentException;
+use TeraBlaze\Configuration\Exception\Syntax;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
+use TeraBlaze\Container\Exception\ServiceNotFoundException;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Events\Events;
-use TeraBlaze\Ripana\Database\Connector\Mysql;
+use TeraBlaze\Ripana\Database\Drivers\Mysqli\Connector;
 use TeraBlaze\Ripana\Database\Exception\Argument;
 use TeraBlaze\Ripana\ORM\EntityManager;
 
@@ -23,6 +27,14 @@ class RipanaParcel extends Parcel implements ParcelInterface
 
     protected $options;
 
+    /**
+     * @param ContainerInterface $container
+     * @throws Argument
+     * @throws ReflectionException
+     * @throws ConfigArgumentException
+     * @throws Syntax
+     * @throws ServiceNotFoundException
+     */
     public function build(ContainerInterface $container)
     {
         $this->container = $container;
@@ -43,6 +55,12 @@ class RipanaParcel extends Parcel implements ParcelInterface
         }
     }
 
+    /**
+     * @param string $dbConf
+     * @throws Argument
+     * @throws ReflectionException
+     * @throws ServiceNotFoundException
+     */
     public function initialize(string $dbConf = "default")
     {
         Events::fire(self::RIPANA_INITIALIZE_BEFORE_EVENT, array($this->type, $this->options));
@@ -57,12 +75,11 @@ class RipanaParcel extends Parcel implements ParcelInterface
         switch ($this->type) {
             case "mysql":
             case "mysqli": {
-                    $dbConnection = (new Mysql($this->options))->setDatabaseConfName($dbConf);
+                    $dbConnection = (new Connector($this->options))->setDatabaseConfName($dbConf);
                     break;
                 }
             default: {
                     throw new Argument("Invalid type");
-                    break;
                 }
         }
         $this->container->registerServiceInstance($connectionName, $dbConnection);
@@ -73,6 +90,5 @@ class RipanaParcel extends Parcel implements ParcelInterface
             $this->container->setAlias('ripana.orm.entity_manager', $entityManagerName);
         }
         Events::fire(self::RIPANA_INITIALIZE_AFTER_EVENT, array($this->type, $this->options));
-        return;
     }
 }

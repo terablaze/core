@@ -13,7 +13,7 @@ use DateTime;
 use TeraBlaze\Configuration\PolymorphismTrait;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
-use TeraBlaze\Ripana\Database\Connector\Connector;
+use TeraBlaze\Ripana\Database\ConnectorInterface;
 use TeraBlaze\Ripana\ORM\Column\Column;
 use TeraBlaze\Ripana\ORM\Column\ManyToOne;
 use TeraBlaze\Ripana\ORM\Column\OneToMany;
@@ -44,7 +44,7 @@ abstract class Model
     /** @var string $table */
     protected $__table;
 
-    /** @var Connector $__connector */
+    /** @var ConnectorInterface $__connector */
     protected $__connector;
 
     protected $__columns;
@@ -305,7 +305,7 @@ abstract class Model
         return $this->__table;
     }
 
-    public function getConnector(): Connector
+    public function getConnector(): ConnectorInterface
     {
         if (empty($this->__connector)) {
             $database = $this->__container->get('ripana.database.connector.' . $this->__dbConf);
@@ -317,7 +317,7 @@ abstract class Model
         return $this->__connector;
     }
 
-    public function getDatabase(): Connector
+    public function getDatabase(): ConnectorInterface
     {
         return $this->getConnector();
     }

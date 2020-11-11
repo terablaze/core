@@ -2,9 +2,9 @@
 
 namespace TeraBlaze\Ripana\ORM\Repository;
 
-use TeraBlaze\Ripana\Database\Query\Query;
+use TeraBlaze\Ripana\Database\QueryInterface;
 
 interface RepositoryInterface
 {
-    public function getQueryBuilder(): Query;
+    public function getQueryBuilder(): QueryInterface;
 }

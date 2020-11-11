@@ -7,16 +7,17 @@
  * Time: 9:22 AM
  */
 
-namespace TeraBlaze\Ripana\Database\Query;
+namespace TeraBlaze\Ripana\Database;
 
 use TeraBlaze\ArrayMethods as ArrayMethods;
 use TeraBlaze\Base as Base;
 use TeraBlaze\Ripana\Database\Exception as Exception;
 
-abstract class Query extends Base
+abstract class Query extends Base implements QueryInterface
 {
     /**
      * @readwrite
+     * @var ConnectorInterface $_connector
      */
     protected $_connector;
 
@@ -59,7 +60,7 @@ abstract class Query extends Base
 
     abstract public function all(): array;
 
-    public function dumpSql($dumpSql = true)
+    public function dumpSql($dumpSql = true): QueryInterface
     {
         $this->_dumpSql = $dumpSql;
         return $this;
@@ -194,13 +195,7 @@ abstract class Query extends Base
         return sprintf($template, $this->table, $where, $limit);
     }
 
-    /**
-     * @param $table
-     * @param array $fields
-     * @return $this
-     * @throws Exception\Argument
-     */
-    public function table($table, $fields = ["*"]): self
+    public function table($table, $fields = ["*"]): QueryInterface
     {
         if (empty($table)) {
             throw new Exception\Argument("Invalid argument");
@@ -215,13 +210,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    /**
-     * @param $table
-     * @param array $fields
-     * @return $this
-     * @throws Exception\Argument
-     */
-    public function from($table, $fields = ["*"]): self
+    public function from($table, $fields = ["*"]): QueryInterface
     {
         if (empty($table)) {
             throw new Exception\Argument("Invalid argument");
@@ -236,14 +225,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    /**
-     * @param $join
-     * @param $on
-     * @param array $fields
-     * @return $this
-     * @throws Exception\Argument
-     */
-    public function join($join, $on, $fields = [])
+    public function join($join, $on, $fields = []): QueryInterface
     {
         if (empty($join)) {
             throw new Exception\Argument("Invalid argument");
@@ -259,7 +241,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function leftJoin($join, $on, $fields = [])
+    public function leftJoin($join, $on, $fields = []): QueryInterface
     {
         if (empty($join)) {
             throw new Exception\Argument("Invalid argument");
@@ -275,7 +257,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function rightJoin($join, $on, $fields = [])
+    public function rightJoin($join, $on, $fields = []): QueryInterface
     {
         if (empty($join)) {
             throw new Exception\Argument("Invalid argument");
@@ -291,7 +273,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function crossJoin($join)
+    public function crossJoin($join): QueryInterface
     {
         if (empty($join)) {
             throw new Exception\Argument("Invalid argument");
@@ -302,7 +284,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function order($order)
+    public function order($order): QueryInterface
     {
         if (empty($order)) {
             throw new Exception\Argument("Invalid argument");
@@ -316,7 +298,7 @@ abstract class Query extends Base
         return $this;
     }
 
-    public function where()
+    public function where(): QueryInterface
     {
         $arguments = func_get_args();
         if (sizeof($arguments) == 1) {
@@ -346,6 +328,18 @@ abstract class Query extends Base
         return $this;
     }
 
+    public function limit($limit, $page = 1): QueryInterface
+    {
+        if (empty($limit)) {
+            throw new Exception\Argument("Invalid argument");
+        }
+
+        $this->_limit = $limit;
+        $this->_offset = $limit * ($page - 1);
+
+        return $this;
+    }
+
     public function count(): int
     {
         $limit = $this->limit;
@@ -370,18 +364,6 @@ abstract class Query extends Base
         }
 
         return $row["rowsCount"];
-    }
-
-    public function limit($limit, $page = 1)
-    {
-        if (empty($limit)) {
-            throw new Exception\Argument("Invalid argument");
-        }
-
-        $this->_limit = $limit;
-        $this->_offset = $limit * ($page - 1);
-
-        return $this;
     }
 
     public function first()

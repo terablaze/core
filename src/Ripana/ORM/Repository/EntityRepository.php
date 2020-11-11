@@ -3,8 +3,9 @@
 namespace TeraBlaze\Ripana\ORM\Repository;
 
 use TeraBlaze\Container\Container;
-use TeraBlaze\Ripana\Database\Query\Query;
+use TeraBlaze\Ripana\Database\QueryInterface;
 use TeraBlaze\Ripana\ORM\EntityManager;
+use TeraBlaze\Ripana\ORM\Exception\Connector;
 use TeraBlaze\Ripana\ORM\Model;
 
 abstract class EntityRepository implements RepositoryInterface
@@ -26,7 +27,11 @@ abstract class EntityRepository implements RepositoryInterface
         $this->entity = new $entity();
     }
 
-    public function getQueryBuilder(): Query
+    /**
+     * @return QueryInterface
+     * @throws Connector
+     */
+    public function getQueryBuilder(): QueryInterface
     {
         return $this->entity->getConnector()->query();
     }

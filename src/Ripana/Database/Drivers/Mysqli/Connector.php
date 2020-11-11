@@ -1,19 +1,23 @@
 <?php
 
-namespace TeraBlaze\Ripana\Database\Connector;
+namespace TeraBlaze\Ripana\Database\Drivers\Mysqli;
 
 use MySQLi;
 use TeraBlaze\Events\Events;
+use TeraBlaze\Ripana\Database\Connector as BaseConnector;
+use TeraBlaze\Ripana\Database\ConnectorInterface;
 use TeraBlaze\Ripana\Database\Exception as Exception;
-use TeraBlaze\Ripana\Database\Query\Mysql as QueryMysql;
-use TeraBlaze\Ripana\Database\Query\Query;
+use TeraBlaze\Ripana\Database\QueryInterface;
 use TeraBlaze\Ripana\ORM\Model;
 
-class Mysql extends Connector
+class Connector extends BaseConnector implements ConnectorInterface
 {
     public const QUERY_BEFORE_EVENT = "terablaze.ripana.database.connector.mysql.query.before",
         QUERY_AFTER_EVENT = "terablaze.ripana.database.connector.mysql.query.after";
 
+    /**
+     * @var mysqli
+     */
     protected $_service;
 
     /**
@@ -58,7 +62,7 @@ class Mysql extends Connector
 
     protected $dbConfName = 'default';
 
-    public function setDatabaseConfName(string $dbConfName): self
+    public function setDatabaseConfName(string $dbConfName): ConnectorInterface
     {
         $this->dbConfName = $dbConfName;
         return $this;
@@ -69,13 +73,10 @@ class Mysql extends Connector
         return $this->dbConfName;
     }
 
-    /**
-     * connects to the database
-     */
-    public function connect()
+    public function connect(): ConnectorInterface
     {
         if (!$this->_isValidService()) {
-            $this->_service = new MySQLi(
+            $this->_service = new mysqli(
                 $this->_host,
                 $this->_username,
                 $this->_password,
@@ -99,7 +100,7 @@ class Mysql extends Connector
     protected function _isValidService()
     {
         $isEmpty = empty($this->_service);
-        $isInstance = $this->_service instanceof MySQLi;
+        $isInstance = $this->_service instanceof mysqli;
 
         if ($this->isConnected && $isInstance && !$isEmpty) {
             return true;
@@ -108,10 +109,7 @@ class Mysql extends Connector
         return false;
     }
 
-    /**
-     * disconnects from the database
-     */
-    public function disconnect()
+    public function disconnect(): ConnectorInterface
     {
         if ($this->_isValidService()) {
             $this->isConnected = false;
@@ -121,26 +119,16 @@ class Mysql extends Connector
         return $this;
     }
 
-    /**
-     * returns a corresponding query instance
-     */
-    public function query(): Query
+    public function query(): QueryInterface
     {
-        return new QueryMysql(array(
+        return new Query(array(
             "connector" => $this
         ));
     }
 
-    /**
-     * executes the provided SQL statement
-     * @param string $sql
-     * @param string|bool $dumpSql
-     * @return
-     * @throws Exception\Service
-     */
     public function execute(string $sql, $dumpSql = '')
     {
-        if (!empty($dumpSql)) {
+        if ($dumpSql) {
             if (function_exists($dumpSql)) {
                 $dumpSql($sql);
             } else {
@@ -161,10 +149,8 @@ class Mysql extends Connector
         return $result;
     }
 
-    /**
-     * escapes the provided value to make it safe for queries
-     */
-    public function escape(string $value)
+
+    public function escape(string $value): string
     {
         if (!$this->_isValidService()) {
             throw new Exception\Service("Not connected to a valid service");
@@ -173,10 +159,6 @@ class Mysql extends Connector
         return $this->_service->real_escape_string($value);
     }
 
-    /**
-     * returns the ID of the last row
-     * to be inserted
-     */
     public function getLastInsertId()
     {
         if (!$this->_isValidService()) {
@@ -186,11 +168,7 @@ class Mysql extends Connector
         return $this->_service->insert_id;
     }
 
-    /**
-     * returns the number of rows affected
-     * by the last SQL query executed
-     */
-    public function getAffectedRows()
+    public function getAffectedRows(): int
     {
         if (!$this->_isValidService()) {
             throw new Exception\Service("Not connected to a valid service");
@@ -199,10 +177,7 @@ class Mysql extends Connector
         return $this->_service->affected_rows;
     }
 
-    /**
-     * returns the last error that occured
-     */
-    public function getLastError()
+    public function getLastError(): string
     {
         if (!$this->_isValidService()) {
             throw new Exception\Service("Not connected to a valid service");
@@ -211,7 +186,7 @@ class Mysql extends Connector
         return $this->_service->error;
     }
 
-    public function buildSyncSQL($modelClass)
+    public function buildSyncSQL($modelClass): array
     {
         $queries = [];
         $model = new $modelClass;
@@ -323,7 +298,7 @@ class Mysql extends Connector
         return $queries;
     }
 
-    public function sync($model): self
+    public function sync($model): ConnectorInterface
     {
         $queries = $this->buildSyncSQL($model);
         foreach ($queries as $query) {

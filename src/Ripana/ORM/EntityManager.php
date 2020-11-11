@@ -11,7 +11,7 @@ namespace TeraBlaze\Ripana\ORM;
 
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
-use TeraBlaze\Ripana\Database\Connector\Connector;
+use TeraBlaze\Ripana\Database\ConnectorInterface;
 use TeraBlaze\Ripana\ORM\Exception\EntityNotFoundException;
 use TeraBlaze\Ripana\ORM\Repository\EntityRepository;
 
@@ -20,10 +20,10 @@ class EntityManager
     /** @var Container $inspector */
     protected $container;
 
-    /** @var Connector $connector */
+    /** @var ConnectorInterface $connector */
     protected $connector;
 
-    public function __construct(Connector $connector)
+    public function __construct(ConnectorInterface $connector)
     {
         $this->container = Container::getContainer();
         $this->connector = $connector;
@@ -49,7 +49,7 @@ class EntityManager
         return $this->container->get($repositoryClass);
     }
 
-    public function getConnector(): Connector
+    public function getConnector(): ConnectorInterface
     {
         return $this->connector;
     }

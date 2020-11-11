@@ -1,29 +1,17 @@
 <?php
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 2/1/2017
- * Time: 9:19 AM
- */
 
-namespace TeraBlaze\Ripana\Database\Query;
+namespace TeraBlaze\Ripana\Database\Drivers\Mysqli;
 
 use TeraBlaze\Ripana\Database\Exception as Exception;
+use TeraBlaze\Ripana\Database\Query as BaseQuery;
+use TeraBlaze\Ripana\Database\QueryInterface;
 
-/**
- * Class Mysql
- * @package TeraBlaze\Ripana\Database\Query
- */
-class Mysql extends Query
+class Query extends BaseQuery implements QueryInterface
 {
-	
-	/**
-	 * @return array
-	 * @throws Exception\Sql
-	 */
-	public function all(): array
+    public function all(): array
 	{
 		$sql = $this->_buildSelect();
+		/** @var \mysqli_result $result */
 		$result = $this->connector->execute($sql, $this->_dumpSql);
 		
 		if ($result === false) {
@@ -31,7 +19,7 @@ class Mysql extends Query
 			throw new Exception\Sql("There was an error with your SQL query: {$error} in \n {$sql}");
 		}
 		
-		$rows = array();
+		$rows = [];
 		
 		for ($i = 0; $i < $result->num_rows; $i++) {
 			$rows[] = $result->fetch_array(MYSQLI_ASSOC);
