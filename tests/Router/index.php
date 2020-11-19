@@ -26,9 +26,16 @@ $routes = [
         'controller' => 'App\Controller\Pages',
         'action' => 'brigade',
     ],
+    'easy' => [
+        'pattern' => 'url-easy',
+        'controller' => 'App\Controller\Pages',
+        'action' => 'easy',
+    ],
 ];
 
 dump($routes);
+
+$container = \TeraBlaze\Container\Container::getContainer();
 
 $router = new Router();
 
@@ -48,8 +55,9 @@ dump($urlGenerator->generate('brigade', [
     "userId" => 1,
     "babayaga" => "jognny",
     "johnny" => "depp",
-]));
+], UrlGenerator::RELATIVE_PATH));
 
+$container->registerServiceInstance($router);
 
 $response = new \TeraBlaze\HttpBase\Response(json_encode(["tommy", "tommy"], 128));
 $response = $response->withHeader('Set-Cookie', "tom tom");
@@ -63,3 +71,7 @@ $stream->rewind(); // Seek to the beginning
 dump($contents);
 $contents = $stream->getContents(); // returns all the contents
 dump($contents);
+$request = \TeraBlaze\HttpBase\Request::createFromGlobals();
+dump($request->getUri());
+
+dump(asset('easy', 0), asset('easy', 1), asset('easy', 2), asset('easy', 3));

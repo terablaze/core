@@ -1,33 +1,27 @@
 <?php
 
 use TeraBlaze\Container\Container;
+use TeraBlaze\Router\Generator\UrlGenerator;
 use TeraBlaze\Router\Router;
 
 if (!function_exists('path')) {
-    function path(string $path = '', array $parameters = [])
+    function path(string $path = '', array $parameters = [], int $referenceType = UrlGenerator::ABSOLUTE_PATH)
     {
         $container = Container::getContainer();
         /** @var Router $router */
         $router = $container->get(Router::class);
-        if (isset($router->getRoutes()[$path])) {
-            $path = $router->getGenerator()->generate($path, $parameters);
-        }
-        $scriptName = $_SERVER['SCRIPT_NAME'];
-        $virtualLocation = $container->hasParameter('virtualLocation') ?
-            rtrim($container->getParameter('virtualLocation'), '/\\') :
-            preg_replace('#public/[\w-]*.php(.*)$#', '', $scriptName);
-        return "{$virtualLocation}{$path}";
+
+        return $router->getGenerator()->generate($path, $parameters, $referenceType);
     }
 }
 
 if (!function_exists('asset')) {
-    function asset($uri = '')
+    function asset(string $uri = '',  int $referenceType = UrlGenerator::ABSOLUTE_PATH)
     {
         $container = Container::getContainer();
-        $scriptName = $_SERVER['SCRIPT_NAME'];
-        $virtualLocation = $container->hasParameter('virtualLocation') ?
-            rtrim($container->getParameter('virtualLocation'), '/\\') :
-            preg_replace('#[\w-]*.php(.*)$#', '', $scriptName);
-        return "{$virtualLocation}assets/{$uri}";
+        /** @var Router $router */
+        $router = $container->get(Router::class);
+
+        return $router->getGenerator()->generateAsset($uri, $referenceType);
     }
 }

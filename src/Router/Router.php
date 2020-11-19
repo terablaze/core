@@ -75,13 +75,9 @@ class Router implements MiddlewareInterface
      */
     protected $routes = [];
 
-    /**
-     * @param $method
-     * @return Exception\Implementation
-     */
-    public function _getExceptionForImplementation($method)
+    public function __construct()
     {
-        return new Exception\Implementation("{$method} method not implemented");
+        $this->container = Container::getContainer();
     }
 
     /**
@@ -303,8 +299,6 @@ class Router implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->container = Container::getContainer();
-
         /** @var Kernel $kernel */
         $kernel = $this->container->get('app.kernel');
 

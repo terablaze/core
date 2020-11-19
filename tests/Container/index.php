@@ -7,12 +7,12 @@ ini_set('display_errors', 1);
 include_once __DIR__ . "/../../vendor/autoload.php";
 
 use TeraBlaze\Container\Container;
-use Tests\Container\AutowireService;
-use Tests\Container\BhutaniService;
+use Tests\TeraBlaze\Container\AutowireService;
+use Tests\TeraBlaze\Container\BhutaniService;
 
 $services = [
     'service.anthony' => [
-        'class' => \Tests\Container\AnthonyService::class,
+        'class' => \Tests\TeraBlaze\Container\AnthonyService::class,
         'calls' => [
             [
                 'method' => 'setChaftani',
@@ -25,7 +25,7 @@ $services = [
         'arguments' => ['@service.anthony'],
     ],
     'service.chaftani' => [
-        'class' => \Tests\Container\ChaftaniService::class,
+        'class' => \Tests\TeraBlaze\Container\ChaftaniService::class,
         'arguments' => ['chaftaniParam' => '%some.parameter%', 'bareParam' => 'Bare string param']
     ],
 ];

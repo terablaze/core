@@ -3,6 +3,8 @@
 namespace TeraBlaze\Router\Generator;
 
 use TeraBlaze\Collections\ArrayCollection;
+use TeraBlaze\Container\Container;
+use TeraBlaze\HttpBase\Request;
 use TeraBlaze\Router\Exception as Exception;
 use TeraBlaze\Router\Exception\RouteNotFoundException;
 use TeraBlaze\Router\Route\Route;
@@ -19,9 +21,25 @@ class UrlGenerator implements UrlGeneratorInterface
     /** @var Route[] $routes */
     protected $routes;
 
+    /** @var Container $container */
+    protected $container;
+
+    /** @var Request $request */
+    protected $request;
+    /**
+     * @var string|string[]|null
+     */
+    private $virtualLocation;
+
     public function __construct($routes)
     {
         $this->routes = $routes;
+        $this->container = Container::getContainer();
+        $this->request = Request::createFromGlobals();
+        $scriptName = $this->request->getServerParams()['SCRIPT_NAME'];
+        $this->virtualLocation = $this->container->hasParameter('virtualLocation') ?
+            rtrim($this->container->getParameter('virtualLocation'), '/\\') :
+            preg_replace('#[public]?[^/]*.php(.*)$#', '', $scriptName);
     }
 
     /**
@@ -96,6 +114,31 @@ class UrlGenerator implements UrlGeneratorInterface
             }
             $url .= $joiner . $queryString . $anchor;
         }
-        return $url;
+        return $this->resolveReference($url, $referenceType);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public function generateAsset(string $url, int $referenceType = self::ABSOLUTE_PATH): string
+    {
+        return $this->resolveReference('assets/' . $url, $referenceType);
+    }
+
+    private function resolveReference(string $url, string $referenceType): string
+    {
+        $port = $this->request->getUri()->getPort() ? ':' . $this->request->getUri()->getPort() : '';
+        switch ($referenceType) {
+            case self::ABSOLUTE_URL:
+                return $this->request->getUri()->getScheme() . '://' .
+                    $this->request->getUri()->getHost() . $port . $this->virtualLocation . $url;
+            case self::ABSOLUTE_PATH:
+                return $this->virtualLocation . $url;
+            case self::NETWORK_PATH:
+                return '//' . $this->request->getUri()->getHost() . $port . $this->virtualLocation . $url;
+            default:
+                return $url;
+        }
     }
 }

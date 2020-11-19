@@ -10,6 +10,8 @@
 namespace TeraBlaze\Controller;
 
 use ReflectionException;
+use TeraBlaze\Container\Exception\ContainerException;
+use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Container\ContainerAwareTrait;
 use TeraBlaze\Controller\Exception as Exception;
@@ -141,6 +143,8 @@ abstract class Controller implements ControllerInterface
      * @param int $referenceType
      * @return Response
      * @throws ReflectionException
+     * @throws ContainerException
+     * @throws ParameterNotFoundException
      */
     protected function redirectToRoute(
         string $routeName,

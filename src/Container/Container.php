@@ -247,7 +247,7 @@ class Container implements ContainerInterface
      */
     public function has($name)
     {
-        return isset($this->services[$name]) || isset($this->services[$this->serviceAliases[$name]]);
+        return isset($this->services[$name]) || isset($this->serviceAliases[$name]);
     }
 
     /**
