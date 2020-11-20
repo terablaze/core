@@ -37,9 +37,9 @@ class UrlGenerator implements UrlGeneratorInterface
         $this->container = Container::getContainer();
         $this->request = Request::createFromGlobals();
         $scriptName = $this->request->getServerParams()['SCRIPT_NAME'];
-        $this->virtualLocation = $this->container->hasParameter('virtualLocation') ?
-            rtrim($this->container->getParameter('virtualLocation'), '/\\') :
-            preg_replace('#[public]?[^/]*.php(.*)$#', '', $scriptName);
+        $this->virtualLocation = $this->container->hasParameter('virtual_location') ?
+            $this->container->getParameter('virtual_location') :
+            preg_replace('#(/public)?/[^/]*\.php(.*)$#', '/', $scriptName);
     }
 
     /**
