@@ -189,111 +189,118 @@ class Connector extends BaseConnector implements ConnectorInterface
     public function buildSyncSQL($modelClass): array
     {
         $queries = [];
+        /** @var Model $model */
         $model = new $modelClass;
-        $lines = [];
-        $indices = [];
-        $columns = $model->getColumns();
-        $template = "CREATE TABLE `%s` (\n%s,\n%s\n) ENGINE=%s DEFAULT CHARSET=%s;";
-        foreach ($columns as $column) {
-            $raw = $column["raw"];
-            $name = $column["name"];
-            $type = $column["type"];
-            $length = $column["length"];
-            $tempDefault = isset($column["default"]) ? $this->escape($column["default"]) : null;
-            if (isset($tempDefault)) {
-                if (
-                    !in_array(mb_strtolower($tempDefault), ['now()'], true) &&
-                    (!in_array(mb_strtolower($type), ["boolean", "bool", "date", "time", "datetime"], true) && !is_numeric($tempDefault))
-                ) {
-                    $tempDefault = "'{$tempDefault}'";
-                }
-            }
-            $default = isset($tempDefault) ? " DEFAULT $tempDefault" : "";
-            $nullable = $column["nullable"] ? "" : " NOT NULL";
-            $isForeignKey = isset($column['foreignKey']) && $column['foreignKey'] == true;
-            if ($column["primary"]) {
-                $indices[] = "PRIMARY KEY (`{$name}`)";
-            }
-            if ($column["index"]) {
-                switch (strtolower($column["index"])) {
-                    case "index":
-                        $indices[] = "INDEX `INDEX_{$name}` (`{$name}`)";
-                        break;
-                    case "uniqueindex":
-                    case "unique-index":
-                    case "unique_index":
-                        $indices[] = "UNIQUE INDEX `UNIQUE_INDEX_{$name}` (`{$name}`)";
-                        break;
-                    case "key":
-                        $indices[] = "KEY `KEY_{$name}` (`{$name}`)";
-                        break;
-                    case "uniquekey":
-                    case "unique-key":
-                    case "unique_key":
-                        $indices[] = "UNIQUE KEY `UNIQUE_KEY_{$name}` (`{$name}`)";
-                        break;
-                }
-            }
-            if ($isForeignKey) {
-                $queries = array_merge($queries, $this->buildSyncSQL($column['foreignClass']));
-                $indices[] = "CONSTRAINT fk_{$name} FOREIGN KEY ({$name}) REFERENCES {$column['table']}({$column['foreignKeyName']})";
-            }
-            switch ($type) {
-                case Model::DATA_TYPES['autonumber']:
-                {
-                    $length = $length ?? 11;
-                    $lines[] = $isForeignKey ? "`{$name}` int({$length})" : "`{$name}` int({$length}) NOT NULL AUTO_INCREMENT";
-                    break;
-                }
-                case Model::DATA_TYPES['text']:
-                {
-                    if ($length !== null && $length <= 255) {
-                        $lines[] = "`{$name}` varchar({$length}){$nullable}{$default}";
-                    } else {
-                        $lines[] = "`{$name}` text{$nullable}";
+        if (!empty($query = $model->getSyncSQL())) {
+            $queries = is_array($query) ? $query : [$query];
+        } else {
+            $lines = [];
+            $indices = [];
+            $columns = $model->getColumns();
+            $template = "CREATE TABLE `%s` (\n%s,\n%s\n) ENGINE=%s DEFAULT CHARSET=%s;";
+            foreach ($columns as $column) {
+                $raw = $column["raw"];
+                $name = $column["name"];
+                $type = $column["type"];
+                $length = $column["length"];
+                $tempDefault = isset($column["default"]) ? $this->escape($column["default"]) : null;
+                if (isset($tempDefault)) {
+                    if (
+                        !in_array(mb_strtolower($tempDefault), ['now()'], true) &&
+                        (!in_array(mb_strtolower($type), ["boolean", "bool", "date", "time", "datetime"], true) && !is_numeric($tempDefault))
+                    ) {
+                        $tempDefault = "'{$tempDefault}'";
                     }
-                    break;
                 }
-                case Model::DATA_TYPES['integer']:
-                {
-                    $lines[] = "`{$name}` int(11){$nullable}{$default}";
-                    break;
+                $default = isset($tempDefault) ? " DEFAULT $tempDefault" : "";
+                $nullable = $column["nullable"] ? "" : " NOT NULL";
+                $isForeignKey = isset($column['foreignKey']) && $column['foreignKey'] == true;
+                if ($column["primary"]) {
+                    $indices[] = "PRIMARY KEY (`{$name}`)";
                 }
-                case Model::DATA_TYPES['decimal']:
-                {
-                    $lines[] = "`{$name}` float{$nullable}{$default}";
-                    break;
+                if ($column["index"]) {
+                    switch (strtolower($column["index"])) {
+                        case "index":
+                            $indices[] = "INDEX `INDEX_{$name}` (`{$name}`)";
+                            break;
+                        case "uniqueindex":
+                        case "unique-index":
+                        case "unique_index":
+                            $indices[] = "UNIQUE INDEX `UNIQUE_INDEX_{$name}` (`{$name}`)";
+                            break;
+                        case "key":
+                            $indices[] = "KEY `KEY_{$name}` (`{$name}`)";
+                            break;
+                        case "uniquekey":
+                        case "unique-key":
+                        case "unique_key":
+                            $indices[] = "UNIQUE KEY `UNIQUE_KEY_{$name}` (`{$name}`)";
+                            break;
+                    }
                 }
-                case Model::DATA_TYPES['boolean']:
-                case Model::DATA_TYPES['bool']:
-                {
-                    $lines[] = "`{$name}` tinyint(1){$nullable}{$default}";
-                    break;
+                if ($isForeignKey) {
+                    $queries = array_merge($queries, $this->buildSyncSQL($column['foreignClass']));
+                    $indices[] = "CONSTRAINT fk_{$name} FOREIGN KEY ({$name}) REFERENCES {$column['table']}({$column['foreignKeyName']})";
                 }
-                case Model::DATA_TYPES['datetime']:
-                {
-                    $lines[] = "`{$name}` datetime{$nullable}{$default}";
-                    break;
-                }
-                default:
-                {
-                    $typePart = $length ? " {$type}({$length})" : " {$type}";
-                    $lines[] = "`{$name}`{$typePart}{$nullable}{$default}";
-                    break;
+                switch ($type) {
+                    case Model::DATA_TYPES['autonumber']:
+                    {
+                        $length = $length ?? 11;
+                        $lines[] = $isForeignKey ? "`{$name}` int({$length})" : "`{$name}` int({$length}) NOT NULL AUTO_INCREMENT";
+                        break;
+                    }
+                    case Model::DATA_TYPES['text']:
+                    {
+                        if ($length !== null && $length <= 255) {
+                            $lines[] = "`{$name}` varchar({$length}){$nullable}{$default}";
+                        } else {
+                            $lines[] = "`{$name}` text{$nullable}";
+                        }
+                        break;
+                    }
+                    case Model::DATA_TYPES['integer']:
+                    {
+                        $lines[] = "`{$name}` int(11){$nullable}{$default}";
+                        break;
+                    }
+                    case Model::DATA_TYPES['decimal']:
+                    {
+                        $lines[] = "`{$name}` float{$nullable}{$default}";
+                        break;
+                    }
+                    case Model::DATA_TYPES['boolean']:
+                    case Model::DATA_TYPES['bool']:
+                    {
+                        $lines[] = "`{$name}` tinyint(1){$nullable}{$default}";
+                        break;
+                    }
+                    case Model::DATA_TYPES['datetime']:
+                    {
+                        $lines[] = "`{$name}` datetime{$nullable}{$default}";
+                        break;
+                    }
+                    default:
+                    {
+                        $typePart = $length ? " {$type}({$length})" : " {$type}";
+                        $lines[] = "`{$name}`{$typePart}{$nullable}{$default}";
+                        break;
+                    }
                 }
             }
+            $table = $model->getTable();
+            $sql = sprintf(
+                $template,
+                $table,
+                join(",\n", $lines),
+                join(",\n", $indices),
+                $this->_engine,
+                $this->_charset
+            );
+            $queries[] = "DROP TABLE IF EXISTS `{$table}`;";
+            $queries[] = $sql;
+
+            $model->setSyncSQL($queries);
         }
-        $table = $model->getTable();
-        $sql = sprintf(
-            $template,
-            $table,
-            join(",\n", $lines),
-            join(",\n", $indices),
-            $this->_engine,
-            $this->_charset
-        );
-        $queries[] = "DROP TABLE IF EXISTS `{$table}`;";
-        $queries[] = $sql;
 
         return $queries;
     }

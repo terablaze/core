@@ -42,23 +42,26 @@ abstract class Model
     ];
 
     /** @var string $table */
-    protected $__table;
+    private $__table;
 
     /** @var ConnectorInterface $__connector */
-    protected $__connector;
+    private $__connector;
 
-    protected $__columns;
-    protected $__columnsReverseMap;
-    protected $__primary;
+    private $__columns;
+    private $__columnsReverseMap;
+    private $__primary;
 
     /** @var Inspector $__inspector */
-    protected $__inspector;
+    private $__inspector;
 
     /** @var Container $__inspector */
-    protected $__container;
+    private $__container;
 
     /** @var string $__dbConf */
-    protected $__dbConf = "default";
+    private $__dbConf = "default";
+
+    /** @var array $__syncSQL */
+    private $__syncSQL = [];
 
     use PolymorphismTrait;
 
@@ -394,5 +397,18 @@ abstract class Model
             $this->__primary = $primary;
         }
         return $this->__primary;
+    }
+
+    public function setSyncSQL($queries)
+    {
+        if (!array($queries)) {
+            $queries = [$queries];
+        }
+        $this->__syncSQL = $queries;
+    }
+
+    public function getSyncSQL()
+    {
+        return $this->__syncSQL;
     }
 }
