@@ -191,7 +191,7 @@ class Connector extends BaseConnector implements ConnectorInterface
         $queries = [];
         /** @var Model $model */
         $model = new $modelClass;
-        if (!empty($query = $model->getSyncSQL())) {
+        if (!empty($query = $model->retrieveSyncSQL())) {
             $queries = is_array($query) ? $query : [$query];
         } else {
             $lines = [];
@@ -299,7 +299,7 @@ class Connector extends BaseConnector implements ConnectorInterface
             $queries[] = "DROP TABLE IF EXISTS `{$table}`;";
             $queries[] = $sql;
 
-            $model->setSyncSQL($queries);
+            $model->storeSyncSQL($queries);
         }
 
         return $queries;

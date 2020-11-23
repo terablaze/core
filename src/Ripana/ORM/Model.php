@@ -399,7 +399,7 @@ abstract class Model
         return $this->__primary;
     }
 
-    public function setSyncSQL($queries)
+    public function storeSyncSQL($queries)
     {
         if (!array($queries)) {
             $queries = [$queries];
@@ -407,7 +407,7 @@ abstract class Model
         $this->__syncSQL = $queries;
     }
 
-    public function getSyncSQL()
+    public function retrieveSyncSQL()
     {
         return $this->__syncSQL;
     }
