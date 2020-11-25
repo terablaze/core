@@ -21,6 +21,16 @@ abstract class Kernel implements KernelInterface
     /** @var Container */
     private $container;
 
+    public function __construct(string $environment, bool $debug)
+    {
+        $this->environment = $environment;
+        $this->debug = $debug;
+
+        if ($this->debug) {
+            $this->enableDebug();
+        }
+    }
+
     /**
      * Handle a Request and turn it in to a response.
      * @param ServerRequestInterface $request
@@ -215,5 +225,26 @@ abstract class Kernel implements KernelInterface
                 }
             }
         }
+    }
+
+    public function enableDebug(): void
+    {
+        error_reporting(-1);
+
+        if (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true)) {
+            ini_set('display_errors', 0);
+        } elseif (!filter_var(ini_get('log_errors'), \FILTER_VALIDATE_BOOLEAN) || ini_get('error_log')) {
+            // CLI - display errors only if they're not already logged to STDERR
+            ini_set('display_errors', 1);
+        }
+
+        @ini_set('zend.assertions', 1);
+        ini_set('assert.active', 1);
+        ini_set('assert.warning', 0);
+        ini_set('assert.exception', 1);
+
+        $whoops = new \Whoops\Run;
+        $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+        $whoops->register();
     }
 }

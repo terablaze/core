@@ -3,16 +3,13 @@
 declare(strict_types=1);
 
 use TeraBlaze\HttpBase\Request;
-use Tests\TeraBlaze\Http\Kernel;
 
-error_reporting(1);
-ini_set('display_errors', "1");
+require_once __DIR__ . "/../../vendor/autoload.php";
 
-include_once __DIR__ . "/../../vendor/autoload.php";
+$kernel = new \Tests\TeraBlaze\Http\Kernel('dev', true);
 
 $request = Request::createFromGlobals();
 
-$kernel = new Kernel();
 $response = $kernel->handle($request);
 
 $response->send();
