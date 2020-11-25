@@ -8,6 +8,8 @@ use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\HttpBase\Response;
+use Whoops\Handler\PrettyPageHandler;
+use Whoops\Run;
 
 abstract class Kernel implements KernelInterface
 {
@@ -243,8 +245,10 @@ abstract class Kernel implements KernelInterface
         ini_set('assert.warning', 0);
         ini_set('assert.exception', 1);
 
-        $whoops = new \Whoops\Run;
-        $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
-        $whoops->register();
+        if (class_exists(Run::class) && class_exists(PrettyPageHandler::class)) {
+            $whoops = new Run;
+            $whoops->pushHandler(new PrettyPageHandler);
+            $whoops->register();
+        }
     }
 }
