@@ -380,6 +380,7 @@ class Container implements ContainerInterface
             return $arguments;
         }
 
+        // if $arguments is empty, initialize with 1 so that we can loop through it later
         if (empty($arguments)) {
             $arguments = [1];
         }
@@ -407,7 +408,7 @@ class Container implements ContainerInterface
                     $resolvedArgument = $argument;
                     continue;
                 }
-                if (class_exists($resolvedArgument)) {
+                if (is_string($resolvedArgument) && class_exists($resolvedArgument)) {
                     if (!$this->has($className)) {
                         $this->registerService($className, ['class' => $className]);
                     }
