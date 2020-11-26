@@ -120,7 +120,7 @@ abstract class Kernel implements KernelInterface
 
     public function getVarCacheDir(): string
     {
-        $dir = $this->getProjectDir() . '/var/cache/' . $this->environment;
+        $dir = $this->getProjectDir() . '/var/cache/' . $this->environment . '/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
@@ -129,7 +129,7 @@ abstract class Kernel implements KernelInterface
 
     public function getVarLogsDir(): string
     {
-        $dir = $this->getProjectDir() . '/var/logs/' . $this->environment;
+        $dir = $this->getProjectDir() . '/var/logs/' . $this->environment . '/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
@@ -138,7 +138,7 @@ abstract class Kernel implements KernelInterface
 
     public function getVarSessionDir(): string
     {
-        $dir = $this->getProjectDir() . '/var/sessions/' . $this->environment;
+        $dir = $this->getProjectDir() . '/var/sessions/' . $this->environment . '/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
