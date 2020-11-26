@@ -87,6 +87,22 @@ abstract class Kernel implements KernelInterface
         $this->booted = true;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getEnvironment()
+    {
+        return $this->environment;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isDebug()
+    {
+        return $this->debug;
+    }
+
     public function getProjectDir(): string
     {
         if (null === $this->projectDir) {
@@ -118,7 +134,7 @@ abstract class Kernel implements KernelInterface
         return $dir;
     }
 
-    public function getVarCacheDir(): string
+    public function getCacheDir(): string
     {
         $dir = $this->getProjectDir() . '/var/cache/' . $this->environment . '/';
         if (!is_dir($dir)) {
@@ -127,7 +143,7 @@ abstract class Kernel implements KernelInterface
         return $dir;
     }
 
-    public function getVarLogsDir(): string
+    public function getLogsDir(): string
     {
         $dir = $this->getProjectDir() . '/var/logs/' . $this->environment . '/';
         if (!is_dir($dir)) {
@@ -136,18 +152,13 @@ abstract class Kernel implements KernelInterface
         return $dir;
     }
 
-    public function getVarSessionDir(): string
+    public function getSessionsDir(): string
     {
         $dir = $this->getProjectDir() . '/var/sessions/' . $this->environment . '/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
         return $dir;
-    }
-
-    public function getSessionsDir(): string
-    {
-        return $this->getVarSessionDir();
     }
 
     /**
@@ -179,8 +190,6 @@ abstract class Kernel implements KernelInterface
 
         $this->booted = false;
         $this->container = null;
-        //        $this->requestStackSize = 0;
-        //        $this->resetServices = false;
     }
 
     public function registerMiddlewares(): void
