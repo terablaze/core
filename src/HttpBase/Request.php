@@ -28,4 +28,26 @@ class Request extends Psr7ServerRequest
 
         return $creator->fromGlobals();
     }
+
+    public function getCookieParam(string $name, $default = null)
+    {
+        return $this->getCookieParams()[$name] ?? $default;
+    }
+
+    public function getQueryParam(string $name, $default = null)
+    {
+        return $this->getQueryParams()[$name] ?? $default;
+    }
+
+    public function getPostParam(string $name, $default = null)
+    {
+        $parsedBody = $this->getParsedBody();
+        if (is_array($parsedBody)) {
+            return $parsedBody[$name] ?? $default;
+        }
+        if (is_object($parsedBody)) {
+            return $parsedBody->$name ?? $default;
+        }
+        return $default;
+    }
 }

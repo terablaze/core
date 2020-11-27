@@ -86,6 +86,12 @@ abstract class Model
         unset($this->$primaryRaw);
     }
 
+    /**
+     * Maps associative array to object properties
+     *
+     * @param array $initData
+     * @throws Property
+     */
     protected function initData(array $initData): void
     {
         if (is_null($initData)) {
@@ -93,11 +99,12 @@ abstract class Model
         }
         foreach ($initData as $key => $value) {
             $prop = $this->getInitProp($key);
+            // Get key to search in self::__columns
             if ((!isset($this->__columns[$key])) && isset($this->__columnsReverseMap[$key])) {
                 $key = $this->__columnsReverseMap[$key];
             }
             if (
-                in_array(mb_strtolower($this->__columns[$key]['type']), ['date', 'time', 'datetime'], 'true') &&
+                in_array(mb_strtolower($this->__columns[$key]['type']), ['date', 'time', 'datetime'], true) &&
                 (!$value instanceof DateTime) &&
                 (!empty($value)) &&
                 $this->__columns[$key]['autoconvert'] != false
@@ -224,14 +231,18 @@ abstract class Model
         if ($limit != null) {
             $query->limit($limit, $page);
         }
-        $rows = [];
-        foreach ($query->all() as $row) {
+        $rows = $query->all();
+        $objectRows = [];
+        // TODO: Implement fetching relationships
+        //$primaryKey = $this->getPrimaryColumn()['name'];
+        // $primaryKeys = array_column($rows, $primaryKey);
+        foreach ($rows as $row) {
             $object = clone $this;
             $object->initData($row);
-            $rows[] = $object;
+            $objectRows[] = $object;
             $object = null;
         }
-        return new EntityCollection($rows, static::class);
+        return new EntityCollection($objectRows, static::class);
     }
 
     public static function first(
@@ -310,11 +321,12 @@ abstract class Model
 
     public function getConnector(): ConnectorInterface
     {
+        $connectorString = 'ripana.database.connector.' . $this->__dbConf;
         if (empty($this->__connector)) {
-            if ($this->__container->has('ripana.database.connector.' . $this->__dbConf)) {
-                $database = $this->__container->get('ripana.database.connector.' . $this->__dbConf);
+            if ($this->__container->has($connectorString)) {
+                $database = $this->__container->get($connectorString);
             } else {
-                throw new ConnectorException("Connector: ripana.database.connector.{$this->__dbConf} not found");
+                throw new ConnectorException("Connector: {$connectorString} not found");
             }
             $this->__connector = $database;
         }
