@@ -11,7 +11,6 @@ use TeraBlaze\Container\Exception\DependencyIsNotInstantiableException;
 use TeraBlaze\Container\Exception\InvalidArgumentException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
-use Tests\Container\AutowireService;
 
 /**
  * The container interface. This extends the interface defined by
@@ -86,7 +85,7 @@ class Container implements ContainerInterface
      */
     private function setAliasInternally(string $key, array $service): void
     {
-        $alias = $service['alias'] ?? $service['class'];
+        $alias = $service['alias'] ?? $service['class'] ?? $key;
         $this->serviceAliases[$alias] = $key;
     }
 
@@ -311,21 +310,22 @@ class Container implements ContainerInterface
     {
         $entry = &$this->services[$name];
         $reflectionParameters = [];
+        $class = $entry['class'] ?? $name;
 
-        if (!is_array($entry) || !isset($entry['class'])) {
-            throw new ContainerException($name . ' service entry must be an array containing a \'class\' key');
-        } elseif (!class_exists($entry['class'])) {
-            throw new ContainerException($name . ' service class does not exist: ' . $entry['class']);
+        if (!is_array($entry)) {
+            throw new ContainerException($name . ' service entry must be an array');
+        } elseif (!class_exists($class)) {
+            throw new ContainerException($name . ' service class does not exist: ' . $class);
         } elseif (isset($entry['lock'])) {
             throw new ContainerException($name . ' contains circular reference');
         }
 
         $entry['lock'] = true;
 
-        $reflector = new ReflectionClass($entry['class']);
+        $reflector = new ReflectionClass($class);
 
         if (!$reflector->isInstantiable()) {
-            throw new DependencyIsNotInstantiableException("Cannot instantiate service {$entry['class']}");
+            throw new DependencyIsNotInstantiableException("Cannot instantiate service {$class}");
         }
         $constructor = $reflector->getConstructor();
 
@@ -367,6 +367,9 @@ class Container implements ContainerInterface
         $resolvedArguments = [];
 
         foreach ($argumentDefinitions as $key => $argumentDefinition) {
+            if (is_array($argumentDefinition)) {
+                return $this->resolveArguments($argumentDefinition);
+            }
             if (is_string($argumentDefinition) && $this->isService($argumentDefinition)) {
                 $arguments[$key] = $this->get($this->cleanServiceReference($argumentDefinition));
             } elseif (is_string($argumentDefinition) && $this->isParameter($argumentDefinition)) {
@@ -420,6 +423,10 @@ class Container implements ContainerInterface
                 }
             }
             $resolvedArguments[] = $resolvedArgument;
+        }
+
+        if (count($resolvedArguments) == 0) {
+            return $arguments;
         }
 
         return $resolvedArguments;
