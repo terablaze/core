@@ -368,7 +368,7 @@ class Container implements ContainerInterface
 
         foreach ($argumentDefinitions as $key => $argumentDefinition) {
             if (is_array($argumentDefinition)) {
-                return $this->resolveArguments($argumentDefinition);
+                return [$this->resolveArguments($argumentDefinition)];
             }
             if (is_string($argumentDefinition) && $this->isService($argumentDefinition)) {
                 $arguments[$key] = $this->get($this->cleanServiceReference($argumentDefinition));
