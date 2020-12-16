@@ -90,7 +90,6 @@ abstract class Model
      * Maps associative array to object properties
      *
      * @param array $initData
-     * @throws Property
      */
     protected function initData(array $initData): void
     {
@@ -98,7 +97,12 @@ abstract class Model
             return;
         }
         foreach ($initData as $key => $value) {
-            $prop = $this->getInitProp($key);
+            try {
+                $prop = $this->getInitProp($key);
+            } catch (Property $propertyxception) {
+                // TODO: Add a logger to log the exception
+                continue;
+            }
             // Get key to search in self::__columns
             if ((!isset($this->__columns[$key])) && isset($this->__columnsReverseMap[$key])) {
                 $key = $this->__columnsReverseMap[$key];
