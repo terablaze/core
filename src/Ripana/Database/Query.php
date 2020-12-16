@@ -301,6 +301,12 @@ abstract class Query extends Base implements QueryInterface
     public function where(): QueryInterface
     {
         $arguments = func_get_args();
+
+        // allow where queries with numeric keys|clause by
+        // replacing the value for the numeric key|clause
+        if (is_int($arguments[0])) {
+            $arguments[0] = $arguments[1];
+        }
         if (sizeof($arguments) == 1) {
             $this->_where[] = $arguments[0];
             return $this;
