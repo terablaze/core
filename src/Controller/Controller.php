@@ -28,6 +28,8 @@ abstract class Controller implements ControllerInterface
 
     protected $name;
 
+    public $global;
+
     public function getName(): string
     {
         if (empty($this->name)) {
