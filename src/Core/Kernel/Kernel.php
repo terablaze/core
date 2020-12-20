@@ -201,9 +201,10 @@ abstract class Kernel implements KernelInterface
         }
         foreach ($middlewares as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
-                if (class_exists($class)) {
-                    $middlewareInstance = new $class();
-                    $this->container->registerServiceInstance($class, $middlewareInstance);
+                if (!$this->container->has($class) && class_exists($class)) {
+                    $this->container->registerService($class, [
+                        'class' => $class
+                    ]);
                     if (defined("$class::SERVICE_ALIAS")) {
                         $this->container->setAlias($class::SERVICE_ALIAS, $class);
                     }
