@@ -411,11 +411,12 @@ class Container implements ContainerInterface
                     $resolvedArgument = $argument;
                     continue;
                 }
-                if (is_string($resolvedArgument) && class_exists($resolvedArgument)) {
-                    if (!$this->has($className)) {
-                        $this->registerService($className, ['class' => $className]);
+                if (is_string($resolvedArgument) && (class_exists($resolvedArgument) || interface_exists($resolvedArgument))) {
+                    if ($this->has($className)) {
+                        $resolvedArgument = $this->get($className);
+                    } else {
+                        $resolvedArgument = null;
                     }
-                    $resolvedArgument = $this->get($className);
                     continue;
                 }
                 if (!is_object($argument)) {
@@ -461,7 +462,8 @@ class Container implements ContainerInterface
                 continue;
             }
 
-            $methodArguments = $this->resolveArguments($callDefinition['arguments'], $reflectionParameters);
+            $registeredMethodArguments = $callDefinition['arguments'] ?? [];
+            $methodArguments = $this->resolveArguments($registeredMethodArguments, $reflectionParameters);
 
             return call_user_func_array([$service, $callDefinition['method']], $methodArguments);
         }
