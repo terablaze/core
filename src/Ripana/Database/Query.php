@@ -324,7 +324,18 @@ abstract class Query extends Base implements QueryInterface
                 $parameter = [$parameter];
             }
             foreach ($parameter as $param) {
-                $arguments2[] = $this->_quote($param);
+                $formattedParam = $param;
+                if ($param instanceof \DateTime) {
+                    switch ($this->_connector->getDateTimeMode()) {
+                        case 'DATETIME':
+                            $formattedParam = $param->format('Y-m-d H:i:s');
+                            break;
+                        case 'TIMESTAMP':
+                            $formattedParam = $param->getTimestamp();
+                            break;
+                    }
+                }
+                $arguments2[] = $this->_quote($formattedParam);
             }
             $arguments = array_merge([$arguments[0]], $arguments2);
         }

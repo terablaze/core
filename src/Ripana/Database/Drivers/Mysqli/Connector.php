@@ -58,6 +58,11 @@ class Connector extends BaseConnector implements ConnectorInterface
     /**
      * @readwrite
      */
+    protected $_dateTimeMode = 'DATETIME';
+
+    /**
+     * @readwrite
+     */
     protected $_isConnected = false;
 
     protected $dbConfName = 'default';
