@@ -344,7 +344,7 @@ class Container implements ContainerInterface
         }
 
         if (isset($entry['calls'])) {
-            $this->initializeServiceCalls($service, $name, $entry['calls']);
+            $this->initializeServiceCalls($service, $entry['calls'], $name);
         }
 
         return $service;
