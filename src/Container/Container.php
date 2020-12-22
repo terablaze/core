@@ -183,7 +183,9 @@ class Container implements ContainerInterface
         $class = [
             'class' => get_class($service),
         ];
-        $this->registerService($key, $class);
+        if (!$this->has($key)) {
+            $this->registerService($key, $class);
+        }
         $this->serviceInstances[$key] = $service;
         return $this;
     }
@@ -411,12 +413,11 @@ class Container implements ContainerInterface
                     $resolvedArgument = $argument;
                     continue;
                 }
-                if (is_string($resolvedArgument) && (class_exists($resolvedArgument) || interface_exists($resolvedArgument))) {
-                    if ($this->has($className)) {
-                        $resolvedArgument = $this->get($className);
-                    } else {
-                        $resolvedArgument = null;
+                if (is_string($resolvedArgument) && class_exists($resolvedArgument)) {
+                    if (!$this->has($className)) {
+                        $this->registerService($className, ['class' => $className]);
                     }
+                    $resolvedArgument = $this->get($className);
                     continue;
                 }
                 if (!is_object($argument)) {
@@ -437,21 +438,22 @@ class Container implements ContainerInterface
      * Initialize a service using the call definitions.
      *
      * @param object $service The service.
-     * @param string $name The service name.
      * @param array $callDefinitions The service calls definition.
+     * @param string|null $name The service name.
      *
      * @return object|mixed
      * @throws ContainerException On failure.
      * @throws ParameterNotFoundException
      * @throws ReflectionException
      */
-    public function initializeServiceCalls(object $service, string $name, array $callDefinitions)
+    public function initializeServiceCalls(object $service, array $callDefinitions, string $name = null)
     {
+        $serviceName = $name ?? get_class($service);
         foreach ($callDefinitions as $callDefinition) {
             if (!is_array($callDefinition) || !isset($callDefinition['method'])) {
-                throw new ContainerException($name . ' service calls must be arrays containing a \'method\' key');
+                throw new ContainerException($serviceName . ' service calls must be arrays containing a \'method\' key');
             } elseif (!is_callable([$service, $callDefinition['method']])) {
-                throw new ContainerException($name . ' service asks for call to uncallable method: ' . $callDefinition['method']);
+                throw new ContainerException($serviceName . ' service asks for call to uncallable method: ' . $callDefinition['method']);
             }
 
             $reflectionMethod = new ReflectionMethod($service, $callDefinition['method']);
@@ -462,8 +464,7 @@ class Container implements ContainerInterface
                 continue;
             }
 
-            $registeredMethodArguments = $callDefinition['arguments'] ?? [];
-            $methodArguments = $this->resolveArguments($registeredMethodArguments, $reflectionParameters);
+            $methodArguments = $this->resolveArguments($callDefinition['arguments'] ?? [], $reflectionParameters);
 
             return call_user_func_array([$service, $callDefinition['method']], $methodArguments);
         }
@@ -514,5 +515,14 @@ class Container implements ContainerInterface
     private function cleanServiceReference(string $name): string
     {
         return mb_substr($name, 1);
+    }
+
+    public function getService(string $name): array
+    {
+        if (isset($this->services[$name])) {
+            return $this->services[$name];
+        }
+        $resolvedAlias = $this->serviceAliases[$name] ?? null;
+        return $this->services[$resolvedAlias] ?? [];
     }
 }
