@@ -222,6 +222,9 @@ abstract class Model
 
     protected function _all($where = [], $fields = ["*"], $order = null, $limit = null, $page = null)
     {
+        if (is_string($fields)) {
+            $fields = [$fields];
+        }
         $query = $this
             ->__connector
             ->query()
@@ -263,6 +266,9 @@ abstract class Model
         $fields = ["*"],
         $order = null
     ): ?self {
+        if (is_string($fields)) {
+            $fields = [$fields];
+        }
         $query = $this
             ->__connector
             ->query()
