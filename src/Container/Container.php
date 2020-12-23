@@ -466,7 +466,7 @@ class Container implements ContainerInterface
 
             $methodArguments = $this->resolveArguments($callDefinition['arguments'] ?? [], $reflectionParameters);
 
-            return call_user_func_array([$service, $callDefinition['method']], $methodArguments);
+            call_user_func_array([$service, $callDefinition['method']], $methodArguments);
         }
         return $service;
     }
