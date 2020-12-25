@@ -167,16 +167,21 @@ abstract class Model
     {
         $datum = $this->$prop;
         if ($datum instanceof DateTime && $column['autoconvert'] != false) {
-            switch ($column['type']) {
-                case 'date':
-                    $datum = $datum->format('Y-m-d');
-                    break;
-                case 'time':
-                    $datum = $datum->format('H:i:s.u');
-                    break;
-                case 'datetime':
-                    $datum = $datum->format('Y-m-d H:i:s.u');
-                    break;
+            $dateTimeMode = $this->getConnector()->getDateTimeMode();
+            if ($dateTimeMode == 'TIMESTAMP') {
+                $datum = $datum->getTimestamp();
+            } elseif ($dateTimeMode == 'DATETIME') {
+                switch ($column['type']) {
+                    case 'date':
+                        $datum = $datum->format('Y-m-d');
+                        break;
+                    case 'time':
+                        $datum = $datum->format('H:i:s.u');
+                        break;
+                    case 'datetime':
+                        $datum = $datum->format('Y-m-d H:i:s.u');
+                        break;
+                }
             }
         }
         return $datum;
