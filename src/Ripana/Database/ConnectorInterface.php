@@ -85,4 +85,11 @@ interface ConnectorInterface
      * @return ConnectorInterface
      */
     public function sync($model): ConnectorInterface;
+
+    /**
+     * Returns the configured dateTimeMode [DATETIME or TIMESTAMP]
+     * or returns DATETIME by default
+     * @return string
+     */
+    public function getDateTimeMode(): string;
 }
