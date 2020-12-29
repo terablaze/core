@@ -12,6 +12,7 @@ namespace TeraBlaze\Cache;
 use TeraBlaze\Cache\Driver\Memcached;
 use TeraBlaze\Cache\Driver\Memcache;
 use TeraBlaze\Cache\Driver\File;
+use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\Cache\Exception as Exception;
 use TeraBlaze\Container\Container;
