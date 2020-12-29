@@ -81,6 +81,10 @@ abstract class Kernel implements KernelInterface
         if ($configuration) {
             $this->container->registerServiceInstance('configuration', $configuration);
         }
+        $constantsFile = $this->getProjectDir() . '/config/constants.php';
+        if (file_exists($constantsFile)) {
+            include_once($constantsFile);
+        }
 
         $this->registerMiddlewares();
         $this->registerParcels();
