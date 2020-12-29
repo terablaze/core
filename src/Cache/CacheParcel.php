@@ -29,7 +29,7 @@ class CacheParcel extends Parcel implements ParcelInterface
 
     protected $options;
 
-    public function build(ContainerInterface $container)
+    public function build(?ContainerInterface $container)
     {
         $this->container = $container;
         /** @var Configuration $configuration */
