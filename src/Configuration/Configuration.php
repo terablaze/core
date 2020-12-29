@@ -9,6 +9,9 @@
 
 namespace TeraBlaze\Configuration;
 
+use TeraBlaze\Configuration\Driver\DriverInterface;
+use TeraBlaze\Configuration\Driver\Ini;
+use TeraBlaze\Configuration\Driver\PHPArray;
 use TeraBlaze\Configuration\Exception as Exception;
 use TeraBlaze\Events\Events;
 
@@ -30,7 +33,7 @@ class Configuration
     }
 
     /**
-     * @return Configuration\Driver\Ini|Configuration\Driver\PHPArray
+     * @return DriverInterface|Ini|PHPArray
      * @throws Exception\Argument
      */
     public function initialize()
@@ -45,14 +48,14 @@ class Configuration
 
         switch ($this->type) {
             case "ini": {
-                    return new Driver\Ini($this->options);
+                    return new Driver\Ini();
                     break;
                 }
             case "PhpArray":
             case "PHPArray":
             case "php_array":
             case "phparray": {
-                    return new Driver\PHPArray($this->options);
+                    return new Driver\PHPArray();
                     break;
                 }
             default: {

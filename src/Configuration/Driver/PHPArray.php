@@ -41,7 +41,10 @@ class PHPArray extends Driver implements DriverInterface
             $this->throwConfigFileDoesNotExistException($configFile);
         }
         $config = include($configFile);
+        $configObject = ArrayMethods::toObject($config);
+        $this->container->registerParameter('configArray', [$path => $config]);
+        $this->container->registerParameter('configObject', [$path => $configObject]);
         
-        return ArrayMethods::toObject($config);
+        return $configObject;
     }
 }

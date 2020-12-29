@@ -28,29 +28,31 @@ class RipanaParcel extends Parcel implements ParcelInterface
     protected $options;
 
     /**
-     * @param ContainerInterface $container
+     * @param ContainerInterface|null $container
      * @throws Argument
-     * @throws ReflectionException
      * @throws ConfigArgumentException
-     * @throws Syntax
+     * @throws ReflectionException
      * @throws ServiceNotFoundException
+     * @throws Syntax
      */
-    public function build(ContainerInterface $container)
+    public function build(?ContainerInterface $container)
     {
         $this->container = $container;
+
+        if (!$this->container->has('configuration')) {
+            return;
+        }
         /** @var Configuration $configuration */
         $configuration = $this->container->get('configuration');
 
-        if ($configuration) {
-            $configuration = $configuration->initialize();
-            $parsed = $configuration->parse("config/database");
+        $configuration = $configuration->initialize();
+        $parsed = $configuration->parse("config/ripana");
 
-            foreach ($parsed as $key => $conf) {
-                if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {
-                    $this->type = $parsed->{$key}->type;
-                    $this->options = (array)$parsed->{$key};
-                    $this->initialize($key);
-                }
+        foreach ($parsed as $key => $conf) {
+            if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {
+                $this->type = $parsed->{$key}->type;
+                $this->options = (array)$parsed->{$key};
+                $this->initialize($key);
             }
         }
     }
@@ -74,13 +76,15 @@ class RipanaParcel extends Parcel implements ParcelInterface
 
         switch ($this->type) {
             case "mysql":
-            case "mysqli": {
-                    $dbConnection = (new Connector($this->options))->setDatabaseConfName($dbConf);
-                    break;
-                }
-            default: {
-                    throw new Argument("Invalid type");
-                }
+            case "mysqli":
+            {
+                $dbConnection = (new Connector($this->options))->setDatabaseConfName($dbConf);
+                break;
+            }
+            default:
+            {
+                throw new Argument("Invalid or unimplemented database type");
+            }
         }
         $this->container->registerServiceInstance($connectionName, $dbConnection);
         $entityManager = new EntityManager($this->container->get($connectionName));

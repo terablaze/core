@@ -58,6 +58,8 @@ abstract class Query extends Base implements QueryInterface
 
     protected $_dumpSql = false;
 
+    protected $queries;
+
     abstract public function all(): array;
 
     public function dumpSql($dumpSql = true): QueryInterface

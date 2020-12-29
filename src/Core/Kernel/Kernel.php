@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Core\Kernel;
 
+use Middlewares\Utils\Factory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TeraBlaze\Configuration\Configuration;
@@ -40,6 +41,11 @@ abstract class Kernel implements KernelInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        if (class_exists(Factory::class)) {
+            Factory::setFactory(new \Middlewares\Utils\FactoryDiscovery(
+                \TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory::class,
+            ));
+        }
         $this->boot();
 
         $handler = new Handler($this->middlewares);
@@ -72,14 +78,9 @@ abstract class Kernel implements KernelInterface
 
         $configuration = new Configuration("phparray");
 
-        $config = [];
-
         if ($configuration) {
             $this->container->registerServiceInstance('configuration', $configuration);
-            $configuration = $configuration->initialize();
-            $config = $configuration->parse("config/configuration");
         }
-        $this->container->registerParameter('config', $config);
 
         $this->registerMiddlewares();
         $this->registerParcels();
@@ -207,11 +208,11 @@ abstract class Kernel implements KernelInterface
                     if (defined("$class::SERVICE_ALIAS")) {
                         $this->container->setAlias($class::SERVICE_ALIAS, $class);
                     }
-                }
-                $middleware = $this->container->get($class);
-                $calls = $this->container->getService($class)['calls'] ?? [];
-                if (!empty($calls)) {
-                    $this->container->initializeServiceCalls($middleware, $calls);
+                    $middleware = $this->container->get($class);
+                    $calls = $this->container->getService($class)['calls'] ?? [];
+                    if (!empty($calls)) {
+                        $this->container->initializeServiceCalls($middleware, $calls);
+                    }
                 }
                 $this->middlewares[] = $middleware;
             }
@@ -237,7 +238,7 @@ abstract class Kernel implements KernelInterface
                     $parcel->build($this->container);
                     $this->container->registerServiceInstance($class, $parcel);
                 } catch (\Exception $e) {
-                    throw new \Exception("An error occured while building parcel {$class} with additional message: {$e->getMessage()}");
+                    throw new \Exception("An error occurred while building parcel {$class} with additional message: {$e->getMessage()}");
                 }
             }
         }

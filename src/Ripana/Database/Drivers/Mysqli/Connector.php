@@ -3,11 +3,13 @@
 namespace TeraBlaze\Ripana\Database\Drivers\Mysqli;
 
 use MySQLi;
+use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Events\Events;
 use TeraBlaze\Ripana\Database\Connector as BaseConnector;
 use TeraBlaze\Ripana\Database\ConnectorInterface;
 use TeraBlaze\Ripana\Database\Exception as Exception;
 use TeraBlaze\Ripana\Database\QueryInterface;
+use TeraBlaze\Ripana\Logging\QueryLogger;
 use TeraBlaze\Ripana\ORM\Model;
 
 class Connector extends BaseConnector implements ConnectorInterface
@@ -143,8 +145,9 @@ class Connector extends BaseConnector implements ConnectorInterface
         if (!$this->_isValidService()) {
             throw new Exception\Service("Not connected to a valid service");
         }
-
+        $this->queryLogger->startLog($sql);
         $result = $this->_service->query($sql);
+        $this->queryLogger->stopLog($this->_service->affected_rows);
         Events::fire(self::QUERY_AFTER_EVENT, array($sql, ""));
         return $result;
     }

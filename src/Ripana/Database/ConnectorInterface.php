@@ -3,6 +3,7 @@
 namespace TeraBlaze\Ripana\Database;
 
 use TeraBlaze\Ripana\Database\Drivers\Mysqli\Query;
+use TeraBlaze\Ripana\Logging\QueryLogger;
 
 /**
  * Interface ConnectorInterface
@@ -92,4 +93,6 @@ interface ConnectorInterface
      * @return string
      */
     public function getDateTimeMode(): string;
+
+    public function getQueryLogger(): QueryLogger;
 }

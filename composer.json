@@ -39,6 +39,8 @@
   "require-dev": {
     "symfony/var-dumper": "^5.1@dev",
     "phpunit/phpunit": "^9",
-    "filp/whoops": "^2.9"
+    "filp/whoops": "^2.9",
+    "maximebf/debugbar": "1.16.x-dev",
+    "middlewares/utils": "dev-master"
   }
 }

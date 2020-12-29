@@ -18,7 +18,7 @@ class Handler implements RequestHandlerInterface
 
     public function __construct($queue, callable $resolver = null)
     {
-        if (! is_array($queue)) {
+        if (!is_array($queue)) {
             $queue = [$queue];
         }
 
@@ -39,7 +39,7 @@ class Handler implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $entry      = current($this->queue);
+        $entry = current($this->queue);
         $middleware = call_user_func($this->resolver, $entry);
         next($this->queue);
 
@@ -64,7 +64,7 @@ class Handler implements RequestHandlerInterface
         );
     }
 
-    public function __invoke(ServerRequestInterface $request) : ResponseInterface
+    public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
         return $this->handle($request);
     }

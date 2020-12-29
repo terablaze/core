@@ -6,5 +6,5 @@ use TeraBlaze\Container\ContainerInterface;
 
 interface ParcelInterface
 {
-    public function build(ContainerInterface $container);
+    public function build(?ContainerInterface $container);
 }

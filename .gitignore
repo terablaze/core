@@ -2,3 +2,5 @@
 *.log
 vendor/
 composer.lock
+config/
+tests/
