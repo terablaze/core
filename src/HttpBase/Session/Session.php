@@ -27,9 +27,6 @@ class Session extends Base
 	
 	public function initialize($session_conf = "default")
 	{
-		if (\TeraBlaze\Registry::get(get_config('app_id') . 'session_' . $session_conf, FALSE)) {
-			return \TeraBlaze\Registry::get(get_config('app_id') . 'session_' . $session_conf, FALSE);
-		}
 		Events::fire("terablaze.libraries.session.initialize.before", array($this->type, $this->options));
 		
 		if (!$this->type) {
@@ -52,21 +49,15 @@ class Session extends Base
 		switch (strtolower($this->type)) {
 			case "server": {
 				$session = new Driver\Server($this->options);
-				\TeraBlaze\Registry::set(get_config('app_id') . 'session_' . $session_conf, $session);
-				return $session;
 				break;
 			}
 			case "memcache":
 			case "memcached": {
 				$session = new Driver\Memcached($this->options);
-				\TeraBlaze\Registry::set(get_config('app_id') . 'session_' . $session_conf, $session);
-				return $session;
 				break;
 			}
 			case "file": {
 				$session = new Driver\File($this->options);
-				\TeraBlaze\Registry::set(get_config('app_id') . 'session_' . $session_conf, $session);
-				return $session;
 				break;
 			}
 			default: {
@@ -74,6 +65,7 @@ class Session extends Base
 				break;
 			}
 		}
+		return $session;
 	}
 	
 	protected function _getExceptionForImplementation($method)

@@ -17,10 +17,3 @@ function makeDir($dir, $recursive = TRUE, $permissions = 0777)
         return $dir;
     }
 }
-
-function get_config($key)
-{
-    $container = Container::getContainer();
-    $config = $container->getParameter('config');
-    return $config->$key ?? null;
-}
