@@ -4,6 +4,8 @@ namespace TeraBlaze\Profiler\Debugbar\DataCollectors;
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\Renderable;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\HttpBase\Session\Driver;
@@ -22,8 +24,8 @@ class RequestCollector extends DataCollector implements DataCollectorInterface, 
     /**
      * Create a new SymfonyRequestCollector
      *
-     * @param Request $request
-     * @param Response $response
+     * @param RequestInterface|Request $request
+     * @param ResponseInterface|Response $response
      * @param Driver $session
      */
     public function __construct($request, $response, $session = null, $currentRequestId = null)
