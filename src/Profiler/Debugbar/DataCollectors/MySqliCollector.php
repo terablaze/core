@@ -27,7 +27,7 @@ class MySqliCollector extends DataCollector implements Renderable, AssetProvider
             $queries[] = array(
                 'sql' => $query['sql'],
                 'duration' => $query['executionTime'],
-                'duration_str' => $this->formatDuration($query['executionTime']),
+                'duration_str' => $this->getDataFormatter()->formatDuration($query['executionTime']),
                 'row_count' => $query['affectedRows'],
             );
             $totalExecTime += $query['executionTime'];

@@ -13,6 +13,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Profiler\Debugbar\DataCollectors\MySqliCollector;
+use TeraBlaze\Profiler\Debugbar\DataCollectors\RequestCollector;
 
 class DebugbarMiddleware implements MiddlewareInterface
 {
@@ -62,7 +63,7 @@ class DebugbarMiddleware implements MiddlewareInterface
         ResponseFactoryInterface $responseFactory = null,
         StreamFactoryInterface $streamFactory = null
     ) {
-        $this->debugbar = $debugbar ?: new StandardDebugBar();
+        $this->debugbar = $debugbar ?: new TeraBlazeDebugbar();
         $this->responseFactory = $responseFactory ?: Factory::getResponseFactory();
         $this->streamFactory = $streamFactory ?: Factory::getStreamFactory();
     }
@@ -128,6 +129,7 @@ class DebugbarMiddleware implements MiddlewareInterface
 
         $container = Container::getContainer();
 
+        $this->debugbar->addCollector(new RequestCollector($request, $response));
         $this->debugbar->addCollector(new MySqliCollector($container->get('ripana.database.connector')->getQueryLogger()));
 
         $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
