@@ -290,8 +290,25 @@ abstract class Kernel implements KernelInterface
 
     public function handle500()
     {
-        return (new ErrorController())
-            ->setContainer(Container::getContainer())
-            ->renderErrorPage(Request::createFromGlobals(), 500)->send();
+        if (error_reporting()) {
+            ob_start();
+
+            $response = (new ErrorController())
+                ->setContainer(Container::getContainer())
+                ->renderErrorPage(Request::createFromGlobals(), 500)
+                ->getBody();
+
+            ob_get_clean();
+
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            echo (string)$response;
+
+            flush();
+            exit(1);
+        } else {
+            return false;
+        }
     }
 }
