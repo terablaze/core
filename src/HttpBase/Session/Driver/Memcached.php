@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -9,6 +10,7 @@
 namespace TeraBlaze\HttpBase\Session\Driver;
 
 use TeraBlaze\HttpBase\Session as Session;
+use Throwable;
 
 /**
  * Class Server
@@ -20,7 +22,7 @@ class Memcached extends Session\Driver
 	 * @readwrite
 	 */
 	protected $_savePath;
-	
+
 	/**
 	 * @readwrite
 	 */
@@ -30,45 +32,46 @@ class Memcached extends Session\Driver
 	 * @readwrite
 	 */
 	protected $_type;
-	
+
 	/**
 	 * @readwrite
 	 */
 	protected $_duration;
-	
-	
+
+
 	// TODO: Add support for multiple servers
 	public function __construct($options = array())
 	{
 		parent::__construct($options);
-		switch ($this->_type) {
-			case 'memcached':
-				ini_set('session.save_handler', 'memcached');
-				break;
-			case 'memcache':
-				ini_set('session.save_handler', 'memcache');
-				break;
-			default:
-				ini_set('session.save_handler', 'memcached');
-			
+		try {
+			switch ($this->_type) {
+				case 'memcached':
+					ini_set('session.save_handler', 'memcached');
+					break;
+				case 'memcache':
+					ini_set('session.save_handler', 'memcache');
+					break;
+				default:
+					ini_set('session.save_handler', 'memcached');
+			}
+			ini_set('session.save_path', $this->_savePath);
+
+			$TBMemcachedSessionHandler = new Memcached\TBMemcachedSessionHandler();
+			session_set_save_handler($TBMemcachedSessionHandler);
+			session_start();
+		} catch (Throwable $throwable) {
 		}
-
-        ini_set('session.save_path', $this->_savePath);
-
-		$TBMemcachedSessionHandler = new Memcached\TBMemcachedSessionHandler();
-		session_set_save_handler($TBMemcachedSessionHandler);
-		@session_start();
 	}
-	
+
 	public function get($key, $default = NULL)
 	{
 		if (isset($_SESSION[$this->_prefix . $key])) {
 			return $_SESSION[$this->_prefix . $key];
 		}
-		
+
 		return $default;
 	}
-	
+
 	public function set($key, $value = NULL)
 	{
 		if (is_array($key)) {
@@ -80,8 +83,8 @@ class Memcached extends Session\Driver
 		}
 		return $this;
 	}
-	
-	
+
+
 	public function get_flash($key, $default = NULL)
 	{
 		if (isset($_SESSION["TB_flash_" . $this->_prefix . $key])) {
@@ -89,10 +92,10 @@ class Memcached extends Session\Driver
 			unset($_SESSION["TB_flash_" . $this->_prefix . $key]);
 			return $flash_data;
 		}
-		
+
 		return $default;
 	}
-	
+
 	public function set_flash($key, $value = NULL)
 	{
 		if (is_array($key)) {
@@ -104,7 +107,7 @@ class Memcached extends Session\Driver
 		}
 		return $this;
 	}
-	
+
 	public function erase($key)
 	{
 		unset($_SESSION[$this->_prefix . $key]);
