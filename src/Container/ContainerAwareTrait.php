@@ -67,4 +67,4 @@ trait ContainerAwareTrait
         }
         return $this->container->getParameter($key);
     }
-}git
+}l
