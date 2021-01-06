@@ -16,6 +16,7 @@ class ErrorController extends Controller
     {
         $data['pageTitle'] = $errorCode . ' | ' . Response::PHRASES[$errorCode];
         $data['bodyMessage'] = $errorCode . ' | ' . Response::PHRASES[$errorCode];
+        $data['request'] = $request;
         try {
             return $this->render('App::errors/' . $errorCode, $data);
         } catch (ViewArgumentException $vException) {
