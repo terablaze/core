@@ -15,7 +15,8 @@ class ErrorController extends Controller
     public function renderErrorPage(Request $request, int $errorCode = 404): Response
     {
         $data['pageTitle'] = $errorCode . ' | ' . Response::PHRASES[$errorCode];
-        $data['bodyMessage'] = $errorCode . ' | ' . Response::PHRASES[$errorCode];
+        $data['code'] = $errorCode;
+        $data['phrase'] = Response::PHRASES[$errorCode];
         $data['request'] = $request;
         try {
             return $this->render('App::errors/' . $errorCode, $data);
