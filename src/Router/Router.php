@@ -9,18 +9,19 @@ use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
 use TeraBlaze\ArrayMethods;
 use TeraBlaze\Container\Container;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Controller\ControllerInterface;
+use TeraBlaze\Controller\ErrorController;
 use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Events\Events;
 use TeraBlaze\HttpBase\Request;
+use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Inspector;
 use TeraBlaze\Router\Exception as Exception;
 use TeraBlaze\Router\Generator\UrlGenerator;
 use TeraBlaze\Router\Generator\UrlGeneratorInterface;
 use TeraBlaze\Router\Route\Route;
 use TeraBlaze\Router\Route\Simple;
+use Whoops\Run;
 
 /**
  * Class Router
@@ -34,12 +35,15 @@ class Router implements MiddlewareInterface
 
     public const NAMED_ROUTE_MATCH = "{(\w[\w:.,\-'\"{}^$+*?\#\[\]()\\\\\ ]+)}";
     public const PATTERN_KEYS =
-        ["#(:any)#", "#(:alpha)#", "#(:alphabet)#", "#(:num)#", "#(:numeric)#", "#(:mention)#"];
+    ["#(:any)#", "#(:alpha)#", "#(:alphabet)#", "#(:num)#", "#(:numeric)#", "#(:mention)#"];
     public const PATTERN_KEYS_REPLACEMENTS =
-        ["([^/]+)", "([a-zA-Z]+)", "([a-zA-Z]+)", "([\d]+)", "([\d]+)", "(@[a-zA-Z0-9-_]+)"];
+    ["([^/]+)", "([a-zA-Z]+)", "([a-zA-Z]+)", "([\d]+)", "([\d]+)", "(@[a-zA-Z0-9-_]+)"];
 
     /** @var Container $container */
     protected $container;
+
+    /** @var Kernel $kernel */
+    protected $kernel;
     /**
      * @var string
      */
@@ -78,6 +82,9 @@ class Router implements MiddlewareInterface
     public function __construct()
     {
         $this->container = Container::getContainer();
+        if ($this->container->has('app.kernel')) {
+            $this->kernel = $this->container->get('app.kernel');
+        }
     }
 
     /**
@@ -159,7 +166,16 @@ class Router implements MiddlewareInterface
         }
 
         if (!class_exists($className)) {
-            throw new Exception\Controller("Controller {$className} not found");
+            $exception = new Exception\Controller("Controller {$className} not found");
+            if ($this->kernel->isDebug()) {
+                if ($this->container->has(Run::class)) {
+                    /** @var Run $whoopsRun */
+                    $whoopsRun = $this->container->get(Run::class);
+                    $whoopsRun->sendHttpCode(Response::HTTP_NOT_FOUND);
+                }
+                throw $exception;
+            }
+            return (new ErrorController())->setContainer($this->container)->renderErrorPage($request, Response::HTTP_NOT_FOUND);
         }
 
         $this->container->registerService($className, ['class' => $className]);
@@ -170,7 +186,16 @@ class Router implements MiddlewareInterface
         Events::fire("terablaze.router.controller.after", array($controller, $parameters));
 
         if (!method_exists($controllerInstance, $action)) {
-            throw new Exception\Action("Action {$action} not found");
+            $exception = new Exception\Action("Action {$action} not found");
+            if ($this->kernel->isDebug()) {
+                if ($this->container->has(Run::class)) {
+                    /** @var Run $whoopsRun */
+                    $whoopsRun = $this->container->get(Run::class);
+                    $whoopsRun->sendHttpCode(Response::HTTP_NOT_FOUND);
+                }
+                throw $exception;
+            }
+            return (new ErrorController())->setContainer($this->container)->renderErrorPage($request, Response::HTTP_NOT_FOUND);
         }
 
         $inspector = new Inspector($controllerInstance);
@@ -265,18 +290,26 @@ class Router implements MiddlewareInterface
 
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
-                $method = array_map(function($methodItem) {
+                $method = array_map(function ($methodItem) {
                     return strtolower($methodItem);
                 }, $method);
 
                 $method = ArrayMethods::clean($method);
 
-                if (in_array(strtolower($requestMethod), $method) || empty($method)) {
-                    return $this->pass($request, $controller, $action, $parameters, $requestMethod);
-                } else {
-                    http_response_code(405);
-                    throw new Exception\RequestMethod("Request method {$request->getMethod()} not implemented for this endpoint");
+                if (!in_array(strtolower($requestMethod), $method) && !empty($method)) {
+                    $exception = new Exception\RequestMethod("Request method {$request->getMethod()} not implemented for this endpoint");
+                    if ($this->kernel->isDebug()) {
+                        if ($this->container->has(Run::class)) {
+                            /** @var Run $whoopsRun */
+                            $whoopsRun = $this->container->get(Run::class);
+                            $whoopsRun->sendHttpCode(Response::HTTP_METHOD_NOT_ALLOWED);
+                        }
+                        throw $exception;
+                    }
+                    return (new ErrorController())->setContainer($this->container)->renderErrorPage($request, Response::HTTP_METHOD_NOT_ALLOWED);
                 }
+
+                return $this->pass($request, $controller, $action, $parameters, $requestMethod);
             }
         }
 
@@ -335,7 +368,6 @@ class Router implements MiddlewareInterface
                 'class' => UrlGenerator::class,
                 'arguments' => [$this->getRoutes()]
             ]);
-
         }
         return $this->container->get(UrlGenerator::class);
     }

@@ -16,14 +16,17 @@ trait ContainerAwareTrait
 
     /**
      * @param ContainerInterface $container
+     * @return $this;
      */
-    public function setContainer(ContainerInterface $container): void
+    public function setContainer(ContainerInterface $container)
     {
         Events::fire("terablaze.controller.setContainer.before", array($this->getName()));
 
         $this->container = $container;
 
         Events::fire("terablaze.controller.setContainer.after", array($this->getName()));
+
+        return $this;
     }
 
     /**
@@ -64,4 +67,4 @@ trait ContainerAwareTrait
         }
         return $this->container->getParameter($key);
     }
-}
+}git

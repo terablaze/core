@@ -7,8 +7,11 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
+use TeraBlaze\Controller\ErrorController;
 use TeraBlaze\Core\Parcel\ParcelInterface;
+use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
+use TeraBlaze\Router\Router;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run;
 
@@ -20,6 +23,7 @@ abstract class Kernel implements KernelInterface
     private $projectDir;
     private $parcels;
     private $middlewares = [];
+    private $exceptionHandler = null;
 
     /** @var Container */
     private $container;
@@ -31,6 +35,8 @@ abstract class Kernel implements KernelInterface
 
         if ($this->debug) {
             $this->enableDebug();
+        } else {
+            $this->disableDebug();
         }
     }
 
@@ -88,6 +94,10 @@ abstract class Kernel implements KernelInterface
 
         $this->registerMiddlewares();
         $this->registerParcels();
+
+        if (class_exists(Run::class) && $this->exceptionHandler != null) {
+            $this->container->registerServiceInstance(Run::class, $this->exceptionHandler);
+        }
 
         $this->booted = true;
     }
@@ -268,6 +278,20 @@ abstract class Kernel implements KernelInterface
             $whoops = new Run;
             $whoops->pushHandler(new PrettyPageHandler);
             $whoops->register();
+            $this->exceptionHandler = $whoops;
         }
+    }
+
+    public function disableDebug(): void
+    {
+        set_exception_handler([$this, 'handle500']);
+        set_error_handler([$this, 'handle500']);
+    }
+
+    public function handle500()
+    {
+        return (new ErrorController())
+            ->setContainer(Container::getContainer())
+            ->renderErrorPage(Request::createFromGlobals(), 500)->send();
     }
 }

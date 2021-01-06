@@ -14,9 +14,9 @@ use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Container\ContainerAwareTrait;
-use TeraBlaze\Controller\Exception as Exception;
 use TeraBlaze\Events\Events;
 use TeraBlaze\Router\Generator\UrlGeneratorInterface;
+use TeraBlaze\View\Exception\Argument as ViewArgumentException;
 
 /**
  * Class Controller
@@ -61,7 +61,7 @@ abstract class Controller implements ControllerInterface
 
         if (!file_exists($filename)) {
             Events::fire("terablaze.controller.view.load.error", array($viewFile, $viewVars));
-            throw new Exception\Argument("Trying to Load Non Existing View: {$viewFile}");
+            throw new ViewArgumentException("Trying to Load Non Existing View: {$viewFile}");
         }
 
         ob_start();

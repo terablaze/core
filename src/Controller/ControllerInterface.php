@@ -20,7 +20,7 @@ use TeraBlaze\Router\Router;
  */
 Interface ControllerInterface 
 {
-	public function setContainer(ContainerInterface $container): void;
+	public function setContainer(ContainerInterface $container);
 
 //	function getName(): string;
 //
