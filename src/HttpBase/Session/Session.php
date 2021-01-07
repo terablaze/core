@@ -28,6 +28,12 @@ class Session extends Base
 	public function initialize($session_conf = "default")
 	{
 		Events::fire("terablaze.libraries.session.initialize.before", array($this->type, $this->options));
+		if ($this->container->has(self::class)) {
+			$session = $this->container->get(self::class);
+			if ($session != null) {
+				return $session;
+			}
+		}
 		
 		if (!$this->type) {
 			$configuration = $this->container->get('configuration');
@@ -65,6 +71,7 @@ class Session extends Base
 				break;
 			}
 		}
+		$this->container->registerServiceInstance(self::class, $session);
 		return $session;
 	}
 	
