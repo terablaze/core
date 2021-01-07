@@ -284,6 +284,7 @@ abstract class Kernel implements KernelInterface
 
     public function disableDebug(): void
     {
+        error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
         set_exception_handler([$this, 'handle500']);
         set_error_handler([$this, 'handle500']);
     }
