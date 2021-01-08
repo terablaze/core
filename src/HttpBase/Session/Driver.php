@@ -9,17 +9,8 @@
 namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
-use TeraBlaze\HttpBase\Session\Exception as Exception;
 
 class Driver extends Base
 {
-	public function initialize()
-	{
-		return $this;
-	}
-	
-	protected function _getExceptionForImplementation($method)
-	{
-		return new Exception\Implementation("{$method} method not implemented");
-	}
+
 }

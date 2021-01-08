@@ -79,7 +79,7 @@ class File extends Session\Driver
 		return $this;
 	}
 	
-	public function get_flash($key, $default = NULL)
+	public function getFlash($key, $default = NULL)
 	{
 		$data = $this->_get('file_sess_TB_flash_' . $this->_prefix . $key, $default);
 		$this->_erase('file_sess_TB_flash_' . $this->_prefix . $key);
@@ -96,7 +96,7 @@ class File extends Session\Driver
 		return $this;
 	}
 	
-	public function set_flash($key, $value = NULL)
+	public function setFlash($key, $value = NULL)
 	{
 		if (is_array($key)) {
 			foreach ($key as $new_key => $new_value) {

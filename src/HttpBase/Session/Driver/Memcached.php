@@ -85,7 +85,7 @@ class Memcached extends Session\Driver
 	}
 
 
-	public function get_flash($key, $default = NULL)
+	public function getFlash($key, $default = NULL)
 	{
 		if (isset($_SESSION["TB_flash_" . $this->_prefix . $key])) {
 			$flash_data = $_SESSION["TB_flash_" . $this->_prefix . $key];
@@ -96,11 +96,11 @@ class Memcached extends Session\Driver
 		return $default;
 	}
 
-	public function set_flash($key, $value = NULL)
+	public function setFlash($key, $value = NULL)
 	{
 		if (is_array($key)) {
 			foreach ($key as $new_key => $new_value) {
-				$this->set_flash($new_key, $new_value);
+				$this->setFlash($new_key, $new_value);
 			}
 		} else {
 			$_SESSION["TB_flash_" . $this->_prefix . $key] = $value;

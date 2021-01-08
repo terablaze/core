@@ -11,7 +11,6 @@ namespace TeraBlaze\HttpBase\Session;
 use TeraBlaze\Base as Base;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\HttpBase\Session\Exception as Exception;
-use TeraBlaze\Registry as Registry;
 
 class Session extends Base
 {
@@ -28,8 +27,8 @@ class Session extends Base
 	public function initialize($session_conf = "default")
 	{
 		Events::fire("terablaze.libraries.session.initialize.before", array($this->type, $this->options));
-		if ($this->container->has(self::class)) {
-			$session = $this->container->get(self::class);
+		if ($this->container->has('session')) {
+			$session = $this->container->get('session');
 			if ($session != null) {
 				return $session;
 			}
@@ -71,7 +70,7 @@ class Session extends Base
 				break;
 			}
 		}
-		$this->container->registerServiceInstance(self::class, $session);
+		$this->container->registerServiceInstance('session', $session);
 		return $session;
 	}
 	
