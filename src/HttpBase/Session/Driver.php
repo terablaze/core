@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -10,7 +11,11 @@ namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
 
-class Driver extends Base
+abstract class Driver extends Base
 {
-
+    public abstract function get($key, $default = NULL);
+    public abstract function set($key, $value = NULL);
+    public abstract function getFlash($key, $default = NULL);
+    public abstract function setFlash($key, $value = NULL);
+    public abstract function erase($key);
 }
