@@ -353,6 +353,10 @@ abstract class Query extends Base implements QueryInterface
             throw new Exception\Argument("Invalid argument");
         }
 
+        if (is_null($page)) {
+            $page = 1;
+        }
+
         $this->_limit = $limit;
         $this->_offset = $limit * ($page - 1);
 
