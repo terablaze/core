@@ -80,7 +80,7 @@ class Response extends Psr7Response
     public function withCookie(Cookie $cookie): self
     {
         $new = clone $this;
-        return $new->withHeader('Set-Cookie', (string) $cookie);
+        return $new->withAddedHeader('Set-Cookie', (string) $cookie);
     }
 
     /**
