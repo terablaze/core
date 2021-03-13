@@ -93,6 +93,7 @@ class Router implements MiddlewareInterface
             ) {
                 $groupConfig['prefix'] = ($config['prefix'] ?? '') . ($route['@prefix'] ?? '');
                 $groupConfig['name_prefix'] = ($config['name_prefix'] ?? '') . ($route['@name_prefix'] ?? '');
+                $groupConfig['expects_json'] = $route['@expects_json'] ?? $config['expects_json'] ?? false;
                 $nestLevel++;
                 $this->addRoutes($route['@routes'] ?? [], $groupConfig, $nestLevel);
                 continue;
@@ -102,6 +103,7 @@ class Router implements MiddlewareInterface
                 continue;
             }
             $route['pattern'] = ($config['prefix'] ?? '') . $route['pattern'] ?? '';
+            $route['expects_json'] = $route['expects_json'] ?? $config['expects_json'] ?? false;
             $this->addRoute($name, new Simple($route));
         }
         if ($nestLevel > 0) {
@@ -291,7 +293,9 @@ class Router implements MiddlewareInterface
                 $action = $route->action;
                 $parameters = $route->parameters;
                 $method = is_array($route->method) ? $route->method : [$route->method];
-
+                /** @var Request $request */
+                $request = $request->setExpectsJson($route->getExpectsJson());
+                
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
                 $method = array_map(function ($methodItem) {

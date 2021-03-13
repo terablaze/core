@@ -15,6 +15,7 @@ $routes = [
         'pattern' => 'home/{userId:num}/book/:alpha/:num',
         'controller' => 'App\Controller\Pages',
         'action' => 'home',
+        'expects_json' => true,
     ],
     'general' => [
         'pattern' => 'general/{userId:num}/book/:alpha/:num',
@@ -34,7 +35,8 @@ $routes = [
     [
         '@group',
         '@prefix' => 'prefix-test/',
-        '@name_prefix' => 'npt.',
+        '@name_prefix' => 'step2.',
+        '@expects_json' => true,
         '@routes' => [
             'easy_prexy' => [
                 'pattern' => 'url-easy-locato',
@@ -44,7 +46,8 @@ $routes = [
             [
                 '@group',
                 '@prefix' => 'prefix-test2/',
-                '@name_prefix' => 'npt2.',
+                '@name_prefix' => 'step3.',
+                '@expects_json' => false,
                 '@routes' => [
                     'easy_prexy' => [
                         'pattern' => 'url-easy-locato2',

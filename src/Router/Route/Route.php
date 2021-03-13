@@ -29,6 +29,9 @@ abstract class Route
 	/** @var string $controller */
     public $controller;
 
+	/** @var bool $expectsJson */
+    public $expectsJson;
+
 	/** @var array $parameters */
 	public $parameters = [];
 
@@ -38,6 +41,7 @@ abstract class Route
         $this->controller = $route['controller'] ?? null;
         $this->action = $route['action'] ?? null;
         $this->method = $route['method'] ?? null;
+        $this->expectsJson = $route['expects_json'] ?? false;
     }
 
     abstract function matches($url): bool;
@@ -80,6 +84,14 @@ abstract class Route
     public function getParameters(): array
     {
         return $this->parameters;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getExpectsJson(): bool
+    {
+        return $this->expectsJson;
     }
 
     /**
