@@ -10,8 +10,8 @@ use TeraBlaze\Core\Kernel\Kernel;
 /**
  * Class TeraBlazeCollector
  *
- * @package Konafets\Typo3Debugbar\DataCollectors
- * @author Stefano Kowalke <info@arroba-it.de>
+ * @package TeraBlaze\Profiler\Debugbar\DataCollectors
+ * @author Tomiwa Ibiwoye <tomiwa@teraboxx.com>
  */
 class TeraBlazeCollector extends DataCollector implements DataCollectorInterface, Renderable
 {
@@ -37,7 +37,7 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
      */
     function getName()
     {
-        return 'typo3';
+        return 'terablaze';
     }
 
     /**
@@ -52,19 +52,19 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
             'version' => [
                 'icon' => 'tag',
                 'tooltip' => 'Version',
-                'map' => 'typo3.version',
+                'map' => 'terablaze.version',
                 'default' => '',
             ],
             'environment' => [
                 'icon' => 'desktop',
                 'tooltip' => 'Environment',
-                'map' => 'typo3.environment',
+                'map' => 'terablaze.environment',
                 'default' => '',
             ],
             'locale' => [
                 'icon' => 'flag',
                 'tooltip' => 'Current locale',
-                'map' => 'typo3.locale',
+                'map' => 'terablaze.locale',
                 'default' => '',
             ],
         ];
@@ -72,7 +72,7 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
 
     private function getEnvironmentInformation()
     {
-        return $GLOBALS['_ENV']['TYPO3_CONTEXT'];
+        return $GLOBALS['_ENV']['TERABLAZE_CONTEXT'];
     }
 
     private function getLocale()
