@@ -1,6 +1,8 @@
 .idea/
 *.log
+var/
 vendor/
 composer.lock
 config/
 tests/
+.phpcs-cache

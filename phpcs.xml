@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+    <description>TeraBlaze coding standard</description>
+
+    <arg name="basepath" value="."/>
+    <arg name="cache" value=".phpcs-cache"/>
+    <arg name="colors"/>
+    <arg name="extensions" value="php"/>
+
+    <rule ref="PSR12"/>
+
+    <!--
+        Default file or directory to sniff.
+    -->
+    <file>./src/</file>
+    <file>./tests/</file>
+
+    <!--
+        Ignore these files even if specified as cli arguments.
+    -->
+    <exclude-pattern>./bin/*</exclude-pattern>
+    <exclude-pattern>./var/*</exclude-pattern>
+    <exclude-pattern>./vendor/*</exclude-pattern>
+    <exclude-pattern>./web/*</exclude-pattern>
+
+</ruleset>
