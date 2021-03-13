@@ -1,16 +1,19 @@
-<?php namespace Konafets\Typo3Debugbar\DataCollectors;
+<?php
 
+namespace TeraBlaze\Profiler\Debugbar\DataCollectors;
+
+use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\Renderable;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
+use TeraBlaze\Core\Kernel\Kernel;
 
 /**
- * Class EnvironmentCollector
+ * Class TeraBlazeCollector
  *
  * @package Konafets\Typo3Debugbar\DataCollectors
  * @author Stefano Kowalke <info@arroba-it.de>
  */
-class Typo3Collector extends BaseCollector implements DataCollectorInterface, Renderable
+class TeraBlazeCollector extends DataCollector implements DataCollectorInterface, Renderable
 {
 
     /**
@@ -21,7 +24,7 @@ class Typo3Collector extends BaseCollector implements DataCollectorInterface, Re
     function collect()
     {
         return [
-            'version' => VersionNumberUtility::getCurrentTypo3Version(),
+            'version' => Kernel::TERABLAZE_VERSION,
             'environment' => $this->getEnvironmentInformation(),
             'locale' => $this->getLocale(),
         ];

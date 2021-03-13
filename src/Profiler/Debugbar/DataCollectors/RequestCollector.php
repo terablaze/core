@@ -1,4 +1,5 @@
 <?php
+
 namespace TeraBlaze\Profiler\Debugbar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollector;
@@ -102,8 +103,7 @@ class RequestCollector extends DataCollector implements DataCollectorInterface, 
 
         if (isset($data['request_server']['PHP_AUTH_PW'])) {
             $data['request_server']['PHP_AUTH_PW'] = '******';
-        }
-        ;
+        };
 
         foreach ($data as $key => $var) {
             if (!is_string($data[$key])) {
@@ -133,10 +133,10 @@ class RequestCollector extends DataCollector implements DataCollectorInterface, 
             }
 
             $cookie .= '; expires=' . substr(
-                    \DateTime::createFromFormat('U', $expires, new \DateTimeZone('UTC'))->format('D, d-M-Y H:i:s T'),
-                    0,
-                    -5
-                );
+                \DateTime::createFromFormat('U', $expires, new \DateTimeZone('UTC'))->format('D, d-M-Y H:i:s T'),
+                0,
+                -5
+            );
         }
 
         if ($domain) {

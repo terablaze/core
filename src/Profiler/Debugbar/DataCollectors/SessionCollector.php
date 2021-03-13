@@ -1,4 +1,6 @@
-<?php namespace Konafets\Typo3Debugbar\DataCollectors;
+<?php
+
+namespace TeraBlaze\Profiler\Debugbar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\DataCollectorInterface;

@@ -1,4 +1,5 @@
 <?php
+
 namespace TeraBlaze\Profiler\Debugbar\DataCollectors;
 
 use DebugBar\DataCollector\AssetProvider;

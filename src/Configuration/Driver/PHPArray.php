@@ -47,4 +47,28 @@ class PHPArray extends Driver implements DriverInterface
         
         return $configObject;
     }
+    /**
+     * @param $path
+     * @return \stdClass
+     *
+     * includes the php array configuration files
+     * and creates an array from it's key/value pairs
+     *
+     */
+    public function parseArray(string $path): ?array
+    {
+        if (empty($path)) {
+            throw new Argument("\$path argument is not valid");
+        }
+        $configFile = $this->container->get('app.kernel')->getProjectDir() . "/{$path}.php";
+        if (!file_exists($configFile)) {
+            $this->throwConfigFileDoesNotExistException($configFile);
+        }
+        $config = include($configFile);
+        $config = ArrayMethods::clean($config);
+        $this->container->registerParameter('configArray', [$path => $config]);
+        $this->container->registerParameter('configObject', [$path => ArrayMethods::toObject($config)]);
+        
+        return $config;
+    }
 }

@@ -1,11 +1,9 @@
 <?php
 
-namespace TeraBlaze\Router\Exception
+namespace TeraBlaze\Router\Exception;
+
+use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+
+class Action extends NotFoundHttpException
 {
-    use TeraBlaze\Router\Exception\Exception;
-    
-    class Action extends Exception
-    {
-        
-    }
 }

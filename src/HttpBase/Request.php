@@ -9,6 +9,8 @@ use TeraBlaze\Psr7Server\ServerRequestCreator;
 
 class Request extends Psr7ServerRequest
 {
+    private $expectsJson = false;
+
     /**
      * Commented out code allows previous output before this emit display without raising exception
      * @see Response::send() for the end part counterpart
@@ -49,5 +51,18 @@ class Request extends Psr7ServerRequest
             return $parsedBody->$name ?? $default;
         }
         return $default;
+    }
+
+    public function expectsJson(): bool
+    {
+        return $this->expectsJson;
+    }
+
+    public function setExpectsJson(bool $expectsJson)
+    {
+        $new = clone $this;
+        $new->expectsJson = $expectsJson;
+
+        return $new;
     }
 }

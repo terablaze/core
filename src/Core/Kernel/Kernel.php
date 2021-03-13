@@ -7,58 +7,30 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Container\Container;
-use TeraBlaze\Controller\ErrorController;
 use TeraBlaze\Core\Parcel\ParcelInterface;
+use TeraBlaze\ErrorHandler\HandleExceptions;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Router\Router;
-use Whoops\Handler\PrettyPageHandler;
-use Whoops\Run;
 
 abstract class Kernel implements KernelInterface
 {
-    private $booted = false;
-    private $debug;
-    private $environment;
-    private $projectDir;
-    private $parcels;
-    private $middlewares = [];
-    private $exceptionHandler = null;
+    public const TERABLAZE_VERSION = "0.1.0";
+
+    protected $booted = false;
+    protected $debug;
+    protected $environment;
+    protected $projectDir;
+    protected $parcels;
+    protected $middlewares = [];
+    protected $currentRequest = null;
 
     /** @var Container */
-    private $container;
+    protected $container;
 
     public function __construct(string $environment, bool $debug)
     {
         $this->environment = $environment;
         $this->debug = $debug;
-
-        if ($this->debug) {
-            $this->enableDebug();
-        } else {
-            $this->disableDebug();
-        }
-    }
-
-    /**
-     * Handle a Request and turn it in to a response.
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface|Response
-     */
-    public function handle(ServerRequestInterface $request): ResponseInterface
-    {
-        if (class_exists(Factory::class)) {
-            Factory::setFactory(new \Middlewares\Utils\FactoryDiscovery(
-                \TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory::class,
-            ));
-        }
-        $this->boot();
-
-        $handler = new Handler($this->middlewares);
-
-        $this->container->registerServiceInstance('request', $request);
-
-        return $handler->handle($request);
     }
 
     public function boot(): void
@@ -66,6 +38,7 @@ abstract class Kernel implements KernelInterface
         if ($this->booted) {
             return;
         }
+        (new HandleExceptions())->bootstrap($this);
 
         $services = [];
         $servicesConfigFile = $this->getProjectDir() . '/config/services.php';
@@ -80,6 +53,7 @@ abstract class Kernel implements KernelInterface
         $this->container = Container::getContainer($services, $parameters);
         $this->container->registerService(static::class, ['class' => static::class]);
         $this->container->setAlias('app.kernel', static::class);
+        $this->container->setAlias('kernel', static::class);
         $this->container->registerServiceInstance(static::class, $this);
 
         $configuration = new Configuration("phparray");
@@ -94,12 +68,30 @@ abstract class Kernel implements KernelInterface
 
         $this->registerMiddlewares();
         $this->registerParcels();
-
-        if (class_exists(Run::class) && $this->exceptionHandler != null) {
-            $this->container->registerServiceInstance(Run::class, $this->exceptionHandler);
-        }
-
         $this->booted = true;
+    }
+
+    /**
+     * Handle a Request and turn it in to a response.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface|Response
+     */
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        $this->currentRequest = $request;
+
+        if (class_exists(Factory::class)) {
+            Factory::setFactory(new \Middlewares\Utils\FactoryDiscovery(
+                \TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory::class,
+            ));
+        }
+        $this->boot();
+
+        $handler = new Handler($this->middlewares);
+
+        $this->container->registerServiceInstance('request', $request);
+
+        return $handler->handle($request);
     }
 
     /**
@@ -116,6 +108,11 @@ abstract class Kernel implements KernelInterface
     public function isDebug()
     {
         return $this->debug;
+    }
+
+    public function getCurrentRequest(): Request
+    {
+        return $this->currentRequest = $this->currentRequest ?? Request::createFromGlobals();
     }
 
     public function getProjectDir(): string
@@ -255,61 +252,6 @@ abstract class Kernel implements KernelInterface
                     throw new \Exception("An error occurred while building parcel {$class} with additional message: {$e->getMessage()}");
                 }
             }
-        }
-    }
-
-    public function enableDebug(): void
-    {
-        error_reporting(-1);
-
-        if (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true)) {
-            ini_set('display_errors', 0);
-        } elseif (!filter_var(ini_get('log_errors'), \FILTER_VALIDATE_BOOLEAN) || ini_get('error_log')) {
-            // CLI - display errors only if they're not already logged to STDERR
-            ini_set('display_errors', 1);
-        }
-
-        @ini_set('zend.assertions', 1);
-        ini_set('assert.active', 1);
-        ini_set('assert.warning', 0);
-        ini_set('assert.exception', 1);
-
-        if (class_exists(Run::class) && class_exists(PrettyPageHandler::class)) {
-            $whoops = new Run;
-            $whoops->pushHandler(new PrettyPageHandler);
-            $whoops->register();
-            $this->exceptionHandler = $whoops;
-        }
-    }
-
-    public function disableDebug(): void
-    {
-        error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
-        set_exception_handler([$this, 'handle500']);
-        set_error_handler([$this, 'handle500']);
-    }
-
-    public function handle500()
-    {
-        if (error_reporting()) {
-            ob_start();
-
-            $response = (new ErrorController())
-                ->setContainer(Container::getContainer())
-                ->renderErrorPage(Request::createFromGlobals(), 500)
-                ->getBody();
-
-            ob_get_clean();
-
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            echo (string)$response;
-
-            flush();
-            exit(1);
-        } else {
-            return false;
         }
     }
 }

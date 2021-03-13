@@ -14,7 +14,7 @@ use TeraBlaze\Cache\Driver\Memcache;
 use TeraBlaze\Cache\Driver\File;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Events\Events as Events;
-use TeraBlaze\Cache\Exception as Exception;
+use TeraBlaze\Cache\Exception\Argument as ArgumentException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;
@@ -68,7 +68,7 @@ class CacheParcel extends Parcel implements ParcelInterface
                     break;
                 }
             default: {
-                    throw new Exception\Argument("Invalid cache type or cache configuration not properly set in config/cache.php");
+                    throw new ArgumentException("Invalid cache type or cache configuration not properly set in config/cache.php");
                     break;
                 }
         }

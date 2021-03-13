@@ -10,10 +10,12 @@ trait PolymorphismTrait
      */
     public function __call(string $methodName, array $arguments)
     {
+        $isValidPrefix = false;
         $methodPrefix = substr($methodName, 0, 3);
         $property = lcfirst(substr($methodName, 3));
         if ($methodPrefix == 'set' && count($arguments) == 1) {
             if (property_exists($this, $property)) {
+                $isValidPrefix = true;
                 $value = $arguments[0];
                 $this->$property = $value;
                 return $this;
@@ -22,6 +24,7 @@ trait PolymorphismTrait
 
         if ($methodPrefix == 'get') {
             if (property_exists($this, $property)) {
+                $isValidPrefix = true;
                 if (isset($this->$property)) {
                     return $this->$property;
                 }
@@ -29,27 +32,31 @@ trait PolymorphismTrait
             }
         }
 
-        throw new Exception("Property {$property} not found in class " . get_class($this));
+        if ($isValidPrefix) {
+            throw new Exception("Property {$property} not found in class " . get_class($this));
+        }
+        throw new Exception("Method {$methodName} not found in class " . get_class($this));
+        
     }
 
     /**
-	 * @param $name
-	 * @return mixed
-	 */
-	public function __get($name)
-	{
-		$function = "get" . ucfirst($name);
-		return $this->$function();
-	}
-	
-	/**
-	 * @param $name
-	 * @param $value
-	 * @return mixed
-	 */
-	public function __set($name, $value)
-	{
-		$function = "set" . ucfirst($name);
-		return $this->$function($value);
-	}
+     * @param $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        $function = "get" . ucfirst($name);
+        return $this->$function();
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     * @return mixed
+     */
+    public function __set($name, $value)
+    {
+        $function = "set" . ucfirst($name);
+        return $this->$function($value);
+    }
 }

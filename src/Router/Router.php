@@ -10,18 +10,15 @@ use ReflectionException;
 use TeraBlaze\ArrayMethods;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
-use TeraBlaze\Controller\ErrorController;
 use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Events\Events;
 use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Inspector;
 use TeraBlaze\Router\Exception as Exception;
+use TeraBlaze\Router\Exception\RequestMethod;
 use TeraBlaze\Router\Generator\UrlGenerator;
 use TeraBlaze\Router\Generator\UrlGeneratorInterface;
-use TeraBlaze\Router\Route\Route;
-use TeraBlaze\Router\Route\Simple;
-use Whoops\Run;
+use TeraBlaze\Router\Route\{Route, Simple};
 
 /**
  * Class Router
@@ -87,12 +84,38 @@ class Router implements MiddlewareInterface
         }
     }
 
+    public function addRoutes($routes, array $config = [], int $nestLevel = 0)
+    {
+        foreach ($routes as $name => $route) {
+            if (
+                !isset($route['pattern']) &&
+                (isset($route['@group']) || in_array('@group', $route))
+            ) {
+                $groupConfig['prefix'] = ($config['prefix'] ?? '') . ($route['@prefix'] ?? '');
+                $groupConfig['name_prefix'] = ($config['name_prefix'] ?? '') . ($route['@name_prefix'] ?? '');
+                $nestLevel++;
+                $this->addRoutes($route['@routes'] ?? [], $groupConfig, $nestLevel);
+                continue;
+            }
+            $name = ($config['name_prefix'] ?? '') . $name;
+            if (!isset($route['pattern'])) {
+                continue;
+            }
+            $route['pattern'] = ($config['prefix'] ?? '') . $route['pattern'] ?? '';
+            $this->addRoute($name, new Simple($route));
+        }
+        if ($nestLevel > 0) {
+            $nestLevel--;
+        }
+        return;
+    }
+
     /**
-     * @param $name
-     * @param $route
-     * @return $this
+     * @param string $name
+     * @param Route $route
+     * @return self
      */
-    public function addRoute($name, $route)
+    public function addRoute(string $name, Route $route)
     {
         $this->routes[$name] = $route;
         return $this;
@@ -157,7 +180,6 @@ class Router implements MiddlewareInterface
         $this->controller = $controller;
         $this->action = $action;
         $this->method = $method;
-
         Events::fire("terablaze.router.controller.before", array($controller, $parameters));
 
         if (!class_exists($className)) {
@@ -166,16 +188,7 @@ class Router implements MiddlewareInterface
         }
 
         if (!class_exists($className)) {
-            $exception = new Exception\Controller("Controller {$className} not found");
-            if ($this->kernel->isDebug()) {
-                if ($this->container->has(Run::class)) {
-                    /** @var Run $whoopsRun */
-                    $whoopsRun = $this->container->get(Run::class);
-                    $whoopsRun->sendHttpCode(Response::HTTP_NOT_FOUND);
-                }
-                throw $exception;
-            }
-            return (new ErrorController())->setContainer($this->container)->renderErrorPage($request, Response::HTTP_NOT_FOUND);
+            throw new Exception\Controller("Controller '{$className}' not found");
         }
 
         $this->container->registerService($className, ['class' => $className]);
@@ -186,23 +199,14 @@ class Router implements MiddlewareInterface
         Events::fire("terablaze.router.controller.after", array($controller, $parameters));
 
         if (!method_exists($controllerInstance, $action)) {
-            $exception = new Exception\Action("Action {$action} not found");
-            if ($this->kernel->isDebug()) {
-                if ($this->container->has(Run::class)) {
-                    /** @var Run $whoopsRun */
-                    $whoopsRun = $this->container->get(Run::class);
-                    $whoopsRun->sendHttpCode(Response::HTTP_NOT_FOUND);
-                }
-                throw $exception;
-            }
-            return (new ErrorController())->setContainer($this->container)->renderErrorPage($request, Response::HTTP_NOT_FOUND);
+            throw new Exception\Action("Action '{$action}' not found");
         }
 
         $inspector = new Inspector($controllerInstance);
         $methodMeta = $inspector->getMethodMeta($action);
 
         if (!empty($methodMeta["@protected"]) || !empty($methodMeta["@private"])) {
-            throw new Exception\Action("Action {$action} not publicly accessible");
+            throw new Exception\Action("Action '{$action}' not publicly accessible");
         }
 
         $hooks = function ($meta, $type) use ($inspector, $controllerInstance) {
@@ -297,16 +301,10 @@ class Router implements MiddlewareInterface
                 $method = ArrayMethods::clean($method);
 
                 if (!in_array(strtolower($requestMethod), $method) && !empty($method)) {
-                    $exception = new Exception\RequestMethod("Request method {$request->getMethod()} not implemented for this endpoint");
-                    if ($this->kernel->isDebug()) {
-                        if ($this->container->has(Run::class)) {
-                            /** @var Run $whoopsRun */
-                            $whoopsRun = $this->container->get(Run::class);
-                            $whoopsRun->sendHttpCode(Response::HTTP_METHOD_NOT_ALLOWED);
-                        }
-                        throw $exception;
-                    }
-                    return (new ErrorController())->setContainer($this->container)->renderErrorPage($request, Response::HTTP_METHOD_NOT_ALLOWED);
+                    throw new RequestMethod(
+                        $method,
+                        "Request method {$request->getMethod()} not implemented for this endpoint"
+                    );
                 }
 
                 return $this->pass($request, $controller, $action, $parameters, $requestMethod);
@@ -342,9 +340,7 @@ class Router implements MiddlewareInterface
 
         // add defined routes
         if (!empty($routes) && is_array($routes)) {
-            foreach ($routes as $name => $route) {
-                $this->addRoute($name, new Simple($route));
-            }
+            $this->addRoutes($routes);
         }
 
         $response = $this->dispatch($request);

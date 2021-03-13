@@ -39,6 +39,7 @@ class ProfilerParcel extends Parcel implements ParcelInterface
      */
     public function build(?ContainerInterface $container)
     {
+        /** @var Container */
         $this->container = $container ?? Container::getContainer();
 
         if (!$this->container->has('configuration')) {

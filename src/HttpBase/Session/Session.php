@@ -61,10 +61,6 @@ class Session extends Base
 				$session = new Driver\Memcached($this->options);
 				break;
 			}
-			case "file": {
-				$session = new Driver\File($this->options);
-				break;
-			}
 			default: {
 				throw new Exception\Argument("Invalid session type or session configuration not properly set in APP_DIR/configuration/session.php");
 				break;

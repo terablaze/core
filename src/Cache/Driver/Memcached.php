@@ -9,7 +9,7 @@
 
 namespace TeraBlaze\Cache\Driver;
 
-use TeraBlaze\Cache\Exception as Exception;
+use TeraBlaze\Cache\Exception\Service as ServiceException;
 
 class Memcached extends Driver
 {
@@ -78,7 +78,7 @@ class Memcached extends Driver
 
             $this->isConnected = true;
         } catch (\Exception $e) {
-            throw new Exception\Service("Unable to connect to service");
+            throw new ServiceException("Unable to connect to service");
         }
 
         return $this;
@@ -111,7 +111,7 @@ class Memcached extends Driver
     public function get($key, $default = null)
     {
         if (!$this->_isValidService()) {
-            throw new Exception\Service("Not connected to a valid service");
+            throw new ServiceException("Not connected to a valid service");
         }
 
         $value = $this->_service->get($this->prefix . $key);
@@ -126,7 +126,7 @@ class Memcached extends Driver
     public function set($key, $value, $duration = "")
     {
         if (!$this->_isValidService()) {
-            throw new Exception\Service("Not connected to a valid service");
+            throw new ServiceException("Not connected to a valid service");
         }
 
         if (empty($duration)) {
@@ -139,7 +139,7 @@ class Memcached extends Driver
     public function add($key, $value, $duration = "")
     {
         if (!$this->_isValidService()) {
-            throw new Exception\Service("Not connected to a valid service");
+            throw new ServiceException("Not connected to a valid service");
         }
 
         if (empty($duration)) {
@@ -152,7 +152,7 @@ class Memcached extends Driver
     public function replace($key, $value, $duration = "")
     {
         if (!$this->_isValidService()) {
-            throw new Exception\Service("Not connected to a valid service");
+            throw new ServiceException("Not connected to a valid service");
         }
 
         if (empty($duration)) {
@@ -171,7 +171,7 @@ class Memcached extends Driver
     public function delete($key)
     {
         if (!$this->_isValidService()) {
-            throw new Exception\Service("Not connected to a valid service");
+            throw new ServiceException("Not connected to a valid service");
         }
 
         $this->_service->delete($this->prefix . $key);

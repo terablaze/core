@@ -15,4 +15,12 @@ interface DriverInterface
      * @return object|null
      */
 	public function parse(string $path): ?object;
+
+    /**
+     * Undocumented function
+     *
+     * @param string $path
+     * @return array|null
+     */
+	public function parseArray(string $path): ?array;
 }

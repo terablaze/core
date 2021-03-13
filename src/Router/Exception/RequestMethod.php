@@ -1,11 +1,9 @@
 <?php
 
-namespace TeraBlaze\Router\Exception
+namespace TeraBlaze\Router\Exception;
+
+use TeraBlaze\ErrorHandler\Exception\Http\MethodNotAllowedHttpException;
+
+class RequestMethod extends MethodNotAllowedHttpException
 {
-    use TeraBlaze\Router\Exception\Exception;
-    
-    class RequestMethod extends Exception
-    {
-        
-    }
 }

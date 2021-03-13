@@ -68,6 +68,50 @@ class Ini extends Driver implements DriverInterface
     }
 
     /**
+     * @param $path
+     * @return array
+     * @throws Exception\Argument
+     * @throws Exception\Syntax
+     *
+     * includes the .ini configuration files
+     * and creates an object from it's key/value pairs
+     *
+     */
+    public function parseArray(string $path): ?array
+    {
+        if (empty($path)) {
+            throw new Exception\Argument("\$path argument is not valid");
+        }
+
+        if (!isset($this->_parsed[$path])) {
+            $config = array();
+
+            ob_start();
+            $configFile = "{$path}.ini";
+            if (!file_exists($configFile)) {
+                $this->throwConfigFileDoesNotExistException($configFile);
+            }
+            include($configFile);
+            $string = ob_get_contents();
+            ob_end_clean();
+
+            $pairs = parse_ini_string($string);
+
+            if ($pairs == false) {
+                throw new Exception\Syntax("Could not parse configuration file: {$configFile}");
+            }
+
+            foreach ($pairs as $key => $value) {
+                $config = $this->_pair($config, $key, $value);
+            }
+
+            $this->_parsed[$path] = ArrayMethods::clean($config);
+        }
+
+        return $this->_parsed[$path];
+    }
+
+    /**
      * @param $config
      * @param $key
      * @param $value
