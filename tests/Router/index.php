@@ -31,6 +31,40 @@ $routes = [
         'controller' => 'App\Controller\Pages',
         'action' => 'easy',
     ],
+    [
+        '@group',
+        '@prefix' => 'prefix-test/',
+        '@name_prefix' => 'npt.',
+        '@routes' => [
+            'easy_prexy' => [
+                'pattern' => 'url-easy-locato',
+                'controller' => 'App\Controller\Pages',
+                'action' => 'easy',
+            ],
+            [
+                '@group',
+                '@prefix' => 'prefix-test2/',
+                '@name_prefix' => 'npt2.',
+                '@routes' => [
+                    'easy_prexy' => [
+                        'pattern' => 'url-easy-locato2',
+                        'controller' => 'App\Controller\Pages',
+                        'action' => 'easy',
+                    ],
+                ]
+            ],
+            'easy1_continued' => [
+                'pattern' => '11-locato',
+                'controller' => 'App\Controller\Pages',
+                'action' => 'easy',
+            ],
+        ],
+    ],
+    'base_continued' => [
+        'pattern' => 'base-locato',
+        'controller' => 'App\Controller\Pages',
+        'action' => 'easy',
+    ],
 ];
 
 dump($routes);
@@ -40,11 +74,7 @@ $container = \TeraBlaze\Container\Container::getContainer();
 $router = new Router();
 
 // add defined routes
-if (!empty($routes) && is_array($routes)) {
-    foreach ($routes as $name => $route) {
-        $router->addRoute($name, new \TeraBlaze\Router\Route\Simple($route));
-    }
-}
+$router->addRoutes($routes);
 
 dump($router->getRoutes());
 dump($router->getRoutes()['brigade']->matches('brigade/1/book/author/1'));
