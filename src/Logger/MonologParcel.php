@@ -8,6 +8,7 @@ use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use ReflectionException;
 use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;
@@ -34,11 +35,10 @@ class MonologParcel extends Parcel implements ParcelInterface
         if (!$this->container->has('configuration')) {
             return;
         }
-        /** @var Configuration $configuration */
+        /** @var DriverInterface $configuration */
         $configuration = $this->container->get('configuration');
 
-        $configuration = $configuration->initialize();
-        $parsed = $configuration->parseArray("config/monolog");
+        $parsed = $configuration->parseArray("monolog");
 
         foreach ($parsed as $channel => $conf) {
             if (!empty($parsed[$channel])) {

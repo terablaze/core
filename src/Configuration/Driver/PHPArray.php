@@ -33,17 +33,8 @@ class PHPArray extends Driver implements DriverInterface
      */
     public function parse(string $path): ?object
     {
-        if (empty($path)) {
-            throw new Argument("\$path argument is not valid");
-        }
-        $configFile = $this->container->get('app.kernel')->getProjectDir() . "/{$path}.php";
-        if (!file_exists($configFile)) {
-            $this->throwConfigFileDoesNotExistException($configFile);
-        }
-        $config = include($configFile);
+        $config = $this->getConfigFromFile($path);
         $configObject = ArrayMethods::toObject($config);
-        $this->container->registerParameter('configArray', [$path => $config]);
-        $this->container->registerParameter('configObject', [$path => $configObject]);
         
         return $configObject;
     }
@@ -57,18 +48,27 @@ class PHPArray extends Driver implements DriverInterface
      */
     public function parseArray(string $path): ?array
     {
+        $config = $this->getConfigFromFile($path);
+        $config = ArrayMethods::clean($config);
+        
+        return $config;
+    }
+
+    private function getConfigFromFile(string $path): array
+    {
         if (empty($path)) {
             throw new Argument("\$path argument is not valid");
         }
-        $configFile = $this->container->get('app.kernel')->getProjectDir() . "/{$path}.php";
-        if (!file_exists($configFile)) {
-            $this->throwConfigFileDoesNotExistException($configFile);
+        $projectDir = $this->kernel->getProjectDir();
+        $environment = $this->kernel->getEnvironment();
+        $configFile = "{$projectDir}/config/{$path}.php";
+        $envConfigFile = "{$projectDir}/config/{$environment}/{$path}.php";
+        if (file_exists($envConfigFile)) {
+            return include($envConfigFile);
         }
-        $config = include($configFile);
-        $config = ArrayMethods::clean($config);
-        $this->container->registerParameter('configArray', [$path => $config]);
-        $this->container->registerParameter('configObject', [$path => ArrayMethods::toObject($config)]);
-        
-        return $config;
+        if (file_exists($configFile)) {
+            return include($configFile);
+        } 
+        $this->throwConfigFileDoesNotExistException($envConfigFile, $configFile);
     }
 }

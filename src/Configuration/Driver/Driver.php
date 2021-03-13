@@ -6,6 +6,7 @@ use TeraBlaze\Base as Base;
 use TeraBlaze\Configuration\Exception as Exception;
 use TeraBlaze\Configuration\Exception\Argument;
 use TeraBlaze\Container\Container;
+use TeraBlaze\Core\Kernel\KernelInterface;
 
 /**
  * Class Driver
@@ -13,19 +14,19 @@ use TeraBlaze\Container\Container;
  */
 abstract class Driver
 {
-	protected $container;
+	protected KernelInterface $kernel;
 	
 	/**
 	 * Base constructor.
 	 * @param array $options
 	 */
-	public function __construct()
+	public function __construct(KernelInterface $kernel)
 	{
-		$this->container = Container::getContainer();
+		$this->kernel = $kernel;
     }
     
-    protected function throwConfigFileDoesNotExistException(string $file)
+    protected function throwConfigFileDoesNotExistException(string $envFile, string $file)
     {
-        throw new Argument("Configuration file: {$file} does not exist");
+        throw new Argument("Configuration files: {$envFile} and {$file} do not exist");
     }
 }

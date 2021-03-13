@@ -9,6 +9,7 @@
 namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
+use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\HttpBase\Session\Exception as Exception;
 
@@ -35,11 +36,11 @@ class Session extends Base
 		}
 		
 		if (!$this->type) {
+				/** @var DriverInterface $configuration */
 			$configuration = $this->container->get('configuration');
 			
 			if ($configuration) {
-				$configuration = $configuration->initialize();
-				$parsed = $configuration->parse("config/session");
+				$parsed = $configuration->parse("session");
 				
 				if (!empty($parsed->{$session_conf}) && !empty($parsed->{$session_conf}->type)) {
 					$this->type = $parsed->{$session_conf}->type;

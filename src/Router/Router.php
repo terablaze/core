@@ -8,6 +8,8 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
 use TeraBlaze\ArrayMethods;
+use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\Core\Kernel\Kernel;
@@ -295,7 +297,7 @@ class Router implements MiddlewareInterface
                 $method = is_array($route->method) ? $route->method : [$route->method];
                 /** @var Request $request */
                 $request = $request->setExpectsJson($route->getExpectsJson());
-                
+
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
                 $method = array_map(function ($methodItem) {
@@ -334,13 +336,10 @@ class Router implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        /** @var Kernel $kernel */
-        $kernel = $this->container->get('app.kernel');
+        /** @var DriverInterface $configuration */
+        $configuration = $this->container->get('configuration');
 
-        $routeConfigFile = $kernel->getProjectDir() . '/config/routes.php';
-        if (file_exists($routeConfigFile)) {
-            $routes = require_once $routeConfigFile;
-        }
+        $routes = $configuration->parseArray("routes");
 
         // add defined routes
         if (!empty($routes) && is_array($routes)) {

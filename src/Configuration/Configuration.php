@@ -13,6 +13,7 @@ use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Configuration\Driver\Ini;
 use TeraBlaze\Configuration\Driver\PHPArray;
 use TeraBlaze\Configuration\Exception as Exception;
+use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\Events\Events;
 
 /**
@@ -27,9 +28,12 @@ class Configuration
 
     protected $options;
 
-    public function __construct(string $type)
+	protected KernelInterface $kernel;
+
+    public function __construct(string $type, KernelInterface $kernel)
     {
         $this->type = $type;
+		$this->kernel = $kernel;
     }
 
     /**
@@ -48,14 +52,14 @@ class Configuration
 
         switch ($this->type) {
             case "ini": {
-                    return new Driver\Ini();
+                    return new Driver\Ini($this->kernel);
                     break;
                 }
             case "PhpArray":
             case "PHPArray":
             case "php_array":
             case "phparray": {
-                    return new Driver\PHPArray();
+                    return new Driver\PHPArray($this->kernel);
                     break;
                 }
             default: {

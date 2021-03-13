@@ -4,6 +4,7 @@ namespace TeraBlaze\Ripana;
 
 use ReflectionException;
 use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Configuration\Exception\Argument as ConfigArgumentException;
 use TeraBlaze\Configuration\Exception\Syntax;
 use TeraBlaze\Container\Container;
@@ -42,11 +43,10 @@ class RipanaParcel extends Parcel implements ParcelInterface
         if (!$this->container->has('configuration')) {
             return;
         }
-        /** @var Configuration $configuration */
+        /** @var DriverInterface $configuration */
         $configuration = $this->container->get('configuration');
 
-        $configuration = $configuration->initialize();
-        $parsed = $configuration->parse("config/ripana");
+        $parsed = $configuration->parse("ripana");
 
         foreach ($parsed as $key => $conf) {
             if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {

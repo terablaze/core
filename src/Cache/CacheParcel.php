@@ -12,9 +12,9 @@ namespace TeraBlaze\Cache;
 use TeraBlaze\Cache\Driver\Memcached;
 use TeraBlaze\Cache\Driver\Memcache;
 use TeraBlaze\Cache\Driver\File;
-use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\Cache\Exception\Argument as ArgumentException;
+use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;
@@ -32,12 +32,11 @@ class CacheParcel extends Parcel implements ParcelInterface
     public function build(?ContainerInterface $container)
     {
         $this->container = $container;
-        /** @var Configuration $configuration */
+        /** @var DriverInterface $configuration */
         $configuration = $this->container->get('configuration');
 
         if ($configuration) {
-            $configuration = $configuration->initialize();
-            $parsed = $configuration->parse("config/cache");
+            $parsed = $configuration->parse("cache");
 
             foreach ($parsed as $key => $conf) {
                 if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {

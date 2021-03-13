@@ -59,21 +59,12 @@ class Container implements ContainerInterface
      * argument is an instance of ContainerParameter the argument will be
      * replaced with the corresponding parameter from the container before the
      * class is instantiated.
-     *
-     * @param array $services The service definitions.
-     * @param array $parameters The parameter definitions.
      */
-    private function __construct(array $services = [], array $parameters = [])
+    private function __construct()
     {
-        $this->services = array_merge($this->services ?? [], $services);
-        $this->parameters = array_merge($this->parameters ?? [], $parameters);
         $this->serviceInstances = [];
 
         $this->registerServiceInstance('terablaze.container', $this);
-
-        foreach ($services as $key => $service) {
-            $this->setAliasInternally($key, $service);
-        }
     }
 
     /**
@@ -117,7 +108,12 @@ class Container implements ContainerInterface
     public static function getContainer(array $services = [], array $parameters = []): self
     {
         if (empty(self::$instance)) {
-            self::$instance = new self($services, $parameters);
+            self::$instance = new self();
+        }
+        self::$instance->services = array_merge(self::$instance->services ?? [], $services);
+        self::$instance->parameters = array_merge(self::$instance->parameters ?? [], $parameters);
+        foreach ($services as $key => $service) {
+            self::$instance->setAliasInternally($key, $service);
         }
         return self::$instance;
     }

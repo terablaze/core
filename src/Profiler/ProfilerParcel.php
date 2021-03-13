@@ -45,11 +45,10 @@ class ProfilerParcel extends Parcel implements ParcelInterface
         if (!$this->container->has('configuration')) {
             return;
         }
-        /** @var Configuration $configuration */
-        $configuration = $this->container->get('configuration');
+        /** @var DriverInterface $configDriver */
+        $this->configDriver = $this->container->get('configuration');
 
-        $this->configDriver = $configuration->initialize();
-        $parsed = $this->configDriver->parse("config/profiler");
+        $parsed = $this->configDriver->parse("profiler");
 
         if (!class_exists(DebugbarMiddleware::class) || !class_exists(DebugBar::class)) {
             return;
@@ -71,7 +70,7 @@ class ProfilerParcel extends Parcel implements ParcelInterface
     {
         $collectors = $this->profilerConfig->debugbar->collectors;
         if ($collectors->{'ripana.query'}) {
-            $ripanaConnections = $this->container->getParameter('configArray')['config/ripana'];
+            $ripanaConnections = $this->container->getParameter('configArray')['ripana'];
             foreach ($ripanaConnections as $key => $ripanaConnection) {
                 /** @var Connector $connection */
                 $connection = $this->container->get('ripana.database.connector.' . $key);

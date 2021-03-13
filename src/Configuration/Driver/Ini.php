@@ -12,6 +12,7 @@ namespace TeraBlaze\Configuration\Driver;
 use TeraBlaze\ArrayMethods as ArrayMethods;
 use TeraBlaze\Configuration\Driver\Driver;
 use TeraBlaze\Configuration\Exception as Exception;
+use TeraBlaze\Configuration\Exception\Argument;
 
 /**
  * Class Ini
@@ -43,18 +44,14 @@ class Ini extends Driver implements DriverInterface
             $config = array();
 
             ob_start();
-            $configFile = "{$path}.ini";
-            if (!file_exists($configFile)) {
-                $this->throwConfigFileDoesNotExistException($configFile);
-            }
-            include($configFile);
+            $this->getConfigFromFile($path);
             $string = ob_get_contents();
             ob_end_clean();
 
             $pairs = parse_ini_string($string);
 
             if ($pairs == false) {
-                throw new Exception\Syntax("Could not parse configuration file: {$configFile}");
+                throw new Exception\Syntax("Could not parse configuration file: {$path}");
             }
 
             foreach ($pairs as $key => $value) {
@@ -87,18 +84,14 @@ class Ini extends Driver implements DriverInterface
             $config = array();
 
             ob_start();
-            $configFile = "{$path}.ini";
-            if (!file_exists($configFile)) {
-                $this->throwConfigFileDoesNotExistException($configFile);
-            }
-            include($configFile);
+            $this->getConfigFromFile($path);
             $string = ob_get_contents();
             ob_end_clean();
 
             $pairs = parse_ini_string($string);
 
             if ($pairs == false) {
-                throw new Exception\Syntax("Could not parse configuration file: {$configFile}");
+                throw new Exception\Syntax("Could not parse configuration file: {$path}");
             }
 
             foreach ($pairs as $key => $value) {
@@ -132,5 +125,23 @@ class Ini extends Driver implements DriverInterface
         }
 
         return $config;
+    }
+
+    private function getConfigFromFile(string $path): array
+    {
+        if (empty($path)) {
+            throw new Argument("\$path argument is not valid");
+        }
+        $projectDir = $this->kernel->getProjectDir();
+        $environment = $this->kernel->getEnvironment();
+        $configFile = "{$projectDir}/config/{$path}.ini";
+        $envConfigFile = "{$projectDir}/config/{$environment}/{$path}.ini";
+        if (file_exists($envConfigFile)) {
+            return include($envConfigFile);
+        }
+        if (file_exists($configFile)) {
+            return include($configFile);
+        } 
+        $this->throwConfigFileDoesNotExistException($envConfigFile, $configFile);
     }
 }

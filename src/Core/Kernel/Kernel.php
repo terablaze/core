@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Core\Kernel;
 
+use Exception;
 use Middlewares\Utils\Factory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -40,15 +41,17 @@ abstract class Kernel implements KernelInterface
         }
         (new HandleExceptions())->bootstrap($this);
 
-        $services = [];
-        $servicesConfigFile = $this->getProjectDir() . '/config/services.php';
-        if (file_exists($servicesConfigFile)) {
-            $services = include_once($servicesConfigFile);
+        $configuration = (new Configuration("phparray", $this))->initialize();
+
+        try {
+            $services = $configuration->parseArray('services');
+        } catch (Exception $exceptionS) {
+            $services = [];
         }
-        $parameters = [];
-        $parametersConfigFile = $this->getProjectDir() . '/config/parameters.php';
-        if (file_exists($parametersConfigFile)) {
-            $parameters = include_once($parametersConfigFile);
+        try {
+            $parameters = $configuration->parseArray('parameters');
+        } catch (Exception $exceptionP) {
+            $parameters = [];
         }
         $this->container = Container::getContainer($services, $parameters);
         $this->container->registerService(static::class, ['class' => static::class]);
@@ -56,11 +59,10 @@ abstract class Kernel implements KernelInterface
         $this->container->setAlias('kernel', static::class);
         $this->container->registerServiceInstance(static::class, $this);
 
-        $configuration = new Configuration("phparray");
-
         if ($configuration) {
             $this->container->registerServiceInstance('configuration', $configuration);
         }
+
         $constantsFile = $this->getProjectDir() . '/config/constants.php';
         if (file_exists($constantsFile)) {
             include_once($constantsFile);
