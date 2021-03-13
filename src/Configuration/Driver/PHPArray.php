@@ -48,10 +48,7 @@ class PHPArray extends Driver implements DriverInterface
      */
     public function parseArray(string $path): ?array
     {
-        $config = $this->getConfigFromFile($path);
-        $config = ArrayMethods::clean($config);
-        
-        return $config;
+        return $this->getConfigFromFile($path);
     }
 
     private function getConfigFromFile(string $path): array
