@@ -4,6 +4,7 @@ namespace TeraBlaze\ErrorHandler;
 
 use Exception;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
@@ -107,8 +108,11 @@ class ExceptionHandler
      *
      * @throws Throwable
      */
-    public function report(Throwable $e)
+    public function report(Throwable $e, ?ServerRequestInterface $request = null)
     {
+        if ($request == null) {
+            $request = Request::createFromGlobals();
+        }
         $e = $this->mapException($e);
 
         if ($this->shouldntReport($e)) {
@@ -131,7 +135,7 @@ class ExceptionHandler
                 $e->getMessage(),
                 array_merge(
                     $this->exceptionContext($e),
-                    $this->context(),
+                    $this->context($request),
                     ['exception' => $e->getTraceAsString()]
                 )
             );
@@ -188,9 +192,13 @@ class ExceptionHandler
      *
      * @return array
      */
-    protected function context()
+    protected function context(ServerRequestInterface $request)
     {
-        return [];
+        return [
+            'path' => $request->getUri()->__toString(),
+            'user_agent' => $request->getServerParams()['HTTP_USER_AGENT'],
+            'ip_address' => $request->getServerParams()['REMOTE_ADDR'],
+        ];
     }
 
     /**
