@@ -22,15 +22,31 @@ class SlackWebhookHandlerFactory
         $url = ($options['url']);
         $slackChannel = $options['channel'];
         $botName = $options['username'] ?? "TeraBlaze Logger";
+        $useAttachment = $options['useAttachment'] ?? true;
+        $iconEmoji = $options['iconEmoji'] ?? null;
+        $useShortAttachment = $options['useShortAttachment'] ?? false;
+        $includeContextAndExtra = $options['includeContextAndExtra'] ?? true;
         $level = $options['level'] ?? $defaultLevel;
-        $this->handler = new SlackWebhookHandler($url, $slackChannel, $botName);
-        $this->handler->setLevel($level);
+        $bubble = $options['bubble'] ?? true;
+        $excludedFields = $options['excludedFields'] ?? [];
+        $this->handler = new SlackWebhookHandler(
+            $url,
+            $slackChannel,
+            $botName,
+            $useAttachment,
+            $iconEmoji,
+            $useShortAttachment,
+            $includeContextAndExtra,
+            $level,
+            $bubble,
+            $excludedFields
+        );
         $this->handler->setFormatter(new $options['formatter']());
     }
 
     public function getHandler(): SlackWebhookHandler
     {
-        if (! $this->handler instanceof SlackWebhookHandler) {
+        if (!$this->handler instanceof SlackWebhookHandler) {
             throw new Exception('Handler not initialised');
         }
         return $this->handler;

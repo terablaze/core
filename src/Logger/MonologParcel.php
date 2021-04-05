@@ -6,19 +6,14 @@ use Monolog\Handler\SlackWebhookHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
-use ReflectionException;
-use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Configuration\Driver\DriverInterface;
+use TeraBlaze\Configuration\Exception\Argument as ArgumentException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\Events\Events;
 use TeraBlaze\Logger\HandlerFactories\SlackWebhookHandlerFactory;
 use TeraBlaze\Logger\HandlerFactories\StreamHandlerFactory;
-use TeraBlaze\Ripana\Database\Drivers\Mysqli\Connector;
-use TeraBlaze\Ripana\Database\Exception\Argument;
-use TeraBlaze\Ripana\ORM\EntityManager;
 
 class MonologParcel extends Parcel implements ParcelInterface
 {
@@ -38,7 +33,11 @@ class MonologParcel extends Parcel implements ParcelInterface
         /** @var DriverInterface $configuration */
         $configuration = $this->container->get('configuration');
 
-        $parsed = $configuration->parseArray("monolog");
+        try {
+            $parsed = $configuration->parseArray("monolog");
+        } catch (ArgumentException $argumentException) {
+            $parsed = $configuration->parseArray("logging");
+        }
 
         foreach ($parsed as $channel => $conf) {
             if (!empty($parsed[$channel])) {

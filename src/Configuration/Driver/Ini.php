@@ -134,14 +134,14 @@ class Ini extends Driver implements DriverInterface
         }
         $projectDir = $this->kernel->getProjectDir();
         $environment = $this->kernel->getEnvironment();
-        $configFile = "{$projectDir}/config/{$path}.ini";
         $envConfigFile = "{$projectDir}/config/{$environment}/{$path}.ini";
         if (file_exists($envConfigFile)) {
             return include($envConfigFile);
         }
+        $configFile = "{$projectDir}/config/{$path}.ini";
         if (file_exists($configFile)) {
             return include($configFile);
-        } 
+        }
         $this->throwConfigFileDoesNotExistException($envConfigFile, $configFile);
     }
 }

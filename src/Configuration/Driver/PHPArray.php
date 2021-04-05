@@ -35,7 +35,7 @@ class PHPArray extends Driver implements DriverInterface
     {
         $config = $this->getConfigFromFile($path);
         $configObject = ArrayMethods::toObject($config);
-        
+
         return $configObject;
     }
     /**
@@ -58,14 +58,14 @@ class PHPArray extends Driver implements DriverInterface
         }
         $projectDir = $this->kernel->getProjectDir();
         $environment = $this->kernel->getEnvironment();
-        $configFile = "{$projectDir}/config/{$path}.php";
         $envConfigFile = "{$projectDir}/config/{$environment}/{$path}.php";
         if (file_exists($envConfigFile)) {
             return include($envConfigFile);
         }
+        $configFile = "{$projectDir}/config/{$path}.php";
         if (file_exists($configFile)) {
             return include($configFile);
-        } 
+        }
         $this->throwConfigFileDoesNotExistException($envConfigFile, $configFile);
     }
 }
