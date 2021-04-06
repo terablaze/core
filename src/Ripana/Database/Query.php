@@ -347,13 +347,9 @@ abstract class Query extends Base implements QueryInterface
         return $this;
     }
 
-    public function limit($limit, $page = 1): QueryInterface
+    public function limit(int $limit, int $page = 1): QueryInterface
     {
-        if (empty($limit)) {
-            throw new Exception\Argument("Invalid argument");
-        }
-
-        if (is_null($page)) {
+        if ($page < 1) {
             $page = 1;
         }
 

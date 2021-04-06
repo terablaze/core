@@ -96,11 +96,11 @@ interface QueryInterface
 
     /**
      * Construct a limit for the current query
-     * @param $limit
+     * @param int $limit
      * @param int $page
      * @return QueryInterface
      */
-    public function limit($limit, $page = 1): QueryInterface;
+    public function limit(int $limit, int $page = 1): QueryInterface;
 
     /**
      * Returns the number of rows matched
