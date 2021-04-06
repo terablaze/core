@@ -41,7 +41,9 @@ class SlackWebhookHandlerFactory
             $bubble,
             $excludedFields
         );
-        $this->handler->setFormatter(new $options['formatter']());
+        if (!empty($options['formatter'])) {
+            $this->handler->setFormatter(new $options['formatter']());
+        }
     }
 
     public function getHandler(): SlackWebhookHandler
