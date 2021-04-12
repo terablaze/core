@@ -9,10 +9,8 @@ use Psr\Log\LoggerInterface;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
 use TeraBlaze\HttpBase\JsonResponse;
-use TeraBlaze\HttpBase\RedirectResponse;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Psr7\Factory\HttplugFactory;
 use Throwable;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run as Whoops;
@@ -359,12 +357,11 @@ class ExceptionHandler
      */
     protected function prepareJsonResponse($request, Throwable $e)
     {
-        return new JsonResponse(
+        return (new JsonResponse(
             $this->convertExceptionToArray($e),
             $this->isHttpException($e) ? $e->getStatusCode() : 500,
-            $this->isHttpException($e) ? $e->getHeaders() : [],
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-        );
+            $this->isHttpException($e) ? $e->getHeaders() : []
+        ))->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
     /**

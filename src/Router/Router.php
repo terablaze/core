@@ -297,6 +297,7 @@ class Router implements MiddlewareInterface
                 $method = is_array($route->method) ? $route->method : [$route->method];
                 /** @var Request $request */
                 $request = $request->setExpectsJson($route->getExpectsJson());
+                $this->kernel->setCurrentRequest($request);
 
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 

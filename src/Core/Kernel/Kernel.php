@@ -112,6 +112,12 @@ abstract class Kernel implements KernelInterface
         return $this->debug;
     }
 
+    public function setCurrentRequest(Request $request): self
+    {
+        $this->currentRequest = $request;
+        return $this;
+    }
+
     public function getCurrentRequest(): Request
     {
         return $this->currentRequest = $this->currentRequest ?? Request::createFromGlobals();
