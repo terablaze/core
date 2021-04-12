@@ -393,4 +393,22 @@ class ExceptionHandler
     {
         return $e instanceof HttpExceptionInterface;
     }
+
+    /**
+     * Triggers a silenced deprecation notice.
+     *
+     * @param string $package The name of the Composer package that is triggering the deprecation
+     * @param string $version The version of the package that introduced the deprecation
+     * @param string $message The message of the deprecation
+     * @param mixed  ...$args Values to insert in the message using printf() formatting
+     */
+    public static function triggerDeprecation(
+        string $package,
+        string $version,
+        string $message,
+        ...$args
+    ): void {
+        @trigger_error(($package || $version ? "Since $package $version: " : '') .
+            ($args ? vsprintf($message, $args) : $message), \E_USER_DEPRECATED);
+    }
 }
