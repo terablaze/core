@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\HttpBase;
+namespace TeraBlaze\HttpBase\Utils;
 
 /**
  * Http utility functions.

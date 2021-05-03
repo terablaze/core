@@ -25,7 +25,8 @@
     "psr/http-server-middleware": "1.0.x-dev",
     "psr/container": "^1.0@dev",
     "terablaze/psr7": "dev-master",
-    "terablaze/psr7-server": "dev-master"
+    "terablaze/psr7-server": "dev-master",
+    "psr/event-dispatcher": "1.0.x-dev"
   },
   "require-dev": {
     "filp/whoops": "^2.9",

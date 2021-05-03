@@ -7,6 +7,8 @@ use TeraBlaze\ErrorHandler\ExceptionHandler;
 use TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
 use TeraBlaze\HttpBase\Exception\ConflictingHeadersException;
 use TeraBlaze\HttpBase\Exception\SuspiciousOperationException;
+use TeraBlaze\HttpBase\Utils\HeaderUtils;
+use TeraBlaze\HttpBase\Utils\IpUtils;
 use TeraBlaze\Psr7\ServerRequest as Psr7ServerRequest;
 use TeraBlaze\Psr7Server\ServerRequestCreator;
 

@@ -41,7 +41,7 @@ class Container implements ContainerInterface
     /**
      * @var array
      */
-    private $serviceInstances;
+    private $resolvedInstances;
 
     /**
      * @var array
@@ -52,7 +52,7 @@ class Container implements ContainerInterface
      * Constructor for the container.
      *
      * Entries into the $services array must be an associative array with a
-     * 'class' key and an optional 'arguments' key. Where present the arguments
+     * 'class' key and an optional 'arguments' key. Where present, the arguments
      * will be passed to the class constructor. If an argument is an instance of
      * ContainerService the argument will be replaced with the corresponding
      * service from the container before the class is instantiated. If an
@@ -62,7 +62,7 @@ class Container implements ContainerInterface
      */
     private function __construct()
     {
-        $this->serviceInstances = [];
+        $this->resolvedInstances = [];
 
         $this->registerServiceInstance('terablaze.container', $this);
     }
@@ -182,7 +182,7 @@ class Container implements ContainerInterface
         if (!$this->has($key)) {
             $this->registerService($key, $class);
         }
-        $this->serviceInstances[$key] = $service;
+        $this->resolvedInstances[$key] = $service;
         return $this;
     }
 
@@ -216,27 +216,27 @@ class Container implements ContainerInterface
             throw new ServiceNotFoundException('Service not found: ' . $name);
         }
 
-        if (isset($this->serviceInstances[$name])) {
+        if (isset($this->resolvedInstances[$name])) {
             // Return service from store
-            return $this->serviceInstances[$name];
+            return $this->resolvedInstances[$name];
         }
 
         $resolvedAlias = $this->serviceAliases[$name] ?? null;
 
-        if (isset($this->serviceInstances[$resolvedAlias])) {
+        if (isset($this->resolvedInstances[$resolvedAlias])) {
             // Return service from store
-            return $this->serviceInstances[$resolvedAlias];
+            return $this->resolvedInstances[$resolvedAlias];
         }
 
         if (isset($this->services[$name])) {
-            $this->serviceInstances[$name] = $this->createService($name);
+            $this->resolvedInstances[$name] = $this->createService($name);
         } else {
             $name = $resolvedAlias;
-            $this->serviceInstances[$name] = $this->createService($name);
+            $this->resolvedInstances[$name] = $this->createService($name);
         }
 
         // Return service from store
-        return $this->serviceInstances[$name];
+        return $this->resolvedInstances[$name];
     }
 
     /**

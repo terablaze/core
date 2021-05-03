@@ -5,4 +5,17 @@ if (php_sapi_name() !== 'cli') {
     exit;
 }
 
-echo "Hello World\n";
+require __DIR__ . '/../vendor/autoload.php';
+
+use TeraBlaze\Console\Application;
+use TeraBlaze\Console\Command\Command;
+
+$app = new Application();
+
+$app->registerController('hello', new \TeraBlaze\Console\Controller\HelpController($app));
+
+$app->registerCommand('help', function (array $argv) use ($app) {
+    $app->getPrinter()->display("usage: console hello [ your-name ]");
+});
+
+$app->runCommand($argv);

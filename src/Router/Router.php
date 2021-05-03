@@ -270,16 +270,17 @@ class Router implements MiddlewareInterface
 
     /**
      *
-     * @param ServerRequestInterface|null $request
+     * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws Exception\Action
      * @throws Exception\Controller
      * @throws Exception\RequestMethod
      * @throws ReflectionException
      */
-    public function dispatch(ServerRequestInterface $request = null): ResponseInterface
+    public function dispatch(ServerRequestInterface $request): ResponseInterface
     {
-        $url = $request->getServerParams()['PATH_INFO'] ?? "/";
+        /** @var Request $request */
+        $url = $request->getPathInfo();
         $parameters = array();
         $controller = '';
         $action = '';
