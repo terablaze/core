@@ -6,6 +6,7 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionParameter;
+use ReflectionUnionType;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\DependencyIsNotInstantiableException;
 use TeraBlaze\Container\Exception\InvalidArgumentException;
@@ -332,7 +333,8 @@ class Container implements ContainerInterface
         }
 
         if (is_null($constructor) || empty($reflectionParameters)) {
-            $service = $reflector->newInstance(); // create new instance without passing arguments to the constructor
+            // create new instance without passing arguments to the constructor
+            $service = $reflector->newInstance();
         } else {
             $registeredArguments = $entry['arguments'] ?? [];
             $arguments = $this->resolveArguments($registeredArguments, $reflectionParameters);
@@ -352,7 +354,6 @@ class Container implements ContainerInterface
      * @param array $argumentDefinitions The service arguments definition.
      *
      * @param ReflectionParameter[] $reflectionParameters
-     * @param bool $any
      * @return array The service constructor arguments.
      *
      * @throws ContainerException
@@ -390,18 +391,26 @@ class Container implements ContainerInterface
         foreach ($reflectionParameters as $reflectionParameter) {
             $name = $reflectionParameter->getName();
             $position = $reflectionParameter->getPosition();
-            $class = $reflectionParameter->getClass();
-            $className = is_null($class) ? null : $class->getName();
             $type = $reflectionParameter->getType();
-            $typeName = is_null($type) ? null : $type->getName();
+            if ($type instanceof ReflectionUnionType) {
+                $unionTypes = $type->getTypes();
+                foreach ($unionTypes as $aType) {
+                    if (!$aType->isBuiltin()) {
+                        $typesString = implode(" | ", $unionTypes);
+                        throw new InvalidArgumentException("Cannot use non built in types ({$typesString}) for union types when auto-wiring");
+                    }
+                }
+                $type = $unionTypes[0];
+            }
+            $typeName = $type->getName();
             try {
                 $defaultValue = $reflectionParameter->getDefaultValue();
             } catch (ReflectionException $reflectionException) {
                 unset($defaultValue);
             }
-            $resolvedArgument = $defaultValue ?? $className;
+            $resolvedArgument = $defaultValue ?? $typeName;
             foreach ($arguments as $key => $argument) {
-                if (is_object($argument) && ($className == get_class($argument) || $argument instanceof $className || $argument instanceof $key)) {
+                if (is_object($argument) && ($typeName == get_class($argument) || $argument instanceof $typeName || $argument instanceof $key)) {
                     $resolvedArgument = $argument;
                     continue;
                 }
@@ -410,10 +419,10 @@ class Container implements ContainerInterface
                     continue;
                 }
                 if (is_string($resolvedArgument) && class_exists($resolvedArgument)) {
-                    if (!$this->has($className)) {
-                        $this->registerService($className, ['class' => $className]);
+                    if (!$this->has($typeName)) {
+                        $this->registerService($typeName, ['class' => $typeName]);
                     }
-                    $resolvedArgument = $this->get($className);
+                    $resolvedArgument = $this->get($typeName);
                     continue;
                 }
                 if (!is_object($argument)) {
