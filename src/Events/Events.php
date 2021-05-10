@@ -50,12 +50,12 @@ class Events
 	}
 
 	/**
-	 * @param $type
-	 * @param null $parameters
+	 * @param string $type
+	 * @param array<int, mixed>|null $parameters
 	 *
 	 * fires the events in the $_callback array
 	 */
-	public static function fire($type, $parameters = null)
+	public static function fire(string $type, ?array $parameters = null): void
 	{
 		if (!empty(self::$_callbacks[$type]))
 		{
