@@ -34,6 +34,8 @@ class JsonResponse extends Response
             $body = new \ArrayObject();
         }
 
+        $this->statusCode = $status;
+
         $json ? $this->setJson($body) : $this->setData($body);
         parent::__construct($this->data, $this->statusCode, $this->headers);
     }

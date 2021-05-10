@@ -12,9 +12,6 @@ $kernel = new \Tests\TeraBlaze\Http\Kernel('dev', true);
 
 $request = Request::createFromGlobals();
 
-// dd($_SERVER, $_REQUEST, $request, parse_url($_SERVER['REQUEST_URI']));
-dd($request, $request->getPathInfo());
-
 /** @var Response */
 $response = $kernel->handle($request);
 

@@ -119,8 +119,8 @@ class ExceptionHandler
 
         try {
             /** @var LoggerInterface $logger */
-            $logger = $this->container->has('logger.exception'::class)
-                ? $this->container->get('logger.exception'::class)
+            $logger = $this->container->has('logger.exception')
+                ? $this->container->get('logger.exception')
                 : ($this->container->has(LoggerInterface::class)
                     ? $this->container->get(LoggerInterface::class)
                     : null);
@@ -373,6 +373,7 @@ class ExceptionHandler
     protected function convertExceptionToArray(Throwable $e)
     {
         return $this->debugMode ? [
+            'status_code' => $this->isHttpException($e) ? $e->getStatusCode() : 500,
             'message' => $e->getMessage(),
             'exception' => get_class($e),
             'file' => $e->getFile(),

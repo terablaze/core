@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 2/4/2017
- * Time: 4:09 PM
- */
-
 namespace TeraBlaze\Controller;
 
 use ReflectionException;
@@ -50,7 +43,7 @@ abstract class Controller implements ControllerInterface
         Events::fire("terablaze.controller.destruct.after", array($this->getName()));
     }
 
-    protected function loadView($viewFile, $viewVars = array()): string
+    protected function loadView(string $viewFile, array $viewVars = array()): string
     {
         Events::fire("terablaze.controller.view.load.before", array($viewFile, $viewVars));
 
@@ -86,10 +79,10 @@ abstract class Controller implements ControllerInterface
     }
 
     protected function render(
-        $viewFile,
-        $viewVars = [],
-        $responseCode = 200,
-        $headers = ['Content-Type' => 'text/html']
+        string $viewFile,
+        array $viewVars = [],
+        int $responseCode = 200,
+        array $headers = ['Content-Type' => 'text/html']
     ): Response {
         $content = $this->loadView($viewFile, $viewVars);
 

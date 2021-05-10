@@ -17,11 +17,13 @@ class Request extends Psr7ServerRequest
     use UriTrait;
 
     private $expectsJson = false;
+    private $pathInfo;
+    private $requestUri;
+    private $baseUrl;
 
     /**
      * Commented out code allows previous output before this emit display without raising exception
      * @see Response::send() for the end part counterpart
-     * @return bool
      */
     public static function createFromGlobals(): ServerRequestInterface
     {
@@ -738,56 +740,6 @@ class Request extends Psr7ServerRequest
         }
 
         return $host;
-    }
-
-    /**
-     * Gets the request "intended" method.
-     *
-     * If the X-HTTP-Method-Override header is set, and if the method is a POST,
-     * then it is used to determine the "real" intended HTTP method.
-     *
-     * The _method request parameter can also be used to determine the HTTP method,
-     * but only if enableHttpMethodParameterOverride() has been called.
-     *
-     * The method is always an uppercased string.
-     *
-     * @return string The request method
-     *
-     * @see getRealMethod()
-     */
-    public function getMethodx()
-    {
-        if (null !== $this->method) {
-            return $this->method;
-        }
-
-        $this->method = strtoupper($this->getServerParam('REQUEST_METHOD', 'GET'));
-
-        if ('POST' !== $this->method) {
-            return $this->method;
-        }
-
-        $method = $this->getHeaderLine('X-HTTP-METHOD-OVERRIDE');
-
-        if (!$method && self::$httpMethodParameterOverride) {
-            $method = $this->request->get('_method', $this->query->get('_method', 'POST'));
-        }
-
-        if (!\is_string($method)) {
-            return $this->method;
-        }
-
-        $method = strtoupper($method);
-
-        if (\in_array($method, ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'PATCH', 'PURGE', 'TRACE'], true)) {
-            return $this->method = $method;
-        }
-
-        if (!preg_match('/^[A-Z]++$/D', $method)) {
-            throw new SuspiciousOperationException(sprintf('Invalid method override "%s".', $method));
-        }
-
-        return $this->method = $method;
     }
 
     /**
