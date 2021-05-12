@@ -247,7 +247,7 @@ class Router implements MiddlewareInterface
         $reflectionMethod = new \ReflectionMethod($controllerInstance, $action);
         $reflectionParameters = $reflectionMethod->getParameters();
         if (!empty($reflectionParameters) && is_object($firstArgument = $reflectionParameters[0])) {
-            $reflectionClass = $firstArgument->getClass();
+            $reflectionClass = $firstArgument->getType();
             $reflectionClassName = is_null($reflectionClass) ? "" : $reflectionClass->getName();
             if ($reflectionClassName === Request::class) {
                 array_unshift($parameters, $request);
