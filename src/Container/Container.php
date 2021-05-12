@@ -402,7 +402,7 @@ class Container implements ContainerInterface
                 }
                 $type = $unionTypes[0];
             }
-            $typeName = $type->getName();
+            $typeName = is_null($type) ? null : $type->getName();
             try {
                 $defaultValue = $reflectionParameter->getDefaultValue();
             } catch (ReflectionException $reflectionException) {
