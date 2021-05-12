@@ -221,17 +221,18 @@ abstract class Kernel implements KernelInterface
         }
         foreach ($middlewares as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
-                if (class_exists($class)) {
-                    $middlewareInstance = new $class();
-                    $this->container->registerServiceInstance($class, $middlewareInstance);
-                    if (defined("$class::SERVICE_ALIAS")) {
-                        $this->container->setAlias($class::SERVICE_ALIAS, $class);
-                    }
-                    $middleware = $this->container->get($class);
-                    $calls = $this->container->getService($class)['calls'] ?? [];
-                    if (!empty($calls)) {
-                        $this->container->initializeServiceCalls($middleware, $calls);
-                    }
+                if (!class_exists($class)) {
+                    throw new \Exception("Middleware with class name: {$class} not found");
+                }
+                $middlewareInstance = new $class();
+                $this->container->registerServiceInstance($class, $middlewareInstance);
+                if (defined("$class::SERVICE_ALIAS")) {
+                    $this->container->setAlias($class::SERVICE_ALIAS, $class);
+                }
+                $middleware = $this->container->get($class);
+                $calls = $this->container->getService($class)['calls'] ?? [];
+                if (!empty($calls)) {
+                    $this->container->initializeServiceCalls($middleware, $calls);
                 }
                 $this->middlewares[] = $middleware;
             }
@@ -250,7 +251,6 @@ abstract class Kernel implements KernelInterface
                 if (!class_exists($class)) {
                     throw new \Exception("Parcel with class name: {$class} not found");
                 }
-
                 try {
                     /** @var ParcelInterface $parcel */
                     $parcel = new $class();
