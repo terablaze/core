@@ -34,9 +34,9 @@ class Router implements MiddlewareInterface
 
     public const NAMED_ROUTE_MATCH = "{(\w[\w:.,\-'\"{}^$+*?\#\[\]()\\\\\ ]+)}";
     public const PATTERN_KEYS =
-    ["#(:any)#", "#(:alpha)#", "#(:alphabet)#", "#(:num)#", "#(:numeric)#", "#(:mention)#"];
+        ["#(:any)#", "#(:alpha)#", "#(:alphabet)#", "#(:num)#", "#(:numeric)#", "#(:mention)#"];
     public const PATTERN_KEYS_REPLACEMENTS =
-    ["([^/]+)", "([a-zA-Z]+)", "([a-zA-Z]+)", "([\d]+)", "([\d]+)", "(@[a-zA-Z0-9-_]+)"];
+        ["([^/]+)", "([a-zA-Z]+)", "([a-zA-Z]+)", "([\d]+)", "([\d]+)", "(@[a-zA-Z0-9-_]+)"];
 
     /** @var Container $container */
     protected $container;
@@ -178,7 +178,8 @@ class Router implements MiddlewareInterface
         string $action,
         array $parameters = array(),
         string $method = ''
-    ): ResponseInterface {
+    ): ResponseInterface
+    {
         $className = ucfirst($controller);
 
         $this->controller = $controller;
@@ -257,6 +258,22 @@ class Router implements MiddlewareInterface
             $controllerInstance,
             $action
         ], $parameters);
+
+        if (is_null($response)) {
+            throw new Exception\Implementation(
+                "Result of {$className}::{$action}() is either empty or null, " .
+                "ensure the controller's action {$className}::{$action}() " .
+                "is properly implemented and returns an instance of " . ResponseInterface::class
+            );
+        }
+
+        if (!$response instanceof ResponseInterface) {
+            throw new Exception\Implementation(
+                "Result of {$className}::{$action}() is of type " . gettype($response).
+                ", ensure the controller's action {$className}::{$action}() " .
+                "returns an instance of " . ResponseInterface::class
+            );
+        }
 
         Events::fire("terablaze.router.action.after", array($action, $parameters));
         Events::fire("terablaze.router.afterhooks.before", array($action, $parameters));

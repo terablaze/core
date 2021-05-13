@@ -1,10 +1,7 @@
 <?php
 
-namespace TeraBlaze\Router\Exception
+namespace TeraBlaze\Router\Exception;
+
+class Argument extends \InvalidArgumentException
 {
-    
-    class Argument extends \InvalidArgumentException
-    {
-        
-    }
 }

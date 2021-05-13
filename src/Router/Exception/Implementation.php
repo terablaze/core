@@ -1,11 +1,7 @@
 <?php
 
-namespace TeraBlaze\Router\Exception
+namespace TeraBlaze\Router\Exception;
+
+class Implementation extends Exception
 {
-    use TeraBlaze\Router\Exception\Exception;
-    
-    class Implementation extends Exception
-    {
-        
-    }
 }
