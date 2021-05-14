@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 2/1/2017
- * Time: 4:39 AM
- */
-
 namespace TeraBlaze\Ripana\ORM;
 
 use DateTime;

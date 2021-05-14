@@ -347,9 +347,9 @@ abstract class Query extends Base implements QueryInterface
         return $this;
     }
 
-    public function limit(int $limit, int $page = 1): QueryInterface
+    public function limit(int $limit, ?int $page = 1): QueryInterface
     {
-        if ($page < 1) {
+        if (empty($page) || $page < 1) {
             $page = 1;
         }
 
