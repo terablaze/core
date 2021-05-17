@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Events;
+namespace TeraBlaze\Event;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
@@ -15,7 +15,7 @@ class Dispatcher implements EventDispatcherInterface
     /**
      * @var ListenerProviderInterface
      */
-    private $listenerProvider;
+    private ListenerProviderInterface $listenerProvider;
 
     /**
      * EventDispatcher constructor.

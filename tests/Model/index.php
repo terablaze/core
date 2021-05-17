@@ -16,7 +16,7 @@ $connector = new Connector([
     "host" => 'localhost',
     "username" => 'root',
     "password" => 'teraboxx',
-    "schema" => 'ripana',
+    "schema" => 'terablaze_core',
     "port" => 3306,
 ]);
 

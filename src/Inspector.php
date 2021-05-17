@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 11/27/2016
- * Time: 11:53 AM
- */
-
 namespace TeraBlaze;
 
 use TeraBlaze\ArrayMethods as ArrayMethods;
@@ -22,14 +15,17 @@ class Inspector
 {
     protected $_class;
 
-    protected $_meta = array(
-        "class" => array(),
-        "properties" => array(),
-        "methods" => array()
-    );
+    protected array $_meta = [
+        "class" => [],
+        "properties" => [],
+        "methods" => []
+    ];
 
-    protected $_properties = array();
-    protected $_methods = array();
+    /** @var array<int, string> $_properties */
+    protected array $_properties = [];
+
+    /** @var array<int, string> $_methods */
+    protected array $_methods = [];
 
     /**
      * Inspector constructor.

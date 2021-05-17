@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Events;
+namespace TeraBlaze\Event;
 
 use Psr\EventDispatcher\StoppableEventInterface;
 
