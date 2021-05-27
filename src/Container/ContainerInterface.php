@@ -12,6 +12,12 @@ use TeraBlaze\Container\Exception\ParameterNotFoundException;
  */
 interface ContainerInterface extends PsrContainerInterface
 {
+    public const RUNTIME_EXCEPTION_ON_INVALID_REFERENCE = 0;
+    public const EXCEPTION_ON_INVALID_REFERENCE = 1;
+    public const NULL_ON_INVALID_REFERENCE = 2;
+    public const IGNORE_ON_INVALID_REFERENCE = 3;
+    public const IGNORE_ON_UNINITIALIZED_REFERENCE = 4;
+
     /**
      * Retrieve a parameter from the container.
      *

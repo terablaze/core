@@ -5,7 +5,7 @@ namespace TeraBlaze\Ripana;
 use ReflectionException;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Configuration\Driver\DriverInterface;
-use TeraBlaze\Configuration\Exception\Argument as ConfigArgumentException;
+use TeraBlaze\Configuration\Exception\ArgumentException as ConfigArgumentException;
 use TeraBlaze\Configuration\Exception\Syntax;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
@@ -21,25 +21,18 @@ class RipanaParcel extends Parcel implements ParcelInterface
 {
     public const RIPANA_INITIALIZE_BEFORE_EVENT = "terablaze.ripana.initialize.before",
         RIPANA_INITIALIZE_AFTER_EVENT = "terablaze.ripana.initialize.after";
-    /** @var Container $container */
-    private $container;
 
     protected $type;
 
     protected $options;
 
     /**
-     * @param ContainerInterface|null $container
      * @throws Argument
-     * @throws ConfigArgumentException
      * @throws ReflectionException
      * @throws ServiceNotFoundException
-     * @throws Syntax
      */
-    public function build(?ContainerInterface $container)
+    public function boot(): void
     {
-        $this->container = $container;
-
         if (!$this->container->has('configuration')) {
             return;
         }

@@ -21,7 +21,7 @@
         Ignore these files even if specified as cli arguments.
     -->
     <exclude-pattern>./bin/*</exclude-pattern>
-    <exclude-pattern>./var/*</exclude-pattern>
+<!--    <exclude-pattern>./var/*</exclude-pattern>-->
     <exclude-pattern>./vendor/*</exclude-pattern>
     <exclude-pattern>./web/*</exclude-pattern>
 

@@ -68,7 +68,7 @@ namespace TeraBlaze\Libraries {
 		
 		protected function _getExceptionForImplementation($method)
 		{
-			return new Exception\Implementation("{$method} method not implemented");
+			return new Exception\ImplementationException("{$method} method not implemented");
 		}
 		
 	}

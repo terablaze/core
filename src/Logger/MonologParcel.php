@@ -7,7 +7,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use TeraBlaze\Configuration\Driver\DriverInterface;
-use TeraBlaze\Configuration\Exception\Argument as ArgumentException;
+use TeraBlaze\Configuration\Exception\ArgumentException as ArgumentException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;
@@ -17,16 +17,8 @@ use TeraBlaze\Logger\HandlerFactories\StreamHandlerFactory;
 
 class MonologParcel extends Parcel implements ParcelInterface
 {
-    /** @var Container $container */
-    private $container;
-
-    /**
-     * @param ContainerInterface|null $container
-     */
-    public function build(?ContainerInterface $container)
+    public function boot(): void
     {
-        $this->container = $container;
-
         if (!$this->container->has('configuration')) {
             return;
         }

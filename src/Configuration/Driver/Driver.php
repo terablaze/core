@@ -4,7 +4,7 @@ namespace TeraBlaze\Configuration\Driver;
 
 use TeraBlaze\Base as Base;
 use TeraBlaze\Configuration\Exception as Exception;
-use TeraBlaze\Configuration\Exception\Argument;
+use TeraBlaze\Configuration\Exception\ArgumentException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Kernel\KernelInterface;
 
@@ -27,6 +27,6 @@ abstract class Driver
     
     protected function throwConfigFileDoesNotExistException(string $envFile, string $file)
     {
-        throw new Argument("Configuration files: {$envFile} and {$file} do not exist");
+        throw new ArgumentException("Configuration files: {$envFile} and {$file} do not exist");
     }
 }

@@ -3,30 +3,37 @@
 namespace TeraBlaze\Core\Kernel;
 
 use Exception;
+use LogicException;
 use Middlewares\Utils\Factory;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use ReflectionException;
 use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Configuration\Exception\ArgumentException;
 use TeraBlaze\Container\Container;
+use TeraBlaze\Container\ContainerInterface;
+use TeraBlaze\Container\Exception\ContainerException;
+use TeraBlaze\Container\Exception\ParameterNotFoundException;
+use TeraBlaze\Container\Exception\ServiceNotFoundException;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\ErrorHandler\HandleExceptions;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 
-abstract class Kernel implements KernelInterface
+abstract class Kernel implements KernelInterface, RebootableInterface, TerminableInterface
 {
     public const TERABLAZE_VERSION = "0.1.0";
 
-    protected $booted = false;
-    protected $debug;
-    protected $environment;
-    protected $projectDir;
-    protected $parcels;
-    protected $middlewares = [];
-    protected $currentRequest = null;
+    protected array $parcels = [];
+    protected array $middlewares = [];
 
-    /** @var Container */
-    protected $container;
+    protected bool $booted = false;
+    protected bool $debug;
+    protected string $environment;
+    protected $projectDir;
+    protected ?Request $currentRequest = null;
+
+    /** @var Container|null */
+    protected ?Container $container;
 
     public function __construct(string $environment, bool $debug)
     {
@@ -34,6 +41,11 @@ abstract class Kernel implements KernelInterface
         $this->debug = $debug;
     }
 
+    /**
+     * @throws ServiceNotFoundException
+     * @throws ArgumentException
+     * @throws Exception
+     */
     public function boot(): void
     {
         if ($this->booted) {
@@ -54,34 +66,72 @@ abstract class Kernel implements KernelInterface
             $parameters = [];
         }
         $this->container = Container::getContainer($services, $parameters);
-        $this->container->registerService(static::class, ['class' => static::class]);
-        $this->container->setAlias('app.kernel', static::class);
-        $this->container->setAlias('kernel', static::class);
-        $this->container->registerServiceInstance(static::class, $this);
 
-        if ($configuration) {
-            $this->container->registerServiceInstance('configuration', $configuration);
-        }
+        $this->container->registerServiceInstance('kernel', $this);
+        $this->container->registerServiceInstance('configuration', $configuration);
 
         $constantsFile = $this->getProjectDir() . '/config/constants.php';
         if (file_exists($constantsFile)) {
             include_once($constantsFile);
         }
 
+        $this->initializeParcels();
         $this->registerMiddlewares();
-        $this->registerParcels();
+
         $this->booted = true;
     }
 
     /**
-     * Handle a Request and turn it in to a response.
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface|Response
+     * {@inheritdoc}
      */
-    public function handle(ServerRequestInterface $request): ResponseInterface
+    public function reboot(): void
     {
-        $this->currentRequest = $request;
+        $this->shutdown();
+        $this->boot();
+    }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function terminate(Request $request, Response $response): void
+    {
+        if (false === $this->booted) {
+            return;
+        }
+
+        if ($this->getHttpKernel() instanceof TerminableInterface) {
+            $this->getHttpKernel()->terminate($request, $response);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function shutdown(): void
+    {
+        if (false === $this->booted) {
+            return;
+        }
+
+        $this->booted = false;
+
+        foreach ($this->getParcels() as $parcel) {
+            $parcel->shutdown();
+            $parcel->setContainer(null);
+        }
+
+        $this->container = null;
+    }
+
+    /**
+     * Handle a Request and turn it in to a response.
+     * @param Request $request
+     * @param bool $catch
+     * @return ResponseInterface
+     * @throws Exception
+     */
+    public function handle(Request $request, bool $catch = true): ResponseInterface
+    {
         if (class_exists(Factory::class)) {
             Factory::setFactory(new \Middlewares\Utils\FactoryDiscovery(
                 \TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory::class,
@@ -89,17 +139,59 @@ abstract class Kernel implements KernelInterface
         }
         $this->boot();
 
-        $handler = new Handler($this->middlewares);
+        return $this->getHttpKernel()->handle($request, $catch);
+    }
 
-        $this->container->registerServiceInstance('request', $request);
-
-        return $handler->handle($request);
+    /**
+     * Gets a HTTP kernel from the container.
+     *
+     * @return HttpKernelInterface
+     * @throws ReflectionException
+     */
+    protected function getHttpKernel(): HttpKernelInterface
+    {
+        if (!$this->container->has(HttpKernel::class)) {
+            $this->container->registerService(HttpKernel::class, [
+                'class' => HttpKernel::class,
+                'arguments' => [
+                    'middlewares' => $this->middlewares
+                ]
+            ]);
+        }
+        return $this->container->get(HttpKernel::class);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getEnvironment()
+    public function getParcels(): array
+    {
+        return $this->parcels;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getParcel(string $name): ParcelInterface
+    {
+        if (!isset($this->parcels[$name])) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Parcel "%s" does not exist or it is not enabled. Maybe you forgot to add it in the ' .
+                    '"registerParcels()" method of your "%s.php" file?',
+                    $name,
+                    'config/parcels'
+                )
+            );
+        }
+
+        return $this->parcels[$name];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getEnvironment(): string
     {
         return $this->environment;
     }
@@ -107,20 +199,9 @@ abstract class Kernel implements KernelInterface
     /**
      * {@inheritdoc}
      */
-    public function isDebug()
+    public function isDebug(): bool
     {
         return $this->debug;
-    }
-
-    public function setCurrentRequest(Request $request): self
-    {
-        $this->currentRequest = $request;
-        return $this;
-    }
-
-    public function getCurrentRequest(): Request
-    {
-        return $this->currentRequest = $this->currentRequest ?? Request::createFromGlobals();
     }
 
     public function getProjectDir(): string
@@ -129,7 +210,9 @@ abstract class Kernel implements KernelInterface
             $r = new \ReflectionObject($this);
 
             if (!file_exists($dir = $r->getFileName())) {
-                throw new \LogicException(sprintf('Cannot auto-detect project dir for kernel of class "%s".', $r->name));
+                throw new LogicException(
+                    sprintf('Cannot auto-detect project dir for kernel of class "%s".', $r->name)
+                );
             }
 
             $dir = $rootDir = \dirname($dir);
@@ -182,36 +265,73 @@ abstract class Kernel implements KernelInterface
     }
 
     /**
-     * {@inheritdoc}
      */
-    public function getContainer()
+    public function getContainer(): ContainerInterface
     {
         if (!$this->container) {
-            throw new \LogicException('Cannot retrieve the container from a non-booted kernel.');
+            throw new LogicException('Cannot retrieve the container from a non-booted kernel.');
         }
 
         return $this->container;
     }
 
-    public function reboot()
-    {
-        $this->shutdown();
-        $this->boot();
-    }
-
     /**
      * {@inheritdoc}
      */
-    public function shutdown()
+    public function registerParcels(): iterable
     {
-        if (false === $this->booted) {
-            return;
+        $parcels = [];
+        $configFile = $this->getProjectDir() . '/config/parcels.php';
+        if (file_exists($configFile)) {
+            $parcels = require $configFile;
         }
-
-        $this->booted = false;
-        $this->container = null;
+        foreach ($parcels as $class => $envs) {
+            if ($envs[$this->environment] ?? $envs['all'] ?? false) {
+                if ($this->container->has($class)) {
+                    yield $this->container->get($class);
+                    continue;
+                }
+                if (!class_exists($class)) {
+                    throw new Exception("Parcel with class name: {$class} not found");
+                }
+                /** @var ParcelInterface $class */
+                yield new $class();
+            }
+        }
     }
 
+    /**
+     * Initializes parcels.
+     *
+     * @throws LogicException|Exception if two parcels share a common name
+     */
+    public function initializeParcels(): void
+    {
+        // init parcels
+        $this->parcels = [];
+        foreach ($this->registerParcels() as $parcel) {
+            $name = $parcel->getName();
+            if (isset($this->parcels[$name])) {
+                throw new LogicException(sprintf('Trying to register two parcels with the same name "%s".', $name));
+            }
+            $this->parcels[$name] = $parcel;
+//            $parcel->build($this->container);
+//            $this->container->registerServiceInstance($name, $parcel);
+        }
+
+        foreach ($this->getParcels() as $parcel) {
+            $parcel->setContainer($this->container);
+            $parcel->boot();
+        }
+    }
+
+    /**
+     * @throws ContainerException
+     * @throws ParameterNotFoundException
+     * @throws ReflectionException
+     * @throws ServiceNotFoundException
+     * @throws Exception
+     */
     public function registerMiddlewares(): void
     {
         $middlewares = [];
@@ -221,44 +341,15 @@ abstract class Kernel implements KernelInterface
         }
         foreach ($middlewares as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
+                if ($this->container->has($class)) {
+                    $this->middlewares[] = $this->container->get($class);
+                    continue;
+                }
                 if (!class_exists($class)) {
-                    throw new \Exception("Middleware with class name: {$class} not found");
+                    throw new Exception("Middleware with class name: {$class} not found");
                 }
-                $middlewareInstance = new $class();
-                $this->container->registerServiceInstance($class, $middlewareInstance);
-                if (defined("$class::SERVICE_ALIAS")) {
-                    $this->container->setAlias($class::SERVICE_ALIAS, $class);
-                }
-                $middleware = $this->container->get($class);
-                $calls = $this->container->getService($class)['calls'] ?? [];
-                if (!empty($calls)) {
-                    $this->container->initializeServiceCalls($middleware, $calls);
-                }
-                $this->middlewares[] = $middleware;
-            }
-        }
-    }
-
-    public function registerParcels(): void
-    {
-        $parcels = [];
-        $configFile = $this->getProjectDir() . '/config/parcels.php';
-        if (file_exists($configFile)) {
-            $parcels = require $configFile;
-        }
-        foreach ($parcels as $class => $envs) {
-            if ($envs[$this->environment] ?? $envs['all'] ?? false) {
-                if (!class_exists($class)) {
-                    throw new \Exception("Parcel with class name: {$class} not found");
-                }
-                try {
-                    /** @var ParcelInterface $parcel */
-                    $parcel = new $class();
-                    $parcel->build($this->container);
-                    $this->container->registerServiceInstance($class, $parcel);
-                } catch (\Exception $e) {
-                    throw new \Exception("An error occurred while building parcel {$class} with additional message: {$e->getMessage()}");
-                }
+                $this->container->registerService($class, ['class' => $class]);
+                $this->middlewares[] = $this->container->get($class);
             }
         }
     }

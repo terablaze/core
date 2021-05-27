@@ -2,6 +2,6 @@
 
 namespace TeraBlaze\Ripana\ORM\Exception;
 
-class Property extends Exception
+class PropertyException extends Exception
 {
 }

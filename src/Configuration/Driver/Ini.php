@@ -12,7 +12,7 @@ namespace TeraBlaze\Configuration\Driver;
 use TeraBlaze\ArrayMethods as ArrayMethods;
 use TeraBlaze\Configuration\Driver\Driver;
 use TeraBlaze\Configuration\Exception as Exception;
-use TeraBlaze\Configuration\Exception\Argument;
+use TeraBlaze\Configuration\Exception\ArgumentException;
 
 /**
  * Class Ini
@@ -27,7 +27,7 @@ class Ini extends Driver implements DriverInterface
     /**
      * @param $path
      * @return mixed
-     * @throws Exception\Argument
+     * @throws Exception\ArgumentException
      * @throws Exception\Syntax
      *
      * includes the .ini configuration files
@@ -37,7 +37,7 @@ class Ini extends Driver implements DriverInterface
     public function parse(string $path): ?object
     {
         if (empty($path)) {
-            throw new Exception\Argument("\$path argument is not valid");
+            throw new Exception\ArgumentException("\$path argument is not valid");
         }
 
         if (!isset($this->_parsed[$path])) {
@@ -67,7 +67,7 @@ class Ini extends Driver implements DriverInterface
     /**
      * @param $path
      * @return array
-     * @throws Exception\Argument
+     * @throws Exception\ArgumentException
      * @throws Exception\Syntax
      *
      * includes the .ini configuration files
@@ -77,7 +77,7 @@ class Ini extends Driver implements DriverInterface
     public function parseArray(string $path): ?array
     {
         if (empty($path)) {
-            throw new Exception\Argument("\$path argument is not valid");
+            throw new Exception\ArgumentException("\$path argument is not valid");
         }
 
         if (!isset($this->_parsed[$path])) {
@@ -130,7 +130,7 @@ class Ini extends Driver implements DriverInterface
     private function getConfigFromFile(string $path): array
     {
         if (empty($path)) {
-            throw new Argument("\$path argument is not valid");
+            throw new ArgumentException("\$path argument is not valid");
         }
         $projectDir = $this->kernel->getProjectDir();
         $environment = $this->kernel->getEnvironment();

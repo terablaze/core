@@ -43,12 +43,23 @@ class UrlGenerator implements UrlGeneratorInterface
     }
 
     /**
+     * @param string $name
+     * @param array<string, string> $parameters
+     * @param int $referenceType
+     * @return string
+     * @throws Exception\MissingParametersException
+     * @throws Exception\MissingRouteParameterNameException
+     * @throws RouteNotFoundException
+     * @throws \TeraBlaze\Collections\Exceptions\TypeException
+     *
      * {@inheritDoc}
      */
     public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
     {
         if (!isset($this->routes[$name])) {
-            throw new RouteNotFoundException(sprintf("The named route: %s you are trying to reference does not exist", $name));
+            throw new RouteNotFoundException(
+                sprintf("The named route: %s you are trying to reference does not exist", $name)
+            );
         }
         $route = $this->routes[$name];
 

@@ -11,7 +11,7 @@ namespace TeraBlaze\Configuration\Driver;
 
 use TeraBlaze\ArrayMethods as ArrayMethods;
 use TeraBlaze\Configuration\Driver\Driver;
-use TeraBlaze\Configuration\Exception\Argument;
+use TeraBlaze\Configuration\Exception\ArgumentException;
 
 /**
  * Class PHPArray
@@ -54,7 +54,7 @@ class PHPArray extends Driver implements DriverInterface
     private function getConfigFromFile(string $path): array
     {
         if (empty($path)) {
-            throw new Argument("\$path argument is not valid");
+            throw new ArgumentException("\$path argument is not valid");
         }
         $projectDir = $this->kernel->getProjectDir();
         $environment = $this->kernel->getEnvironment();

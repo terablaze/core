@@ -13,7 +13,7 @@ use TeraBlaze\Ripana\ORM\Column\OneToMany;
 use TeraBlaze\Ripana\ORM\Exception\Connector as ConnectorException;
 use TeraBlaze\Ripana\ORM\Exception\Implementation;
 use TeraBlaze\Ripana\ORM\Exception\Primary;
-use TeraBlaze\Ripana\ORM\Exception\Property;
+use TeraBlaze\Ripana\ORM\Exception\PropertyException;
 
 abstract class Model
 {
@@ -92,7 +92,7 @@ abstract class Model
         foreach ($initData as $key => $value) {
             try {
                 $prop = $this->getInitProp($key);
-            } catch (Property $propertyxception) {
+            } catch (PropertyException $propertyxception) {
                 // TODO: Add a logger to log the exception
                 continue;
             }
@@ -116,6 +116,11 @@ abstract class Model
         return;
     }
 
+    /**
+     * @param string $key
+     * @return string
+     * @throws PropertyException
+     */
     private function getInitProp(string $key): string
     {
         if (isset($this->__columns[$key])) {
@@ -123,7 +128,7 @@ abstract class Model
         } else if (isset($this->__columnsReverseMap[$key])) {
             return $key;
         }
-        throw new Property("Entity property with property name or column name '{$key}' not found");
+        throw new PropertyException("Entity property with property name or column name '{$key}' not found");
     }
 
     public function save()

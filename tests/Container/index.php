@@ -26,7 +26,7 @@ $services = [
     ],
     'service.chaftani' => [
         'class' => \Tests\TeraBlaze\Container\ChaftaniService::class,
-        'arguments' => ['chaftaniParam' => '%some.parameter%', 'bareParam' => 'Bare string param']
+        'arguments' => ['chaftaniParam' => ['%a%'], 'bareParam' => 'Bare string param']
     ],
 ];
 
@@ -34,6 +34,10 @@ $parameters = [
     'some' => [
         'parameter' => 'Some string parameter',
     ],
+    'a' => [
+        'b' => '%some.parameter%',
+    ],
+
     'refff' => [
         'l2' => [
             'l3' => [

@@ -50,7 +50,7 @@ abstract class Controller implements ControllerInterface
         $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
         $viewFile = str_replace("::", "/views/", $viewFile);
-        $filename = $this->container->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
+        $filename = $this->container->get('kernel')->getProjectDir() . '/src/' . $viewFile;
 
         if (!file_exists($filename)) {
             Events::fire("terablaze.controller.view.load.error", array($viewFile, $viewVars));
@@ -74,7 +74,7 @@ abstract class Controller implements ControllerInterface
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
         $viewFile = str_replace("::", "/views/", $viewFile);
         extract($viewVars);
-        $filename = $this->container->get('app.kernel')->getProjectDir() . '/src/' . $viewFile;
+        $filename = $this->container->get('kernel')->getProjectDir() . '/src/' . $viewFile;
         include $filename;
     }
 

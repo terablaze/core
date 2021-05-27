@@ -4,11 +4,10 @@ namespace TeraBlaze\Router;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
 use TeraBlaze\ArrayMethods;
-use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Collections\Exceptions\TypeException;
 use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
@@ -28,7 +27,7 @@ use TeraBlaze\Router\Route\{Route, Simple};
  *
  * handles url routing
  */
-class Router implements MiddlewareInterface
+class Router
 {
     public const SERVICE_ALIAS = "router";
 
@@ -40,9 +39,6 @@ class Router implements MiddlewareInterface
 
     /** @var Container $container */
     protected $container;
-
-    /** @var Kernel $kernel */
-    protected $kernel;
     /**
      * @var string
      */
@@ -81,8 +77,8 @@ class Router implements MiddlewareInterface
     public function __construct()
     {
         $this->container = Container::getContainer();
-        if ($this->container->has('app.kernel')) {
-            $this->kernel = $this->container->get('app.kernel');
+        if ($this->container->has('kernel')) {
+            $this->kernel = $this->container->get('kernel');
         }
     }
 
@@ -315,7 +311,6 @@ class Router implements MiddlewareInterface
                 $method = is_array($route->method) ? $route->method : [$route->method];
                 /** @var Request $request */
                 $request = $request->setExpectsJson($route->getExpectsJson());
-                $this->kernel->setCurrentRequest($request);
 
                 Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
 
@@ -353,25 +348,21 @@ class Router implements MiddlewareInterface
         return $this->pass($request, $controller, $action, $parameters, $requestMethod);
     }
 
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        /** @var DriverInterface $configuration */
-        $configuration = $this->container->get('configuration');
-
-        $routes = $configuration->parseArray("routes");
-
-        // add defined routes
-        if (!empty($routes) && is_array($routes)) {
-            $this->addRoutes($routes);
-        }
-
-        $response = $this->dispatch($request);
-
-        return $response;
-    }
-
-    public function generate(string $name, array $parameters = [], int $referenceType = UrlGenerator::ABSOLUTE_PATH): string
-    {
+    /**
+     * @param string $name
+     * @param array<string, mixed> $parameters
+     * @param int $referenceType
+     * @return string
+     * @throws Exception\MissingParametersException
+     * @throws Exception\RouteNotFoundException
+     * @throws ReflectionException
+     * @throws TypeException
+     */
+    public function generate(
+        string $name,
+        array $parameters = [],
+        int $referenceType = UrlGenerator::ABSOLUTE_PATH
+    ): string {
         return $this->getGenerator()->generate($name, $parameters, $referenceType);
     }
 

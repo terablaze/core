@@ -38,14 +38,14 @@ class Configuration
 
     /**
      * @return DriverInterface|Ini|PHPArray
-     * @throws Exception\Argument
+     * @throws Exception\ArgumentException
      */
     public function initialize()
     {
         Events::fire("terablaze.configuration.initialize.before", array($this->type, $this->options));
 
         if (!$this->type) {
-            throw new Exception\Argument("Configuration type not supplied");
+            throw new Exception\ArgumentException("Configuration type not supplied");
         }
 
         Events::fire("terablaze.configuration.initialize.after", array($this->type, $this->options));
@@ -63,7 +63,7 @@ class Configuration
                     break;
                 }
             default: {
-                    throw new Exception\Argument("Invalid type");
+                    throw new Exception\ArgumentException("Invalid type");
                     break;
                 }
         }
@@ -71,10 +71,10 @@ class Configuration
 
     /**
      * @param $method
-     * @return Exception\Implementation
+     * @return Exception\ImplementationException
      */
     protected function _getExceptionForImplementation($method)
     {
-        return new Exception\Implementation("{$method} method not implemented");
+        return new Exception\ImplementationException("{$method} method not implemented");
     }
 }

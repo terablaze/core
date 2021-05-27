@@ -3,6 +3,7 @@
 namespace TeraBlaze\HttpBase;
 
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
 use TeraBlaze\ErrorHandler\ExceptionHandler;
 use TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
 use TeraBlaze\HttpBase\Exception\ConflictingHeadersException;
@@ -12,14 +13,17 @@ use TeraBlaze\HttpBase\Utils\IpUtils;
 use TeraBlaze\Psr7\ServerRequest as Psr7ServerRequest;
 use TeraBlaze\Psr7Server\ServerRequestCreator;
 
+use function dirname;
+
 class Request extends Psr7ServerRequest
 {
     use UriTrait;
 
-    private $expectsJson = false;
+    public static bool $expectsJson = false;
     private $pathInfo;
     private $requestUri;
     private $baseUrl;
+    private $basePath;
 
     /**
      * Commented out code allows previous output before this emit display without raising exception
@@ -40,26 +44,51 @@ class Request extends Psr7ServerRequest
         return $creator->fromGlobals();
     }
 
+    /**
+     * @param string $name
+     * @param mixed|null $default
+     * @return mixed|null
+     */
     public function getServerParam(string $name, $default = null)
     {
         return $this->getServerParams()[$name] ?? $default;
     }
 
+    /**
+     * @param string $name
+     * @param mixed|null $default
+     * @return mixed|UploadedFileInterface|null
+     */
     public function getUploadedFile(string $name, $default = null)
     {
         return $this->getUploadedFiles()[$name] ?? $default;
     }
 
+    /**
+     * @param string $name
+     * @param mixed|null $default
+     * @return mixed|null
+     */
     public function getCookieParam(string $name, $default = null)
     {
         return $this->getCookieParams()[$name] ?? $default;
     }
 
+    /**
+     * @param string $name
+     * @param mixed|null $default
+     * @return mixed|null
+     */
     public function getQueryParam(string $name, $default = null)
     {
         return $this->getQueryParams()[$name] ?? $default;
     }
 
+    /**
+     * @param string $name
+     * @param mixed|null $default
+     * @return mixed|null
+     */
     public function getPostParam(string $name, $default = null)
     {
         $parsedBody = $this->getParsedBody();
@@ -74,36 +103,15 @@ class Request extends Psr7ServerRequest
 
     public function expectsJson(): bool
     {
-        return $this->expectsJson;
+        return self::$expectsJson;
     }
 
-    public function setExpectsJson(bool $expectsJson)
+    public function setExpectsJson(bool $expectsJson): self
     {
-        $new = clone $this;
-        $new->expectsJson = $expectsJson;
+        self::$expectsJson = $expectsJson;
 
-        return $new;
+        return $this;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     public const HEADER_FORWARDED = 0b000001; // When using RFC 7239
@@ -132,26 +140,21 @@ class Request extends Psr7ServerRequest
     /**
      * @var string[]
      */
-    protected static $trustedProxies = [];
+    protected static array $trustedProxies = [];
 
     /**
      * @var string[]
      */
-    protected static $trustedHostPatterns = [];
+    protected static array $trustedHostPatterns = [];
 
     /**
      * @var string[]
      */
-    protected static $trustedHosts = [];
+    protected static array $trustedHosts = [];
 
-    protected static $httpMethodParameterOverride = false;
+    protected static bool $httpMethodParameterOverride = false;
 
-    /**
-     * @var bool|null
-     */
-    private $isSafeContentPreferred;
-
-    private static $trustedHeaderSet = -1;
+    private static int $trustedHeaderSet = -1;
 
     private const FORWARDED_PARAMS = [
         self::HEADER_X_FORWARDED_FOR => 'for',
@@ -178,18 +181,30 @@ class Request extends Psr7ServerRequest
         self::HEADER_X_FORWARDED_PREFIX => 'X_FORWARDED_PREFIX',
     ];
 
+    private bool $isHostValid = true;
+    private bool $isForwardedValid = true;
+
     /**
      * Sets a list of trusted proxies.
      *
      * You should only list the reverse proxies that you manage directly.
      *
-     * @param array $proxies          A list of trusted proxies, the string 'REMOTE_ADDR' will be replaced with $_SERVER['REMOTE_ADDR']
-     * @param int   $trustedHeaderSet A bit field of Request::HEADER_*, to set which headers to trust from your proxies
+     * @param string[] $proxies A list of trusted proxies, the string 'REMOTE_ADDR'
+     *                                  will be replaced with $_SERVER['REMOTE_ADDR']
+     * @param int $trustedHeaderSet A bit field of Request::HEADER_*, to set which
+     *                                  headers to trust from your proxies
      */
-    public static function setTrustedProxies(array $proxies, int $trustedHeaderSet)
+    public static function setTrustedProxies(array $proxies, int $trustedHeaderSet): void
     {
         if (self::HEADER_X_FORWARDED_ALL === $trustedHeaderSet) {
-            ExceptionHandler::triggerDeprecation('terablaze/http-base', '0.1.0', 'The "HEADER_X_FORWARDED_ALL" constant is deprecated, use either "HEADER_X_FORWARDED_FOR | HEADER_X_FORWARDED_HOST | HEADER_X_FORWARDED_PORT | HEADER_X_FORWARDED_PROTO" or "HEADER_X_FORWARDED_AWS_ELB" or "HEADER_X_FORWARDED_TRAEFIK" constants instead.');
+            ExceptionHandler::triggerDeprecation(
+                'terablaze/http-base',
+                '0.1.0',
+                'The "HEADER_X_FORWARDED_ALL" constant is deprecated, use either ' .
+                '"HEADER_X_FORWARDED_FOR | HEADER_X_FORWARDED_HOST | HEADER_X_FORWARDED_PORT ' .
+                '| HEADER_X_FORWARDED_PROTO" or "HEADER_X_FORWARDED_AWS_ELB" or ' .
+                '"HEADER_X_FORWARDED_TRAEFIK" constants instead.'
+            );
         }
         self::$trustedProxies = array_reduce($proxies, function ($proxies, $proxy) {
             if ('REMOTE_ADDR' !== $proxy) {
@@ -206,9 +221,9 @@ class Request extends Psr7ServerRequest
     /**
      * Gets the list of trusted proxies.
      *
-     * @return array An array of trusted proxies
+     * @return string[] An array of trusted proxies
      */
-    public static function getTrustedProxies()
+    public static function getTrustedProxies(): array
     {
         return self::$trustedProxies;
     }
@@ -218,7 +233,7 @@ class Request extends Psr7ServerRequest
      *
      * @return int A bit field of Request::HEADER_* that defines which headers are trusted from your proxies
      */
-    public static function getTrustedHeaderSet()
+    public static function getTrustedHeaderSet(): int
     {
         return self::$trustedHeaderSet;
     }
@@ -228,9 +243,9 @@ class Request extends Psr7ServerRequest
      *
      * You should only list the hosts you manage using regexs.
      *
-     * @param array $hostPatterns A list of trusted host patterns
+     * @param string[] $hostPatterns A list of trusted host patterns
      */
-    public static function setTrustedHosts(array $hostPatterns)
+    public static function setTrustedHosts(array $hostPatterns): void
     {
         self::$trustedHostPatterns = array_map(function ($hostPattern) {
             return sprintf('{%s}i', $hostPattern);
@@ -242,9 +257,9 @@ class Request extends Psr7ServerRequest
     /**
      * Gets the list of trusted host patterns.
      *
-     * @return array An array of trusted host patterns
+     * @return string[] An array of trusted host patterns
      */
-    public static function getTrustedHosts()
+    public static function getTrustedHosts(): array
     {
         return self::$trustedHostPatterns;
     }
@@ -257,7 +272,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string A normalized query string for the Request
      */
-    public static function normalizeQueryString(?string $qs)
+    public static function normalizeQueryString(?string $qs): string
     {
         if ('' === ($qs ?? '')) {
             return '';
@@ -280,7 +295,7 @@ class Request extends Psr7ServerRequest
      *
      * The HTTP method can only be overridden when the real HTTP method is POST.
      */
-    public static function enableHttpMethodParameterOverride()
+    public static function enableHttpMethodParameterOverride(): void
     {
         self::$httpMethodParameterOverride = true;
     }
@@ -290,7 +305,7 @@ class Request extends Psr7ServerRequest
      *
      * @return bool True when the _method request parameter is enabled, false otherwise
      */
-    public static function getHttpMethodParameterOverride()
+    public static function getHttpMethodParameterOverride(): bool
     {
         return self::$httpMethodParameterOverride;
     }
@@ -304,11 +319,11 @@ class Request extends Psr7ServerRequest
      *
      * Use this method carefully; you should use getClientIp() instead.
      *
-     * @return array The client IP addresses
+     * @return string[] The client IP addresses
      *
      * @see getClientIp()
      */
-    public function getClientIps()
+    public function getClientIps(): array
     {
         $ip = $this->getServerParam('REMOTE_ADDR');
 
@@ -349,7 +364,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string
      */
-    public function getScriptName()
+    public function getScriptName(): ?string
     {
         return $this->getServerParam('SCRIPT_NAME', $this->getServerParam('ORIG_SCRIPT_NAME', ''));
     }
@@ -408,12 +423,15 @@ class Request extends Psr7ServerRequest
      *
      * @return string The raw URL (i.e. not urldecoded)
      */
-    public function getBaseUrl()
+    public function getBaseUrl(): string
     {
         $trustedPrefix = '';
 
         // the proxy prefix must be prepended to any prefix being needed at the webserver level
-        if ($this->isFromTrustedProxy() && $trustedPrefixValues = $this->getTrustedValues(self::HEADER_X_FORWARDED_PREFIX)) {
+        if (
+            $this->isFromTrustedProxy() &&
+            $trustedPrefixValues = $this->getTrustedValues(self::HEADER_X_FORWARDED_PREFIX)
+        ) {
             $trustedPrefix = rtrim($trustedPrefixValues[0], '/');
         }
 
@@ -424,9 +442,9 @@ class Request extends Psr7ServerRequest
      * Returns the real base URL received by the webserver from which this request is executed.
      * The URL does not include trusted reverse proxy prefix.
      *
-     * @return string The raw URL (i.e. not urldecoded)
+     * @return null|string The raw URL (i.e. not urldecoded)
      */
-    private function getBaseUrlReal()
+    private function getBaseUrlReal(): ?string
     {
         if (null === $this->baseUrl) {
             $this->baseUrl = $this->prepareBaseUrl();
@@ -440,7 +458,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string
      */
-    public function getScheme()
+    public function getScheme(): string
     {
         return $this->isSecure() ? 'https' : 'http';
     }
@@ -457,22 +475,28 @@ class Request extends Psr7ServerRequest
      */
     public function getPort()
     {
-        if ($this->isFromTrustedProxy() && $host = $this->getTrustedValues(self::HEADER_X_FORWARDED_PORT)) {
+        if (
+            $this->isFromTrustedProxy() &&
+            $host = $this->getTrustedValues(self::HEADER_X_FORWARDED_PORT)
+        ) {
             $host = $host[0];
-        } elseif ($this->isFromTrustedProxy() && $host = $this->getTrustedValues(self::HEADER_X_FORWARDED_HOST)) {
+        } elseif (
+            $this->isFromTrustedProxy() &&
+            $host = $this->getTrustedValues(self::HEADER_X_FORWARDED_HOST)
+        ) {
             $host = $host[0];
         } elseif (!$host = $this->getHeaderLine('HOST')) {
             return $this->getServerParam('SERVER_PORT');
         }
 
         if ('[' === $host[0]) {
-            $pos = strpos($host, ':', strrpos($host, ']'));
+            $pos = strpos($host, ':', (int) strrpos($host, ']'));
         } else {
             $pos = strrpos($host, ':');
         }
 
         if (false !== $pos && $port = substr($host, $pos + 1)) {
-            return (int) $port;
+            return (int)$port;
         }
 
         return 'https' === $this->getScheme() ? 443 : 80;
@@ -501,7 +525,8 @@ class Request extends Psr7ServerRequest
     /**
      * Gets the user info.
      *
-     * @return string A user name and, optionally, scheme-specific information about how to gain authorization to access the server
+     * @return string   A user name and, optionally, scheme-specific information
+     *                  about how to gain authorization to access the server
      */
     public function getUserInfo()
     {
@@ -522,7 +547,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string
      */
-    public function getHttpHost()
+    public function getHttpHost(): string
     {
         $scheme = $this->getScheme();
         $port = $this->getPort();
@@ -537,7 +562,7 @@ class Request extends Psr7ServerRequest
     /**
      * Returns the requested URI (path and query string).
      *
-     * @return string The raw URI (i.e. not URI decoded)
+     * @return null|string The raw URI (i.e. not URI decoded)
      */
     public function getRequestUri()
     {
@@ -556,7 +581,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string The scheme and HTTP host
      */
-    public function getSchemeAndHttpHost()
+    public function getSchemeAndHttpHost(): string
     {
         return $this->getScheme() . '://' . $this->getHttpHost();
     }
@@ -568,7 +593,7 @@ class Request extends Psr7ServerRequest
      *
      * @see getQueryString()
      */
-    public function getUrix()
+    public function getUriString(): string
     {
         if (null !== $qs = $this->getQueryString()) {
             $qs = '?' . $qs;
@@ -584,7 +609,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string The normalized URI for the path
      */
-    public function getUriForPath(string $path)
+    public function getUriForPath(string $path): string
     {
         return $this->getSchemeAndHttpHost() . $this->getBaseUrl() . $path;
     }
@@ -594,7 +619,8 @@ class Request extends Psr7ServerRequest
      *
      * Only the URIs path component (no schema, host etc.) is relevant and must be given.
      * Both paths must be absolute and not contain relative parts.
-     * Relative URLs from one resource to another are useful when generating self-contained downloadable document archives.
+     * Relative URLs from one resource to another are useful when generating self-contained
+     * downloadable document archives.
      * Furthermore, they can be used to reduce the link size in documents.
      *
      * Example target paths, given a base path of "/a/b/c/d":
@@ -606,7 +632,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string The relative target path
      */
-    public function getRelativeUriForPath(string $path)
+    public function getRelativeUriForPath(string $path): string
     {
         // be sure that we are dealing with an absolute path
         if (!isset($path[0]) || '/' !== $path[0]) {
@@ -617,7 +643,11 @@ class Request extends Psr7ServerRequest
             return '';
         }
 
-        $sourceDirs = explode('/', isset($basePath[0]) && '/' === $basePath[0] ? substr($basePath, 1) : $basePath);
+        $sourceDirs = explode(
+            '/',
+            isset($basePath[0]) &&
+            '/' === $basePath[0] ? substr($basePath, 1) : $basePath
+        );
         $targetDirs = explode('/', substr($path, 1));
         array_pop($sourceDirs);
         $targetFile = array_pop($targetDirs);
@@ -638,7 +668,8 @@ class Request extends Psr7ServerRequest
         // as the first segment of a relative-path reference, as it would be mistaken for a scheme name
         // (see https://tools.ietf.org/html/rfc3986#section-4.2).
         return !isset($path[0]) || '/' === $path[0]
-            || false !== ($colonPos = strpos($path, ':')) && ($colonPos < ($slashPos = strpos($path, '/')) || false === $slashPos)
+        || false !== ($colonPos = strpos($path, ':'))
+        && ($colonPos < ($slashPos = strpos($path, '/')) || false === $slashPos)
             ? "./$path" : $path;
     }
 
@@ -690,7 +721,7 @@ class Request extends Psr7ServerRequest
      *
      * @throws SuspiciousOperationException when the host name is invalid or not trusted
      */
-    public function getHost()
+    public function getHost(): string
     {
         if ($this->isFromTrustedProxy() && $host = $this->getTrustedValues(self::HEADER_X_FORWARDED_HOST)) {
             $host = $host[0];
@@ -704,7 +735,8 @@ class Request extends Psr7ServerRequest
         // host is lowercase as per RFC 952/2181
         $host = strtolower(preg_replace('/:\d+$/', '', trim($host)));
 
-        // as the host can come from the user (HTTP_HOST and depending on the configuration, SERVER_NAME too can come from the user)
+        // as the host can come from the user (HTTP_HOST and depending on the configuration,
+        // SERVER_NAME too can come from the user)
         // check that it does not contain forbidden characters (see RFC 952 and RFC 2181)
         // use preg_replace() instead of preg_match() to prevent DoS attacks with long host names
         if ($host && '' !== preg_replace('/(?:^\[)?[a-zA-Z0-9-:\]_]+\.?/', '', $host)) {
@@ -762,6 +794,9 @@ class Request extends Psr7ServerRequest
      * Copyright (c) 2005-2010 Zend Technologies USA Inc. (https://www.zend.com/)
      */
 
+    /**
+     * @return false|mixed|string|null
+     */
     protected function prepareRequestUri()
     {
         $requestUri = '';
@@ -784,11 +819,11 @@ class Request extends Psr7ServerRequest
                 // only use URL path.
                 $uriComponents = parse_url($requestUri);
 
-                if (isset($uriComponents['path'])) {
+                if (is_array($uriComponents) && isset($uriComponents['path'])) {
                     $requestUri = $uriComponents['path'];
                 }
 
-                if (isset($uriComponents['query'])) {
+                if (is_array($uriComponents) && isset($uriComponents['query'])) {
                     $requestUri .= '?' . $uriComponents['query'];
                 }
             }
@@ -812,7 +847,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string
      */
-    protected function prepareBaseUrl()
+    protected function prepareBaseUrl(): ?string
     {
         $filename = basename($this->getServerParam('SCRIPT_FILENAME'));
 
@@ -850,7 +885,13 @@ class Request extends Psr7ServerRequest
             return $prefix;
         }
 
-        if ($baseUrl && null !== $prefix = $this->getUrlencodedPrefix($requestUri, rtrim(\dirname($baseUrl), '/' . \DIRECTORY_SEPARATOR) . '/')) {
+        if (
+            $baseUrl &&
+            null !== $prefix = $this->getUrlencodedPrefix(
+                $requestUri,
+                rtrim(dirname($baseUrl), '/' . \DIRECTORY_SEPARATOR) . '/'
+            )
+        ) {
             // directory portion of $baseUrl matches
             return rtrim($prefix, '/' . \DIRECTORY_SEPARATOR);
         }
@@ -869,7 +910,10 @@ class Request extends Psr7ServerRequest
         // If using mod_rewrite or ISAPI_Rewrite strip the script filename
         // out of baseUrl. $pos !== 0 makes sure it is not matching a value
         // from PATH_INFO or QUERY_STRING
-        if (\strlen($requestUri) >= \strlen($baseUrl) && (false !== $pos = strpos($requestUri, $baseUrl)) && 0 !== $pos) {
+        if (
+            \strlen($requestUri) >= \strlen($baseUrl)
+            && (false !== $pos = strpos($requestUri, $baseUrl)) && 0 !== $pos
+        ) {
             $baseUrl = substr($requestUri, 0, $pos + \strlen($baseUrl));
         }
 
@@ -881,7 +925,7 @@ class Request extends Psr7ServerRequest
      *
      * @return string base path
      */
-    protected function prepareBasePath()
+    protected function prepareBasePath(): string
     {
         $baseUrl = $this->getBaseUrl();
         if (empty($baseUrl)) {
@@ -890,7 +934,7 @@ class Request extends Psr7ServerRequest
 
         $filename = basename($this->getServerParam('SCRIPT_FILENAME'));
         if (basename($baseUrl) === $filename) {
-            $basePath = \dirname($baseUrl);
+            $basePath = dirname($baseUrl);
         } else {
             $basePath = $baseUrl;
         }
@@ -925,13 +969,14 @@ class Request extends Psr7ServerRequest
             return $requestUri;
         }
 
+        /** @var bool|string $pathInfo */
         $pathInfo = substr($requestUri, \strlen($baseUrl));
         if (false === $pathInfo || '' === $pathInfo) {
             // If substr() returns false then PATH_INFO is set to an empty string
             return '/';
         }
 
-        return (string) $pathInfo;
+        return (string)$pathInfo;
     }
 
     /**
@@ -961,11 +1006,17 @@ class Request extends Psr7ServerRequest
      *
      * @return bool true if the request came from a trusted proxy, false otherwise
      */
-    public function isFromTrustedProxy()
+    public function isFromTrustedProxy(): bool
     {
-        return self::$trustedProxies && IpUtils::checkIp($this->getServerParam('REMOTE_ADDR'), self::$trustedProxies);
+        return self::$trustedProxies
+            && IpUtils::checkIp($this->getServerParam('REMOTE_ADDR'), self::$trustedProxies);
     }
 
+    /**
+     * @param int $type
+     * @param string|null $ip
+     * @return array|string[]
+     */
     private function getTrustedValues(int $type, string $ip = null): array
     {
         $clientValues = [];
@@ -1017,9 +1068,21 @@ class Request extends Psr7ServerRequest
         }
         $this->isForwardedValid = false;
 
-        throw new ConflictingHeadersException(sprintf('The request has both a trusted "%s" header and a trusted "%s" header, conflicting with each other. You should either configure your proxy to remove one of them, or configure your project to distrust the offending one.', self::TRUSTED_HEADERS[self::HEADER_FORWARDED], self::TRUSTED_HEADERS[$type]));
+        throw new ConflictingHeadersException(sprintf(
+            'The request has both a trusted "%s" header and a ' .
+                'trusted "%s" header, conflicting with each other. ' .
+                'You should either configure your proxy to remove one of them, ' .
+                'or configure your project to distrust the offending one.',
+            self::TRUSTED_HEADERS[self::HEADER_FORWARDED],
+            self::TRUSTED_HEADERS[$type]
+        ));
     }
 
+    /**
+     * @param string[] $clientIps
+     * @param string $ip
+     * @return string[]
+     */
     private function normalizeAndFilterClientIps(array $clientIps, string $ip): array
     {
         if (!$clientIps) {

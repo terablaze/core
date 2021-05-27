@@ -10,21 +10,17 @@ use TeraBlaze\Events\Events;
 trait ContainerAwareTrait
 {
     /**
-     * @var Container $container
+     * @var ContainerInterface $container
      */
     protected $container;
 
     /**
-     * @param ContainerInterface $container
+     * @param ContainerInterface|null $container
      * @return $this;
      */
-    public function setContainer(ContainerInterface $container)
+    public function setContainer(ContainerInterface $container = null): self
     {
-        Events::fire("terablaze.controller.setContainer.before", array($this->getName()));
-
         $this->container = $container;
-
-        Events::fire("terablaze.controller.setContainer.after", array($this->getName()));
 
         return $this;
     }

@@ -13,7 +13,7 @@ class Event implements StoppableEventInterface
     /**
      * @var bool Whether no further event listeners should be triggered
      */
-    private $propagationStopped = false;
+    private bool $propagationStopped = false;
 
     /**
      * Is propagation stopped?

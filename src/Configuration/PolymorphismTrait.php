@@ -33,7 +33,7 @@ trait PolymorphismTrait
         }
 
         if ($isValidPrefix) {
-            throw new Exception("Property {$property} not found in class " . get_class($this));
+            throw new Exception("PropertyException {$property} not found in class " . get_class($this));
         }
         throw new Exception("Method {$methodName} not found in class " . get_class($this));
         

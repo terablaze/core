@@ -3,6 +3,7 @@
 namespace TeraBlaze\Event;
 
 use Psr\EventDispatcher\ListenerProviderInterface;
+
 use function is_callable;
 use function is_int;
 
@@ -48,7 +49,8 @@ class ListenerProvider implements ListenerProviderInterface
      */
     public function addListener(string $eventType, callable $listener, int $priority = 0): self
     {
-        if (isset($this->listeners[$priority][$eventType])
+        if (
+            isset($this->listeners[$priority][$eventType])
             && in_array($listener, $this->listeners[$priority][$eventType], true)
         ) {
             // Duplicate detected

@@ -37,7 +37,7 @@ interface UrlGeneratorInterface
 
     /**
      * @param string $name
-     * @param array $parameters
+     * @param array<string, string> $parameters
      * @param int $referenceType
      * @return string
      * @throws Exception\MissingParametersException

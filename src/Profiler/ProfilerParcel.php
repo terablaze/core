@@ -8,7 +8,7 @@ use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Configuration\Driver\Ini;
 use TeraBlaze\Configuration\Driver\PHPArray;
-use TeraBlaze\Configuration\Exception\Argument as ConfigArgumentException;
+use TeraBlaze\Configuration\Exception\ArgumentException as ConfigArgumentException;
 use TeraBlaze\Configuration\Exception\Syntax;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
@@ -20,8 +20,6 @@ use TeraBlaze\Ripana\Database\Connector;
 
 class ProfilerParcel extends Parcel implements ParcelInterface
 {
-    /** @var Container $container */
-    private $container;
 
     /** @var DebugBar $debugbar */
     private $debugbar;
@@ -31,17 +29,8 @@ class ProfilerParcel extends Parcel implements ParcelInterface
     /** @var DriverInterface|Ini|PHPArray $configDriver */
     private $configDriver;
 
-    /**
-     * @param ContainerInterface|null $container
-     * @throws ConfigArgumentException
-     * @throws Syntax
-     * @throws ReflectionException
-     */
-    public function build(?ContainerInterface $container)
+    public function boot(): void
     {
-        /** @var Container */
-        $this->container = $container ?? Container::getContainer();
-
         if (!$this->container->has('configuration')) {
             return;
         }

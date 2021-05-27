@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\ErrorHandler;
 
+use ErrorException;
 use Exception;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception\FatalError;
@@ -15,9 +16,9 @@ class HandleExceptions
     /**
      * Reserved memory so that errors can be displayed properly on memory exhaustion.
      *
-     * @var string
+     * @var string|null
      */
-    public static $reservedMemory;
+    public static ?string $reservedMemory;
 
     /**
      * The kernel instance.
@@ -60,15 +61,14 @@ class HandleExceptions
      * @param  string  $message
      * @param  string  $file
      * @param  int  $line
-     * @param  array  $context
      * @return void
      *
-     * @throws \ErrorException
+     * @throws ErrorException
      */
-    public function handleError($level, $message, $file = '', $line = 0, $context = [])
+    public function handleError($level, $message, $file = '', $line = 0): void
     {
         if (error_reporting() & $level) {
-            throw new \ErrorException($message, 0, $level, $file, $line);
+            throw new ErrorException($message, 0, $level, $file, $line);
         }
     }
 
@@ -79,22 +79,22 @@ class HandleExceptions
      * the HTTP and Console kernels. But, fatal error exceptions must
      * be handled differently since they are not normal exceptions.
      *
-     * @param  Throwable  $e
+     * @param Throwable $e
      * @return void
      */
-    public function handleException($e)
+    public function handleException(Throwable $e)
     {
         try {
             self::$reservedMemory = null;
 
             $this->getExceptionHandler()->report($e);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             //
         }
 
         try {
             $this->renderHttpResponse($e);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             //
         }
     }
@@ -118,7 +118,7 @@ class HandleExceptions
      * @param  int|null  $traceOffset
      * @return FatalError
      */
-    protected function fatalErrorFromPhpError(array $error, $traceOffset = null)
+    protected function fatalErrorFromPhpError(array $error, $traceOffset = null): FatalError
     {
         return new FatalError($error['message'], 0, $error, $traceOffset);
     }
@@ -126,10 +126,10 @@ class HandleExceptions
     /**
      * Determine if the error type is fatal.
      *
-     * @param  int  $type
+     * @param int $type
      * @return bool
      */
-    protected function isFatal($type)
+    protected function isFatal(int $type): bool
     {
         return in_array($type, [E_COMPILE_ERROR, E_CORE_ERROR, E_ERROR, E_PARSE]);
     }
@@ -142,7 +142,7 @@ class HandleExceptions
      */
     protected function renderHttpResponse(Throwable $e)
     {
-        $this->getExceptionHandler()->render($this->kernel->getCurrentRequest(), $e)->send();
+        $this->getExceptionHandler()->render($e)->send();
     }
 
     /**

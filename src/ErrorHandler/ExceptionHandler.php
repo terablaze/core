@@ -22,7 +22,7 @@ class ExceptionHandler
      *
      * @var ContainerInterface
      */
-    protected $container;
+    protected ContainerInterface $container;
 
     protected bool $debugMode;
 
@@ -146,7 +146,7 @@ class ExceptionHandler
      * @param  \Throwable  $e
      * @return bool
      */
-    public function shouldReport(Throwable $e)
+    public function shouldReport(Throwable $e): bool
     {
         return !$this->shouldntReport($e);
     }
@@ -157,7 +157,7 @@ class ExceptionHandler
      * @param  \Throwable  $e
      * @return bool
      */
-    protected function shouldntReport(Throwable $e)
+    protected function shouldntReport(Throwable $e): bool
     {
         $dontReport = array_merge($this->dontReport, $this->internalDontReport);
 
@@ -176,7 +176,7 @@ class ExceptionHandler
      * @param  \Throwable  $e
      * @return array
      */
-    protected function exceptionContext(Throwable $e)
+    protected function exceptionContext(Throwable $e): array
     {
         if (method_exists($e, 'context')) {
             return $e->context();
@@ -190,7 +190,7 @@ class ExceptionHandler
      *
      * @return array
      */
-    protected function context(ServerRequestInterface $request)
+    protected function context(ServerRequestInterface $request): array
     {
         return [
             'path' => $request->getUri()->__toString(),
@@ -200,16 +200,17 @@ class ExceptionHandler
     }
 
     /**
-     * Render an exception into an HTTP response.   
+     * Render an exception into an HTTP response.
      *
-     * @param Request  $request
-     * @param  \Throwable  $e
+     * @param Throwable $e
+     * @param ServerRequestInterface|Request|null $request
      * @return Response
-     *
-     * @throws \Throwable
      */
-    public function render($request, Throwable $e)
+    public function render(Throwable $e, ?ServerRequestInterface $request = null): Response
     {
+        if ($request == null) {
+            $request = Request::createFromGlobals();
+        }
         $e = $this->prepareException($this->mapException($e));
         return $request->expectsJson()
             ? $this->prepareJsonResponse($request, $e)
@@ -390,7 +391,7 @@ class ExceptionHandler
      * @param  \Throwable  $e
      * @return bool
      */
-    protected function isHttpException(Throwable $e)
+    protected function isHttpException(Throwable $e): bool
     {
         return $e instanceof HttpExceptionInterface;
     }

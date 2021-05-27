@@ -5,6 +5,7 @@ namespace TeraBlaze\Container;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
 use TeraBlaze\Container\Exception\ContainerException;
@@ -20,34 +21,34 @@ use TeraBlaze\Container\Exception\ServiceNotFoundException;
 class Container implements ContainerInterface
 {
     /**
-     * @var self $instance
+     * @var self|null
      */
-    private static $instance;
+    private static ?Container $instance;
 
     /**
      * @var array
      */
-    private $services;
+    private array $services = [];
+
+    /**
+     * @var array<string, string>
+     */
+    private array $serviceAliases = [];
+
+    /**
+     * @var object[] $resolvedServices
+     */
+    private array $resolvedServices = [];
 
     /**
      * @var array
      */
-    private $serviceAliases;
+    private array $parameters = [];
 
     /**
-     * @var array
+     * @var array<string, mixed>
      */
-    private $parameters;
-
-    /**
-     * @var array
-     */
-    private $resolvedInstances;
-
-    /**
-     * @var array
-     */
-    private $resolvedParameters;
+    private array $resolvedParameters = [];
 
     /**
      * Constructor for the container.
@@ -63,7 +64,7 @@ class Container implements ContainerInterface
      */
     private function __construct()
     {
-        $this->resolvedInstances = [];
+        $this->resolvedServices = [];
 
         $this->registerServiceInstance('terablaze.container', $this);
     }
@@ -154,7 +155,7 @@ class Container implements ContainerInterface
      * Registers a single service (not the instance)
      *
      * @param string $key
-     * @param array $service
+     * @param array<string, string> $service
      * @return Container
      */
     public function registerService(string $key, array $service): self
@@ -183,7 +184,7 @@ class Container implements ContainerInterface
         if (!$this->has($key)) {
             $this->registerService($key, $class);
         }
-        $this->resolvedInstances[$key] = $service;
+        $this->resolvedServices[$key] = $service;
         return $this;
     }
 
@@ -211,41 +212,41 @@ class Container implements ContainerInterface
      * {@inheritDoc}
      * @throws ReflectionException
      */
-    public function get($name)
+    public function get($id): object
     {
-        if (!$this->has($name)) {
-            throw new ServiceNotFoundException('Service not found: ' . $name);
+        if (!$this->has($id)) {
+            throw new ServiceNotFoundException('Service not found: ' . $id);
         }
 
-        if (isset($this->resolvedInstances[$name])) {
+        if (isset($this->resolvedServices[$id])) {
             // Return service from store
-            return $this->resolvedInstances[$name];
+            return $this->resolvedServices[$id];
         }
 
-        $resolvedAlias = $this->serviceAliases[$name] ?? null;
+        $resolvedAlias = $this->serviceAliases[$id] ?? null;
 
-        if (isset($this->resolvedInstances[$resolvedAlias])) {
+        if (isset($this->resolvedServices[$resolvedAlias])) {
             // Return service from store
-            return $this->resolvedInstances[$resolvedAlias];
+            return $this->resolvedServices[$resolvedAlias];
         }
 
-        if (isset($this->services[$name])) {
-            $this->resolvedInstances[$name] = $this->createService($name);
+        if (isset($this->services[$id])) {
+            $this->resolvedServices[$id] = $this->createService($id);
         } else {
-            $name = $resolvedAlias;
-            $this->resolvedInstances[$name] = $this->createService($name);
+            $id = $resolvedAlias;
+            $this->resolvedServices[$id] = $this->createService($id);
         }
 
         // Return service from store
-        return $this->resolvedInstances[$name];
+        return $this->resolvedServices[$id];
     }
 
     /**
      * {@inheritDoc}
      */
-    public function has($name)
+    public function has($id)
     {
-        return isset($this->services[$name]) || isset($this->serviceAliases[$name]);
+        return isset($this->services[$id]) || isset($this->serviceAliases[$id]);
     }
 
     /**
@@ -255,7 +256,6 @@ class Container implements ContainerInterface
     {
         // If we haven't created it, create it and save to store
         if (!isset($this->resolvedParameters[$name])) {
-
             $tokens = explode('.', $name);
             $context = $this->parameters;
 
@@ -285,9 +285,7 @@ class Container implements ContainerInterface
     {
         try {
             $this->getParameter($name);
-        } catch (ParameterNotFoundException $exception) {
-            return false;
-        } catch (ContainerException $e) {
+        } catch (ParameterNotFoundException | ContainerException $exception) {
             return false;
         }
 
@@ -299,13 +297,13 @@ class Container implements ContainerInterface
      *
      * @param string $name The service name.
      *
-     * @return mixed The created service.
+     * @return object The created service.
      *
      * @throws ParameterNotFoundException
      * @throws ContainerException On failure.
      * @throws ReflectionException
      */
-    private function createService(string $name)
+    private function createService(string $name): object
     {
         $entry = &$this->services[$name];
         $reflectionParameters = [];
@@ -354,7 +352,7 @@ class Container implements ContainerInterface
      * @param array $argumentDefinitions The service arguments definition.
      *
      * @param ReflectionParameter[] $reflectionParameters
-     * @return array The service constructor arguments.
+     * @return array<int, mixed> The resolved arguments.
      *
      * @throws ContainerException
      * @throws ParameterNotFoundException
@@ -382,50 +380,45 @@ class Container implements ContainerInterface
             return $arguments;
         }
 
-        // if $arguments is empty, initialize with 1 so that we can loop through it later
-        if (empty($arguments)) {
-            $arguments = [1];
-        }
+//        // if $arguments is empty, initialize with 1 so that we can loop through it later
+//        if (empty($arguments)) {
+//            $arguments = [1];
+//        }
 
         // Loops through the details of reflectionParameters
         foreach ($reflectionParameters as $reflectionParameter) {
             $name = $reflectionParameter->getName();
             $position = $reflectionParameter->getPosition();
-            $type = $reflectionParameter->getType();
-            if ($type instanceof ReflectionUnionType) {
-                $unionTypes = $type->getTypes();
-                foreach ($unionTypes as $aType) {
+            $types = $this->getAllReflectionTypes($reflectionParameter);
+            if (count($types) > 1) {
+                foreach ($types as $aType) {
                     if (!$aType->isBuiltin()) {
-                        $typesString = implode(" | ", $unionTypes);
-                        throw new InvalidArgumentException("Cannot use non built in types ({$typesString}) for union types when auto-wiring");
+                        $typesString = implode(" | ", $types);
+                        throw new InvalidArgumentException(
+                            "Cannot use non built in types included in " .
+                            "({$typesString}) for union types when auto-wiring"
+                        );
                     }
                 }
-                $type = $unionTypes[0];
             }
+            $type = $types[0] ?? null;
             $typeName = is_null($type) ? null : $type->getName();
+            $resolvedType = $this->resolveType($typeName);
             try {
                 $defaultValue = $reflectionParameter->getDefaultValue();
             } catch (ReflectionException $reflectionException) {
                 unset($defaultValue);
             }
-            $resolvedArgument = $defaultValue ?? $typeName;
+            $resolvedArgument = $defaultValue ?? $resolvedType;
             foreach ($arguments as $key => $argument) {
-                if (is_object($argument) && ($typeName == get_class($argument) || $argument instanceof $typeName || $argument instanceof $key)) {
+                if ($name === $key) {
+                    unset($arguments[$key]);
                     $resolvedArgument = $argument;
                     continue;
                 }
-                if (!is_object($argument) && $name === $key) {
+                if (is_object($argument) && $argument instanceof $typeName) {
+                    unset($arguments[$key]);
                     $resolvedArgument = $argument;
-                    continue;
-                }
-                if (is_string($resolvedArgument) && class_exists($resolvedArgument)) {
-                    if (!$this->has($typeName)) {
-                        $this->registerService($typeName, ['class' => $typeName]);
-                    }
-                    $resolvedArgument = $this->get($typeName);
-                    continue;
-                }
-                if (!is_object($argument)) {
                     continue;
                 }
             }
@@ -440,13 +433,46 @@ class Container implements ContainerInterface
     }
 
     /**
+     * @param ReflectionParameter $reflectionParameter
+     * @return ReflectionNamedType[]
+     */
+    private function getAllReflectionTypes(ReflectionParameter $reflectionParameter): array
+    {
+        $reflectionType = $reflectionParameter->getType();
+
+        if (!$reflectionType) {
+            return [];
+        }
+
+        return $reflectionType instanceof ReflectionUnionType
+            ? $reflectionType->getTypes()
+            : [$reflectionType];
+    }
+
+    /**
+     * @param ?string $typeName
+     * @return object|null
+     * @throws ReflectionException
+     */
+    private function resolveType(?string $typeName): ?object
+    {
+        if (!class_exists($typeName)) {
+            return null;
+        }
+        if (!$this->has($typeName)) {
+            $this->registerService($typeName, ['class' => $typeName]);
+        }
+        return $this->get($typeName);
+    }
+
+    /**
      * Initialize a service using the call definitions.
      *
      * @param object $service The service.
      * @param array $callDefinitions The service calls definition.
      * @param string|null $name The service name.
      *
-     * @return object|mixed
+     * @return object
      * @throws ContainerException On failure.
      * @throws ParameterNotFoundException
      * @throws ReflectionException
@@ -456,9 +482,13 @@ class Container implements ContainerInterface
         $serviceName = $name ?? get_class($service);
         foreach ($callDefinitions as $callDefinition) {
             if (!is_array($callDefinition) || !isset($callDefinition['method'])) {
-                throw new ContainerException($serviceName . ' service calls must be arrays containing a \'method\' key');
+                throw new ContainerException(
+                    $serviceName . ' service calls must be arrays containing a \'method\' key'
+                );
             } elseif (!is_callable([$service, $callDefinition['method']])) {
-                throw new ContainerException($serviceName . ' service asks for call to uncallable method: ' . $callDefinition['method']);
+                throw new ContainerException(
+                    $serviceName . ' service asks for call to uncallable method: ' . $callDefinition['method']
+                );
             }
 
             $reflectionMethod = new ReflectionMethod($service, $callDefinition['method']);
@@ -522,7 +552,11 @@ class Container implements ContainerInterface
         return mb_substr($name, 1);
     }
 
-    public function getService(string $name): array
+    /**
+     * @param string $name
+     * @return array<string, mixed>
+     */
+    public function getServiceRegistration(string $name): array
     {
         if (isset($this->services[$name])) {
             return $this->services[$name];

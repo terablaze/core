@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 1/30/2017
- * Time: 4:07 PM
- */
-
 namespace TeraBlaze\Cache;
 
 use TeraBlaze\Cache\Driver\Memcached;
@@ -22,16 +15,12 @@ use TeraBlaze\Core\Parcel\ParcelInterface;
 
 class CacheParcel extends Parcel implements ParcelInterface
 {
-    /** @var Container $container */
-    private $container;
-
     protected $type;
 
     protected $options;
 
-    public function build(?ContainerInterface $container)
+    public function boot(): void
     {
-        $this->container = $container;
         /** @var DriverInterface $configuration */
         $configuration = $this->container->get('configuration');
 
