@@ -66,15 +66,15 @@ class Memcached extends Driver
                     $this->host,
                     $this->port
                 );
-            } 
-            
+            }
+
             if (is_array($servers) && !empty($servers)) {
                 $this->_service->addServers(
                     $servers
                 );
             }
 
-            $this->_service->setOption(\Memcached::OPT_COMPRESSION, TRUE);
+            $this->_service->setOption(\Memcached::OPT_COMPRESSION, true);
 
             $this->isConnected = true;
         } catch (\Exception $e) {

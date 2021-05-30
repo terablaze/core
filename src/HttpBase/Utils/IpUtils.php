@@ -61,7 +61,7 @@ class IpUtils
      */
     public static function checkIp4(?string $requestIp, string $ip)
     {
-        $cacheKey = $requestIp.'-'.$ip;
+        $cacheKey = $requestIp . '-' . $ip;
         if (isset(self::$checkedIps[$cacheKey])) {
             return self::$checkedIps[$cacheKey];
         }
@@ -108,7 +108,7 @@ class IpUtils
      */
     public static function checkIp6(?string $requestIp, string $ip)
     {
-        $cacheKey = $requestIp.'-'.$ip;
+        $cacheKey = $requestIp . '-' . $ip;
         if (isset(self::$checkedIps[$cacheKey])) {
             return self::$checkedIps[$cacheKey];
         }
@@ -177,7 +177,7 @@ class IpUtils
         $ip = inet_ntop($packedAddress & inet_pton($mask));
 
         if ($wrappedIPv6) {
-            $ip = '['.$ip.']';
+            $ip = '[' . $ip . ']';
         }
 
         return $ip;

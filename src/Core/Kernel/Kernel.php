@@ -5,7 +5,10 @@ namespace TeraBlaze\Core\Kernel;
 use Exception;
 use LogicException;
 use Middlewares\Utils\Factory;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use ReflectionException;
 use TeraBlaze\Configuration\Configuration;
 use TeraBlaze\Configuration\Exception\ArgumentException;
@@ -14,8 +17,14 @@ use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
+use TeraBlaze\Core\Kernel\Controller\ArgumentResolver;
+use TeraBlaze\Core\Kernel\Controller\ArgumentResolverInterface;
+use TeraBlaze\Core\Kernel\Controller\ControllerResolver;
+use TeraBlaze\Core\Kernel\Controller\ControllerResolverInterface;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\ErrorHandler\HandleExceptions;
+use TeraBlaze\Event\Dispatcher;
+use TeraBlaze\Event\ListenerProvider;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 
@@ -23,17 +32,30 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 {
     public const TERABLAZE_VERSION = "0.1.0";
 
+    /**
+     * @var ParcelInterface[] $parcels
+     */
     protected array $parcels = [];
+
+    /**
+     * @var MiddlewareInterface[] $middlewares
+     */
     protected array $middlewares = [];
 
     protected bool $booted = false;
     protected bool $debug;
     protected string $environment;
-    protected $projectDir;
-    protected ?Request $currentRequest = null;
+    protected ?string $projectDir = null;
 
     /** @var Container|null */
-    protected ?Container $container;
+    protected ?Container $container = null;
+
+    public static array $internalServices = [
+        ListenerProviderInterface::class => ListenerProvider::class,
+        EventDispatcherInterface::class => Dispatcher::class,
+        ControllerResolverInterface::class => ControllerResolver::class,
+        ArgumentResolverInterface::class => ArgumentResolver::class,
+    ];
 
     public function __construct(string $environment, bool $debug)
     {
@@ -74,6 +96,8 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         if (file_exists($constantsFile)) {
             include_once($constantsFile);
         }
+
+        $this->registerInternalServices();
 
         $this->initializeParcels();
         $this->registerMiddlewares();
@@ -351,6 +375,16 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
                 $this->container->registerService($class, ['class' => $class]);
                 $this->middlewares[] = $this->container->get($class);
             }
+        }
+    }
+
+    public function registerInternalServices(): void
+    {
+        foreach (static::$internalServices as $name => $internalService) {
+            if (!class_exists($internalService)) {
+                continue;
+            }
+            $this->container->registerService($name, ['class' => $internalService]);
         }
     }
 }

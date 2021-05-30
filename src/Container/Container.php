@@ -365,13 +365,16 @@ class Container implements ContainerInterface
 
         foreach ($argumentDefinitions as $key => $argumentDefinition) {
             if (is_array($argumentDefinition)) {
-                return [$this->resolveArguments($argumentDefinition)];
+                $argumentDefinition = $this->resolveArguments($argumentDefinition);
             }
             if (is_string($argumentDefinition) && $this->isService($argumentDefinition)) {
                 $arguments[$key] = $this->get($this->cleanServiceReference($argumentDefinition));
             } elseif (is_string($argumentDefinition) && $this->isParameter($argumentDefinition)) {
                 $arguments[$key] = $this->getParameter($this->cleanParameterReference($argumentDefinition));
             } else {
+                if (is_array($argumentDefinition)) {
+                    $argumentDefinition = $this->resolveArguments($argumentDefinition);
+                }
                 $arguments[$key] = $argumentDefinition;
             }
         }
@@ -456,13 +459,16 @@ class Container implements ContainerInterface
      */
     private function resolveType(?string $typeName): ?object
     {
-        if (!class_exists($typeName)) {
+        if (!class_exists($typeName) && !interface_exists($typeName)) {
             return null;
         }
-        if (!$this->has($typeName)) {
+        if (!$this->has($typeName) && class_exists($typeName)) {
             $this->registerService($typeName, ['class' => $typeName]);
         }
-        return $this->get($typeName);
+        if ($this->has($typeName)) {
+            return $this->get($typeName);
+        }
+        return null;
     }
 
     /**

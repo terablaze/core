@@ -16,7 +16,7 @@ if (!function_exists('path')) {
 }
 
 if (!function_exists('asset')) {
-    function asset(string $uri = '',  int $referenceType = UrlGenerator::ABSOLUTE_PATH)
+    function asset(string $uri = '', int $referenceType = UrlGenerator::ABSOLUTE_PATH)
     {
         $container = Container::getContainer();
         /** @var Router $router */

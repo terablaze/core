@@ -174,8 +174,7 @@ class Router
         string $action,
         array $parameters = array(),
         string $method = ''
-    ): ResponseInterface
-    {
+    ): ResponseInterface {
         $className = ucfirst($controller);
 
         $this->controller = $controller;
@@ -265,7 +264,7 @@ class Router
 
         if (!$response instanceof ResponseInterface) {
             throw new Exception\Implementation(
-                "Result of {$className}::{$action}() is of type " . gettype($response).
+                "Result of {$className}::{$action}() is of type " . gettype($response) .
                 ", ensure the controller's action {$className}::{$action}() " .
                 "returns an instance of " . ResponseInterface::class
             );

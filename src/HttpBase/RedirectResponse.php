@@ -27,10 +27,12 @@ class RedirectResponse extends Response
             );
         }
 
-        if (301 == $status && !\array_key_exists(
-            'cache-control',
-            array_change_key_case($this->headers, \CASE_LOWER)
-        )) {
+        if (
+            301 == $status && !\array_key_exists(
+                'cache-control',
+                array_change_key_case($this->headers, \CASE_LOWER)
+            )
+        ) {
             $this->headers['cache-control'] = null;
         }
         parent::__construct($this->body, $status, $this->headers);

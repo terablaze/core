@@ -14,17 +14,17 @@ use TeraBlaze\Core\Kernel\KernelInterface;
  */
 abstract class Driver
 {
-	protected KernelInterface $kernel;
-	
-	/**
-	 * Base constructor.
-	 * @param array $options
-	 */
-	public function __construct(KernelInterface $kernel)
-	{
-		$this->kernel = $kernel;
+    protected KernelInterface $kernel;
+
+    /**
+     * Base constructor.
+     * @param array $options
+     */
+    public function __construct(KernelInterface $kernel)
+    {
+        $this->kernel = $kernel;
     }
-    
+
     protected function throwConfigFileDoesNotExistException(string $envFile, string $file)
     {
         throw new ArgumentException("Configuration files: {$envFile} and {$file} do not exist");

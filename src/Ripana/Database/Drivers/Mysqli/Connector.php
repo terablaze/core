@@ -193,7 +193,7 @@ class Connector extends BaseConnector implements ConnectorInterface
     {
         $queries = [];
         /** @var Model $model */
-        $model = new $modelClass;
+        $model = new $modelClass();
         if (!empty($query = $model->retrieveSyncSQL())) {
             $queries = is_array($query) ? $query : [$query];
         } else {

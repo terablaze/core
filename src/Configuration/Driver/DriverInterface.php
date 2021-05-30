@@ -14,7 +14,7 @@ interface DriverInterface
      * @param string $path
      * @return object|null
      */
-	public function parse(string $path): ?object;
+    public function parse(string $path): ?object;
 
     /**
      * Undocumented function
@@ -22,5 +22,5 @@ interface DriverInterface
      * @param string $path
      * @return array|null
      */
-	public function parseArray(string $path): ?array;
+    public function parseArray(string $path): ?array;
 }

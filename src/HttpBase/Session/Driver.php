@@ -13,9 +13,9 @@ use TeraBlaze\Base as Base;
 
 abstract class Driver extends Base
 {
-    public abstract function get($key, $default = NULL);
-    public abstract function set($key, $value = NULL);
-    public abstract function getFlash($key, $default = NULL);
-    public abstract function setFlash($key, $value = NULL);
-    public abstract function erase($key);
+    abstract public function get($key, $default = null);
+    abstract public function set($key, $value = null);
+    abstract public function getFlash($key, $default = null);
+    abstract public function setFlash($key, $value = null);
+    abstract public function erase($key);
 }

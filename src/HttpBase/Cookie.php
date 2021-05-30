@@ -60,7 +60,7 @@ class Cookie
         bool $secure = false,
         bool $httpOnly = false,
         string $sameSite = ''
-    ) : Cookie {
+    ): Cookie {
         return new static($name, 'deleted', 1, $path, $domain, $secure, $httpOnly, $sameSite);
     }
 
@@ -73,7 +73,7 @@ class Cookie
         bool $secure = false,
         bool $httpOnly = false,
         string $sameSite = ''
-    ) : Cookie {
+    ): Cookie {
         $expiresAt = (int) $expiresAt->format('U');
 
         return new static($name, $value, $expiresAt, $path, $domain, $secure, $httpOnly, $sameSite);
@@ -87,7 +87,7 @@ class Cookie
         bool $secure = false,
         bool $httpOnly = false,
         string $sameSite = ''
-    ) : Cookie {
+    ): Cookie {
         $expiresInFiveYear = time() + 5 * 365 * 3600 * 24;
 
         return new static($name, $value, $expiresInFiveYear, $path, $domain, $secure, $httpOnly, $sameSite);
@@ -117,47 +117,47 @@ class Cookie
         }
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function getValue() : string
+    public function getValue(): string
     {
         return $this->value;
     }
 
-    public function expiresAt() : int
+    public function expiresAt(): int
     {
         return $this->expiresAt;
     }
 
-    public function getPath() : string
+    public function getPath(): string
     {
         return $this->path;
     }
 
-    public function getDomain() : string
+    public function getDomain(): string
     {
         return $this->domain;
     }
 
-    public function isSecure() : bool
+    public function isSecure(): bool
     {
         return $this->secure;
     }
 
-    public function isHttpOnly() : bool
+    public function isHttpOnly(): bool
     {
         return $this->httpOnly;
     }
 
-    public function getSameSite() : string
+    public function getSameSite(): string
     {
         return $this->sameSite;
     }
 
-    public function toHeaderValue() : string
+    public function toHeaderValue(): string
     {
         $headerValue = sprintf('%s=%s', $this->name, urlencode($this->value));
 
@@ -191,7 +191,7 @@ class Cookie
         return $headerValue;
     }
 
-    public function addToResponse(ResponseInterface $response) : ResponseInterface
+    public function addToResponse(ResponseInterface $response): ResponseInterface
     {
         return $response->withAddedHeader('Set-Cookie', $this->toHeaderValue());
     }

@@ -36,4 +36,3 @@ abstract class EntityRepository implements RepositoryInterface
         return $this->entity->getConnector()->query();
     }
 }
-

@@ -54,4 +54,3 @@ class EntityManager
         return $this->connector;
     }
 }
-

@@ -30,7 +30,8 @@ class SessionListener extends AbstractSessionListener
             return null;
         }
 
-        if ($this->container->has('session_storage')
+        if (
+            $this->container->has('session_storage')
             && ($storage = $this->container->get('session_storage')) instanceof NativeSessionStorage
             && ($masterRequest = $this->container->get('request_stack')->getMasterRequest())
             && $masterRequest->isSecure()

@@ -66,7 +66,9 @@
         <div class="tab <?= !$logger->getLogs() ? 'disabled' : ''; ?>">
             <h3 class="tab-title">
                 Logs
-                <?php if ($logger->countErrors()) { ?><span class="badge status-error"><?= $logger->countErrors(); ?></span><?php } ?>
+                <?php if ($logger->countErrors()) {
+                    ?><span class="badge status-error"><?= $logger->countErrors(); ?></span><?php
+                } ?>
             </h3>
 
             <div class="tab-content">

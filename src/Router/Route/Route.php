@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by TeraBoxX.
  * User: tommy
@@ -17,23 +18,23 @@ use TeraBlaze\Router\Exception as Exception;
  */
 abstract class Route
 {
-	/** @var string $path */
-	public $path;
+    /** @var string $path */
+    public $path;
 
-	/** @var string $action */
-	public $action;
+    /** @var string $action */
+    public $action;
 
-	/** @var string|array|null $method */
+    /** @var string|array|null $method */
     public $method;
 
-	/** @var string $controller */
+    /** @var string $controller */
     public $controller;
 
-	/** @var bool $expectsJson */
+    /** @var bool $expectsJson */
     public $expectsJson;
 
-	/** @var array $parameters */
-	public $parameters = [];
+    /** @var array $parameters */
+    public $parameters = [];
 
     public function __construct($route)
     {
@@ -95,11 +96,11 @@ abstract class Route
     }
 
     /**
-	 * @param $method
-	 * @return Exception\Implementation
-	 */
-	public function _getExceptionForImplementation($method)
-	{
-		return new Exception\Implementation("{$method} method not implemented");
-	}
+     * @param $method
+     * @return Exception\Implementation
+     */
+    public function _getExceptionForImplementation($method)
+    {
+        return new Exception\Implementation("{$method} method not implemented");
+    }
 }

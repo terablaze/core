@@ -317,8 +317,8 @@ class ExceptionHandler
      */
     protected function renderExceptionWithWhoops(Throwable $e)
     {
-        $whoops = new Whoops;
-        $whoops->appendHandler(new PrettyPageHandler);
+        $whoops = new Whoops();
+        $whoops->appendHandler(new PrettyPageHandler());
         $whoops->writeToOutput(false);
         $whoops->allowQuit(false);
         return $whoops->handleException($e);

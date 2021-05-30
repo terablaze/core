@@ -82,7 +82,7 @@ class UrlGenerator implements UrlGeneratorInterface
                     throw new Exception\MissingRouteParameterNameException('Route key must have a name');
                 }
                 $keyPattern = $keyDetails[1] ?? "any";
-                $keyMatch = in_array("#(:". $keyPattern . ")#", Router::PATTERN_KEYS) ? ":" .$keyPattern : $keyPattern;
+                $keyMatch = in_array("#(:" . $keyPattern . ")#", Router::PATTERN_KEYS) ? ":" . $keyPattern : $keyPattern;
 
                 // Resolved acceptable match regex
                 $keyMatch = preg_replace(Router::PATTERN_KEYS, Router::PATTERN_KEYS_REPLACEMENTS, $keyMatch);
@@ -94,7 +94,7 @@ class UrlGenerator implements UrlGeneratorInterface
                 $keyValue = $params->get($keyName);
                 $requiredKeyNames[$keyName] = $keyName;
                 $keyValue = rawurlencode($keyValue ?? $keyDefault);
-                if (!empty($keyValue)){
+                if (!empty($keyValue)) {
                     $resolvedKeyValue[$keyName] = $keyValue;
                 }
                 $params->remove($keyName);

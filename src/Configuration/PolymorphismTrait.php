@@ -36,7 +36,6 @@ trait PolymorphismTrait
             throw new Exception("PropertyException {$property} not found in class " . get_class($this));
         }
         throw new Exception("Method {$methodName} not found in class " . get_class($this));
-        
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace TeraBlaze\Core\Kernel\Event;
 
-
 use TeraBlaze\Core\Kernel\HttpKernelInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;

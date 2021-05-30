@@ -2,21 +2,16 @@
 
 namespace TeraBlaze\Core\Kernel;
 
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Exception\ControllerDoesNotReturnResponseException;
-use TeraBlaze\Core\Kernel\Event\ControllerArgumentsEvent;
-use TeraBlaze\Core\Kernel\Event\ControllerEvent;
 use TeraBlaze\Core\Kernel\Event\ExceptionEvent;
 use TeraBlaze\Core\Kernel\Event\FinishRequestEvent;
 use TeraBlaze\Core\Kernel\Event\RequestEvent;
 use TeraBlaze\Core\Kernel\Event\ResponseEvent;
 use TeraBlaze\Core\Kernel\Event\TerminateEvent;
-use TeraBlaze\Core\Kernel\Event\ViewEvent;
 use TeraBlaze\ErrorHandler\Exception\Http\BadRequestHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
-use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+use TeraBlaze\Event\Dispatcher;
 use TeraBlaze\HttpBase\Exception\RequestExceptionInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
@@ -24,15 +19,17 @@ use TeraBlaze\HttpBase\Response;
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {
     protected $dispatcher;
-    protected $resolver;
-    protected $request;
-    private $argumentResolver;
+    private Container $container;
+    private array $middlewares;
 
     public function __construct(
         Container $container,
-        $middlewares
+        Dispatcher $dispatcher,
+        array $middlewares
     ) {
-        dd($container, $middlewares);
+        $this->container = $container;
+        $this->dispatcher = $dispatcher;
+        $this->middlewares = $middlewares;
     }
 
     /**
@@ -94,9 +91,6 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      */
     private function handleRaw(Request $request): ResponseInterface
     {
-        $handler = new Handler($this->middlewares);
-        return $handler->handle($request);
-        // request
         $event = new RequestEvent($this, $request);
         $this->dispatcher->dispatch($event);
 
@@ -104,53 +98,12 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
             return $this->filterResponse($event->getResponse(), $request);
         }
 
-        // load controller
-        if (false === $controller = $this->resolver->getController($request)) {
-            throw new NotFoundHttpException(
-                sprintf(
-                    'Unable to find the controller for path "%s". The route is wrongly configured.',
-                    $request->getPathInfo()
-                )
-            );
-        }
+        $handler = new Handler($this->middlewares);
 
-        $event = new ControllerEvent($this, $controller, $request);
-        $this->dispatcher->dispatch($event);
-        $controller = $event->getController();
+        $this->container->registerServiceInstance('request', $request);
 
-        // controller arguments
-        $arguments = $this->argumentResolver->getArguments($request, $controller);
-
-        $event = new ControllerArgumentsEvent($this, $controller, $arguments, $request);
-        $this->dispatcher->dispatch($event);
-        $controller = $event->getController();
-        $arguments = $event->getArguments();
-
-        // call controller
-        $response = $controller(...$arguments);
-
-        // view
-        if (!$response instanceof Response) {
-            $event = new ViewEvent($this, $request, $response);
-            $this->dispatcher->dispatch($event);
-
-            if ($event->hasResponse()) {
-                $response = $event->getResponse();
-            } else {
-                $msg = sprintf(
-                    'The controller must return a "TeraBlaze\HttpBase\Response" ' .
-                    'object but it returned %s.',
-                    $this->varToString($response)
-                );
-
-                // the user may have forgotten to return something
-                if (null === $response) {
-                    $msg .= ' Did you forget to add a return statement somewhere in your controller?';
-                }
-
-                throw new ControllerDoesNotReturnResponseException($msg, $controller, __FILE__, __LINE__ - 17);
-            }
-        }
+        /** @var Response $response */
+        $response = $handler->handle($request);
 
         return $this->filterResponse($response, $request);
     }

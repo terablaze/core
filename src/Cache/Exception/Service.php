@@ -2,7 +2,8 @@
 
 namespace TeraBlaze\Cache\Exception;
 
-use \Exception;
+use Exception;
+
 class Service extends Exception
 {
 }

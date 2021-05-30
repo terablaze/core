@@ -52,7 +52,9 @@ abstract class AbstractSessionListener implements EventSubscriberInterface
         if ($request->hasSession()) {
             // no-op
         } elseif (method_exists($request, 'setSessionFactory')) {
-            $request->setSessionFactory(function () { return $this->getSession(); });
+            $request->setSessionFactory(function () {
+                return $this->getSession();
+            });
         } elseif ($session = $this->getSession()) {
             $request->setSession($session);
         }

@@ -133,7 +133,7 @@ class Inspector
     /**
      * gets the properties of a class
      * by wrapping around the _getClassProperties() method
-     * 
+     *
      * @return array
      */
     public function getClassProperties()

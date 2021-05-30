@@ -110,7 +110,7 @@ class DebugbarMiddleware implements MiddlewareInterface
         $baseUrl = $renderer->getBaseUrl();
 
         if (strpos($path, $baseUrl) === 0) {
-            $file = $renderer->getBasePath().substr($path, strlen($baseUrl));
+            $file = $renderer->getBasePath() . substr($path, strlen($baseUrl));
 
             if (file_exists($file)) {
                 $response = $this->responseFactory->createResponse();
@@ -211,10 +211,10 @@ class DebugbarMiddleware implements MiddlewareInterface
         $pos = strripos($html, $before);
 
         if ($pos === false) {
-            return $html.$code;
+            return $html . $code;
         }
 
-        return substr($html, 0, $pos).$code.substr($html, $pos);
+        return substr($html, 0, $pos) . $code . substr($html, $pos);
     }
 
     public function getDebugBar(): Bar

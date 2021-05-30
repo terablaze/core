@@ -46,19 +46,19 @@ class CacheParcel extends Parcel implements ParcelInterface
             case "memcached": {
                     $cache = new Memcached($this->options);
                     break;
-                }
+            }
             case "memcache": {
                     $cache = new Memcache($this->options);
                     break;
-                }
+            }
             case "file": {
                     $cache = new File($this->options);
                     break;
-                }
+            }
             default: {
                     throw new ArgumentException("Invalid cache type or cache configuration not properly set in config/cache.php");
                     break;
-                }
+            }
         }
         $this->container->registerServiceInstance('cache.' . $cacheConf, $cache);
         if ($cacheConf == 'default') {

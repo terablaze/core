@@ -28,12 +28,12 @@ class Configuration
 
     protected $options;
 
-	protected KernelInterface $kernel;
+    protected KernelInterface $kernel;
 
     public function __construct(string $type, KernelInterface $kernel)
     {
         $this->type = $type;
-		$this->kernel = $kernel;
+        $this->kernel = $kernel;
     }
 
     /**
@@ -54,18 +54,18 @@ class Configuration
             case "ini": {
                     return new Driver\Ini($this->kernel);
                     break;
-                }
+            }
             case "PhpArray":
             case "PHPArray":
             case "php_array":
             case "phparray": {
                     return new Driver\PHPArray($this->kernel);
                     break;
-                }
+            }
             default: {
                     throw new Exception\ArgumentException("Invalid type");
                     break;
-                }
+            }
         }
     }
 

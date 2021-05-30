@@ -11,5 +11,7 @@ class ChaftaniService
     {
         $this->cp = $chaftaniParam;
         $this->bp = $bareParam;
+
+        dd($chaftaniParam);
     }
 }

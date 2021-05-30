@@ -125,7 +125,7 @@ abstract class Model
     {
         if (isset($this->__columns[$key])) {
             return $this->__columns[$key]['raw'];
-        } else if (isset($this->__columnsReverseMap[$key])) {
+        } elseif (isset($this->__columnsReverseMap[$key])) {
             return $key;
         }
         throw new PropertyException("Entity property with property name or column name '{$key}' not found");

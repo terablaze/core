@@ -18,29 +18,29 @@ use TeraBlaze\Router\Router;
  * Class Controller
  * @package TeraBlaze\Controller
  */
-Interface ControllerInterface 
+interface ControllerInterface
 {
-	public function setContainer(ContainerInterface $container);
+    public function setContainer(ContainerInterface $container);
 
-//	function getName(): string;
+//  function getName(): string;
 //
-//	function has(string $key): bool;
+//  function has(string $key): bool;
 //
-//	function get(string $key): object;
+//  function get(string $key): object;
 //
-//	function getParameter(string $key);
+//  function getParameter(string $key);
 //
-//	function loadView($viewFile, $viewVars = array()): string;
+//  function loadView($viewFile, $viewVars = array()): string;
 //
-//	function includeView($viewFile): string;
+//  function includeView($viewFile): string;
 //
-//	function render($viewFile, $viewVars = array()): Response;
+//  function render($viewFile, $viewVars = array()): Response;
 //
 //  function json($data, int $status = 200, array $headers = [], array $context = []): Response;
 //
-//	function generateUrl(string $routeName, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH);
+//  function generateUrl(string $routeName, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH);
 //
-//	function redirect(string $url, int $status = 302): Response;
+//  function redirect(string $url, int $status = 302): Response;
 //
 //  function redirectToRoute(string $routeName, array $parameters = [], int $status = 302): Response;
 }

@@ -7,6 +7,7 @@ use Closure;
 use TeraBlaze\Collections\Exceptions\TypeException;
 
 use const ARRAY_FILTER_USE_BOTH;
+
 use function array_filter;
 use function array_key_exists;
 use function array_keys;

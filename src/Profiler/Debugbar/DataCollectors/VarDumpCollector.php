@@ -73,7 +73,7 @@ class VarDumpCollector extends MessagesCollector implements DataCollectorInterfa
             ],
         ];
     }
-    
+
     /**
      * Returns an array with the following keys:
      *  - base_path
