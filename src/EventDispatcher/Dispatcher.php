@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Event;
+namespace TeraBlaze\EventDispatcher;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;

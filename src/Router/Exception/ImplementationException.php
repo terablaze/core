@@ -2,6 +2,6 @@
 
 namespace TeraBlaze\Router\Exception;
 
-class Implementation extends Exception
+class ImplementationException extends Exception
 {
 }

@@ -9,25 +9,26 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\Controller\ArgumentResolver;
+namespace TeraBlaze\Router\Controller\ArgumentResolver;
 
 use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Core\Kernel\Controller\ArgumentValueResolverInterface;
-use TeraBlaze\Core\Kernel\ControllerMetadata\ArgumentMetadata;
+use TeraBlaze\Router\Controller\ArgumentValueResolverInterface;
+use TeraBlaze\Router\ControllerMetadata\ArgumentMetadata;
 
 /**
- * Yields a non-variadic argument's value from the request attributes.
+ * Yields the default value defined in the action signature when no value has been given.
  *
  * @author Iltar van der Berg <kjarli@gmail.com>
  */
-final class RequestAttributeValueResolver implements ArgumentValueResolverInterface
+final class DefaultValueResolver implements ArgumentValueResolverInterface
 {
     /**
      * {@inheritdoc}
      */
     public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return !$argument->isVariadic() && $request->attributes->has($argument->getName());
+        return $argument->hasDefaultValue()
+            || (null !== $argument->getType() && $argument->isNullable() && !$argument->isVariadic());
     }
 
     /**
@@ -35,6 +36,6 @@ final class RequestAttributeValueResolver implements ArgumentValueResolverInterf
      */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
-        yield $request->attributes->get($argument->getName());
+        yield $argument->hasDefaultValue() ? $argument->getDefaultValue() : null;
     }
 }

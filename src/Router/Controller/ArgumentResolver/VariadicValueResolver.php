@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\Controller\ArgumentResolver;
+namespace TeraBlaze\Router\Controller\ArgumentResolver;
 
 use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Core\Kernel\Controller\ArgumentValueResolverInterface;
-use TeraBlaze\Core\Kernel\ControllerMetadata\ArgumentMetadata;
+use TeraBlaze\Router\Controller\ArgumentValueResolverInterface;
+use TeraBlaze\Router\ControllerMetadata\ArgumentMetadata;
 
 /**
  * Yields a variadic argument's values from the request attributes.
@@ -27,7 +27,7 @@ final class VariadicValueResolver implements ArgumentValueResolverInterface
      */
     public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return $argument->isVariadic() && $request->attributes->has($argument->getName());
+        return $argument->isVariadic() && array_key_exists($argument->getName(), $request->getAttributes());
     }
 
     /**
@@ -35,10 +35,17 @@ final class VariadicValueResolver implements ArgumentValueResolverInterface
      */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
-        $values = $request->attributes->get($argument->getName());
+        $values = $request->getAttribute($argument->getName());
 
         if (!\is_array($values)) {
-            throw new \InvalidArgumentException(sprintf('The action argument "...$%1$s" is required to be an array, the request attribute "%1$s" contains a type of "%2$s" instead.', $argument->getName(), get_debug_type($values)));
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'The action argument "...$%1$s" is required to be an array, ' .
+                    'the request attribute "%1$s" contains a type of "%2$s" instead.',
+                    $argument->getName(),
+                    get_debug_type($values)
+                )
+            );
         }
 
         yield from $values;

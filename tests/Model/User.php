@@ -15,12 +15,12 @@ class User extends Model
     /**
      * @column(name="first_name", type="text", length="100", default="Tom'iwa")
      */
-    protected string $firstName;
+    public string $firstName;
 
     /**
      * @column(name="last_name", type="text", length="100", default="Ibi`woye")
      */
-    protected string $lastName;
+    public string $lastName;
 
     /**
      * @column(name="email", type="text", length=100, default="tomiwahq@gmail.com")
@@ -41,6 +41,11 @@ class User extends Model
      * @column(name="awards", type="int", nullable=false, default=200)
      */
     protected int $awards;
+
+    /**
+     * @column(name="created_on", type="datetime", nullable=false, default="NOW()")
+     */
+    protected \DateTime $createdOn;
 
     /**
      * @return int

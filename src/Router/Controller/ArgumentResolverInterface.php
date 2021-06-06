@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\Controller;
+namespace TeraBlaze\Router\Controller;
 
 use TeraBlaze\HttpBase\Request;
 

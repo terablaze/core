@@ -11,14 +11,14 @@ use TeraBlaze\Core\Kernel\Event\ResponseEvent;
 use TeraBlaze\Core\Kernel\Event\TerminateEvent;
 use TeraBlaze\ErrorHandler\Exception\Http\BadRequestHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
-use TeraBlaze\Event\Dispatcher;
+use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\HttpBase\Exception\RequestExceptionInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {
-    protected $dispatcher;
+    protected Dispatcher $dispatcher;
     private Container $container;
     private array $middlewares;
 

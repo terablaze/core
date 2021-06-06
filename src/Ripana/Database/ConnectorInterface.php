@@ -75,17 +75,17 @@ interface ConnectorInterface
     /**
      * Constructs the sql query to create a database table
      * based on the passed model class
-     * @param $modelClass
+     * @param string $modelClass
      * @return mixed[]
      */
-    public function buildSyncSQL($modelClass): array;
+    public function buildSyncSQL(string $modelClass): array;
 
     /**
      * Creates a table in the database using the passed model
-     * @param $model
+     * @param string $model
      * @return ConnectorInterface
      */
-    public function sync($model): ConnectorInterface;
+    public function sync(string $model): ConnectorInterface;
 
     /**
      * Returns the configured dateTimeMode [DATETIME or TIMESTAMP]

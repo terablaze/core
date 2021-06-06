@@ -35,8 +35,6 @@ class RouterMiddleware implements MiddlewareInterface
             $this->router->addRoutes($routes);
         }
 
-        $response = $this->router->dispatch($request);
-
-        return $response;
+        return $this->router->dispatch($request);
     }
 }

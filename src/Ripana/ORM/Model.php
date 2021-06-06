@@ -27,6 +27,8 @@ abstract class Model
         'datetime' => 'datetime',
     ];
 
+    public const DATE_TYPES = ['date', 'time', 'datetime', 'timestamp', 'year'];
+
     public const truesy = [
         1, "1", "true", true, "yes", "yeah", "yup", "yupp", "y"
     ];
@@ -58,7 +60,7 @@ abstract class Model
 
     use PolymorphismTrait;
 
-    public function __construct($initData = null)
+    public function __construct($initData = [])
     {
         $this->__inspector = new Inspector($this);
         $this->__columns = $this->getColumns();
@@ -82,17 +84,17 @@ abstract class Model
     /**
      * Maps associative array to object properties
      *
-     * @param array $initData
+     * @param array<string, mixed> $initData
      */
     protected function initData(array $initData): void
     {
-        if (is_null($initData)) {
+        if (empty($initData)) {
             return;
         }
         foreach ($initData as $key => $value) {
             try {
                 $prop = $this->getInitProp($key);
-            } catch (PropertyException $propertyxception) {
+            } catch (PropertyException $propertyException) {
                 // TODO: Add a logger to log the exception
                 continue;
             }
@@ -113,7 +115,6 @@ abstract class Model
             }
             $this->$prop = $value;
         }
-        return;
     }
 
     /**
@@ -161,9 +162,19 @@ abstract class Model
         return $result;
     }
 
-    private function saveDatum($prop, $column)
+    /**
+     * @param string $prop
+     * @param string[] $column
+     * @return DateTime|int|mixed|string|null
+     * @throws ConnectorException
+     */
+    private function saveDatum(string $prop, array $column)
     {
-        $datum = $this->$prop;
+        if (in_array(strtolower($column['type']), self::DATE_TYPES)) {
+            $datum = $this->$prop ?? null;
+        } else {
+            $datum = $this->$prop ?? ($column['default'] ?? '');
+        }
         if ($datum instanceof DateTime && $column['autoconvert'] != false) {
             $dateTimeMode = $this->getConnector()->getDateTimeMode();
             if ($dateTimeMode == 'TIMESTAMP') {

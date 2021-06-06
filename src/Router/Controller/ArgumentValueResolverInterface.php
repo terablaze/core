@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\Controller;
+namespace TeraBlaze\Router\Controller;
 
 use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Core\Kernel\ControllerMetadata\ArgumentMetadata;
+use TeraBlaze\Router\ControllerMetadata\ArgumentMetadata;
 
 /**
  * Responsible for resolving the value of an argument based on its metadata.

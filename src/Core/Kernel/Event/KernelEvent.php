@@ -3,7 +3,7 @@
 namespace TeraBlaze\Core\Kernel\Event;
 
 use TeraBlaze\Core\Kernel\HttpKernelInterface;
-use TeraBlaze\Event\Event;
+use TeraBlaze\EventDispatcher\Event;
 use TeraBlaze\HttpBase\Request;
 
 /**

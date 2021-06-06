@@ -189,7 +189,7 @@ class Connector extends BaseConnector implements ConnectorInterface
         return $this->_service->error;
     }
 
-    public function buildSyncSQL($modelClass): array
+    public function buildSyncSQL(string $modelClass): array
     {
         $queries = [];
         /** @var Model $model */
@@ -308,7 +308,7 @@ class Connector extends BaseConnector implements ConnectorInterface
         return $queries;
     }
 
-    public function sync($model): ConnectorInterface
+    public function sync(string $model): ConnectorInterface
     {
         $queries = $this->buildSyncSQL($model);
         foreach ($queries as $query) {

@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\ControllerMetadata;
+namespace TeraBlaze\Router\ControllerMetadata;
 
 /**
  * Builds {@see ArgumentMetadata} objects based on the given Controller.
@@ -34,7 +34,14 @@ final class ArgumentMetadataFactory implements ArgumentMetadataFactoryInterface
         }
 
         foreach ($reflection->getParameters() as $param) {
-            $arguments[] = new ArgumentMetadata($param->getName(), $this->getType($param, $reflection), $param->isVariadic(), $param->isDefaultValueAvailable(), $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null, $param->allowsNull());
+            $arguments[] = new ArgumentMetadata(
+                $param->getName(),
+                $this->getType($param, $reflection),
+                $param->isVariadic(),
+                $param->isDefaultValueAvailable(),
+                $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null,
+                $param->allowsNull()
+            );
         }
 
         return $arguments;

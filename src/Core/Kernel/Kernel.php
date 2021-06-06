@@ -17,14 +17,10 @@ use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
-use TeraBlaze\Core\Kernel\Controller\ArgumentResolver;
-use TeraBlaze\Core\Kernel\Controller\ArgumentResolverInterface;
-use TeraBlaze\Core\Kernel\Controller\ControllerResolver;
-use TeraBlaze\Core\Kernel\Controller\ControllerResolverInterface;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\ErrorHandler\HandleExceptions;
-use TeraBlaze\Event\Dispatcher;
-use TeraBlaze\Event\ListenerProvider;
+use TeraBlaze\EventDispatcher\Dispatcher;
+use TeraBlaze\EventDispatcher\ListenerProvider;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 
@@ -53,8 +49,6 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     public static array $internalServices = [
         ListenerProviderInterface::class => ListenerProvider::class,
         EventDispatcherInterface::class => Dispatcher::class,
-        ControllerResolverInterface::class => ControllerResolver::class,
-        ArgumentResolverInterface::class => ArgumentResolver::class,
     ];
 
     public function __construct(string $environment, bool $debug)
@@ -116,6 +110,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     /**
      * {@inheritdoc}
+     * @throws ReflectionException
      */
     public function terminate(Request $request, Response $response): void
     {

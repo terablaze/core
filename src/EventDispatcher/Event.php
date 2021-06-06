@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Event;
+namespace TeraBlaze\EventDispatcher;
 
 use Psr\EventDispatcher\StoppableEventInterface;
 
 /**
- * Class Event
+ * Class EventDispatcher
  * @package TeraBlaze\Events
  */
 class Event implements StoppableEventInterface
@@ -22,7 +22,7 @@ class Event implements StoppableEventInterface
      * previous listener halted propagation.
      *
      * @return bool
-     *   True if the Event is complete and no further listeners should be called.
+     *   True if the EventDispatcher is complete and no further listeners should be called.
      *   False to continue calling listeners.
      */
     public function isPropagationStopped(): bool

@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\ControllerMetadata;
+namespace TeraBlaze\Router\ControllerMetadata;
 
 /**
  * Responsible for storing metadata of an argument.
@@ -90,7 +90,7 @@ class ArgumentMetadata
      *
      * @return bool
      */
-    public function isNullable()
+    public function isNullable(): bool
     {
         return $this->isNullable;
     }
@@ -98,14 +98,20 @@ class ArgumentMetadata
     /**
      * Returns the default value of the argument.
      *
-     * @throws \LogicException if no default value is present; {@see self::hasDefaultValue()}
-     *
      * @return mixed
+     * @throws \LogicException if no default value is present; {@see self::hasDefaultValue()}
      */
     public function getDefaultValue()
     {
         if (!$this->hasDefaultValue) {
-            throw new \LogicException(sprintf('Argument $%s does not have a default value. Use "%s::hasDefaultValue()" to avoid this exception.', $this->name, __CLASS__));
+            throw new \LogicException(
+                sprintf(
+                    'Argument $%s does not have a default value. ' .
+                    'Use "%s::hasDefaultValue()" to avoid this exception.',
+                    $this->name,
+                    __CLASS__
+                )
+            );
         }
 
         return $this->defaultValue;

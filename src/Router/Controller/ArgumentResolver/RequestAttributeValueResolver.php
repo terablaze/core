@@ -9,25 +9,25 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\Controller\ArgumentResolver;
+namespace TeraBlaze\Router\Controller\ArgumentResolver;
 
 use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Core\Kernel\Controller\ArgumentValueResolverInterface;
-use TeraBlaze\Core\Kernel\ControllerMetadata\ArgumentMetadata;
+use TeraBlaze\Router\Controller\ArgumentValueResolverInterface;
+use TeraBlaze\Router\ControllerMetadata\ArgumentMetadata;
 
 /**
- * Yields the same instance as the request object passed along.
+ * Yields a non-variadic argument's value from the request attributes.
  *
  * @author Iltar van der Berg <kjarli@gmail.com>
  */
-final class RequestValueResolver implements ArgumentValueResolverInterface
+final class RequestAttributeValueResolver implements ArgumentValueResolverInterface
 {
     /**
      * {@inheritdoc}
      */
     public function supports(Request $request, ArgumentMetadata $argument): bool
     {
-        return Request::class === $argument->getType() || is_subclass_of($argument->getType(), Request::class);
+        return !$argument->isVariadic() && array_key_exists($argument->getName(), $request->getAttributes());
     }
 
     /**
@@ -35,6 +35,6 @@ final class RequestValueResolver implements ArgumentValueResolverInterface
      */
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
-        yield $request;
+        yield $request->getAttribute($argument->getName());
     }
 }

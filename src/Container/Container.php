@@ -155,7 +155,7 @@ class Container implements ContainerInterface
      * Registers a single service (not the instance)
      *
      * @param string $key
-     * @param array<string, string> $service
+     * @param array<string, mixed> $service
      * @return Container
      */
     public function registerService(string $key, array $service): self

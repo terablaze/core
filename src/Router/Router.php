@@ -2,21 +2,28 @@
 
 namespace TeraBlaze\Router;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
 use TeraBlaze\ArrayMethods;
 use TeraBlaze\Collections\Exceptions\TypeException;
-use TeraBlaze\Configuration\Driver\DriverInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
-use TeraBlaze\Core\Kernel\Kernel;
+use TeraBlaze\ErrorHandler\Exception\Http\MethodNotAllowedHttpException;
+use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use TeraBlaze\Events\Events;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\Inspector;
-use TeraBlaze\Router\Exception as Exception;
-use TeraBlaze\Router\Exception\RequestMethod;
+use TeraBlaze\Router\Event\PostBeforeHookEvent;
+use TeraBlaze\Router\Event\PostControllerEvent;
+use TeraBlaze\Router\Event\PostDispatchEvent;
+use TeraBlaze\Router\Event\PreBeforeHookEvent;
+use TeraBlaze\Router\Event\PreControllerEvent;
+use TeraBlaze\Router\Event\PreDispatchEvent;
+use TeraBlaze\Router\Exception\ImplementationException;
+use TeraBlaze\Router\Exception\MissingParametersException;
+use TeraBlaze\Router\Exception\RouteNotFoundException;
 use TeraBlaze\Router\Generator\UrlGenerator;
 use TeraBlaze\Router\Generator\UrlGeneratorInterface;
 use TeraBlaze\Router\Route\{Route, Simple};
@@ -74,15 +81,22 @@ class Router
      */
     protected $routes = [];
 
-    public function __construct()
-    {
-        $this->container = Container::getContainer();
-        if ($this->container->has('kernel')) {
-            $this->kernel = $this->container->get('kernel');
-        }
+    private EventDispatcherInterface $dispatcher;
+
+    public function __construct(
+        Container $container,
+        EventDispatcherInterface $dispatcher
+    ) {
+        $this->container = $container;
+        $this->dispatcher = $dispatcher;
     }
 
-    public function addRoutes($routes, array $config = [], int $nestLevel = 0)
+    /**
+     * @param array<string|int, array> $routes
+     * @param array<string, string|bool> $config
+     * @param int $nestLevel
+     */
+    public function addRoutes(array $routes, array $config = [], int $nestLevel = 0): void
     {
         foreach ($routes as $name => $route) {
             if (
@@ -107,7 +121,6 @@ class Router
         if ($nestLevel > 0) {
             $nestLevel--;
         }
-        return;
     }
 
     /**
@@ -150,9 +163,9 @@ class Router
     // }
 
     /**
-     * @return array
+     * @return Route[]
      */
-    public function getRoutes()
+    public function getRoutes(): array
     {
         return $this->routes;
     }
@@ -161,11 +174,10 @@ class Router
      * @param ServerRequestInterface $request
      * @param string $controller
      * @param string $action
-     * @param array $parameters
+     * @param array<string|int, mixed> $parameters
      * @param string $method
      * @return ResponseInterface
-     * @throws Exception\Action
-     * @throws Exception\Controller
+     * @throws ImplementationException
      * @throws ReflectionException
      */
     protected function pass(
@@ -175,43 +187,46 @@ class Router
         array $parameters = array(),
         string $method = ''
     ): ResponseInterface {
-        $className = ucfirst($controller);
+        $event = new PreControllerEvent($this, $request, $controller);
+        $controller = $event->getController();
+        Events::fire("terablaze.router.controller.before", array($controller, $parameters));
 
+        $className = ucfirst($controller);
         $this->controller = $controller;
         $this->action = $action;
         $this->method = $method;
-        Events::fire("terablaze.router.controller.before", array($controller, $parameters));
 
         if (!class_exists($className)) {
-            $nameArray = explode(":", $className);
-            $className = implode("\\Controller\\", $nameArray);
+            throw new NotFoundHttpException("Controller '{$className}' not found");
         }
 
-        if (!class_exists($className)) {
-            throw new Exception\Controller("Controller '{$className}' not found");
+        if (!$this->container->has($className)) {
+            $this->container->registerService($className, ['class' => $className]);
         }
 
-        $this->container->registerService($className, ['class' => $className]);
-        /** @var ControllerInterface $controllerInstance */
         $controllerInstance = $this->container->get($className);
-        $controllerInstance->setContainer($this->container);
+        if ($controllerInstance instanceof ControllerInterface) {
+            $controllerInstance->setContainer($this->container);
+        }
 
+        $event = new PostControllerEvent($this, $request, $controllerInstance);
+        $controllerInstance = $event->getControllerInstance();
         Events::fire("terablaze.router.controller.after", array($controller, $parameters));
 
         if (!method_exists($controllerInstance, $action)) {
-            throw new Exception\Action("Action '{$action}' not found");
+            throw new NotFoundHttpException("Action '{$action}' not found");
         }
 
         $inspector = new Inspector($controllerInstance);
         $methodMeta = $inspector->getMethodMeta($action);
 
         if (!empty($methodMeta["@protected"]) || !empty($methodMeta["@private"])) {
-            throw new Exception\Action("Action '{$action}' not publicly accessible");
+            throw new NotFoundHttpException("Action '{$action}' not publicly accessible");
         }
 
         $hooks = function ($meta, $type) use ($inspector, $controllerInstance) {
             if (isset($meta[$type])) {
-                $run = array();
+                $run = [];
 
                 foreach ($meta[$type] as $method) {
                     $hookMeta = $inspector->getMethodMeta($method);
@@ -227,6 +242,8 @@ class Router
             }
         };
 
+        $event = new PreBeforeHookEvent($action, $parameters);
+        $this->dispatcher->dispatch($event);
         Events::fire("terablaze.router.beforehooks.before", array($action, $parameters));
 
         $result = $hooks($methodMeta, "@before");
@@ -235,10 +252,12 @@ class Router
             return $result;
         }
 
+        $event = new PostBeforeHookEvent($action, $parameters);
+        $this->dispatcher->dispatch($event);
         Events::fire("terablaze.router.beforehooks.after", array($action, $parameters));
 
-        Events::fire("terablaze.router.action.before", array($action, $parameters));
 
+        Events::fire("terablaze.router.action.before", array($action, $parameters));
 
         $reflectionMethod = new \ReflectionMethod($controllerInstance, $action);
         $reflectionParameters = $reflectionMethod->getParameters();
@@ -255,7 +274,7 @@ class Router
         ], $parameters);
 
         if (is_null($response)) {
-            throw new Exception\Implementation(
+            throw new ImplementationException(
                 "Result of {$className}::{$action}() is either empty or null, " .
                 "ensure the controller's action {$className}::{$action}() " .
                 "is properly implemented and returns an instance of " . ResponseInterface::class
@@ -263,7 +282,7 @@ class Router
         }
 
         if (!$response instanceof ResponseInterface) {
-            throw new Exception\Implementation(
+            throw new ImplementationException(
                 "Result of {$className}::{$action}() is of type " . gettype($response) .
                 ", ensure the controller's action {$className}::{$action}() " .
                 "returns an instance of " . ResponseInterface::class
@@ -281,25 +300,28 @@ class Router
     }
 
     /**
-     *
      * @param ServerRequestInterface $request
      * @return ResponseInterface
-     * @throws Exception\Action
-     * @throws Exception\Controller
-     * @throws Exception\RequestMethod
+     * @throws ImplementationException
      * @throws ReflectionException
      */
     public function dispatch(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var Request $request */
+        $event = new PreDispatchEvent($this, $request);
+        $this->dispatcher->dispatch($event);
+        if ($event->hasResponse()) {
+            return $event->getResponse();
+        }
+        Events::fire("terablaze.router.dispatch.before", array($request->getPathInfo()));
+
+        $request = $event->getRequest();
+
         $url = $request->getPathInfo();
         $parameters = array();
         $controller = '';
         $action = '';
 
         $requestMethod = $request->getMethod();
-
-        Events::fire("terablaze.router.dispatch.before", array($url));
 
         foreach ($this->routes as $route) {
             $matches = $route->matches($url);
@@ -311,8 +333,6 @@ class Router
                 /** @var Request $request */
                 $request = $request->setExpectsJson($route->getExpectsJson());
 
-                Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters, $method));
-
                 $method = array_map(function ($methodItem) {
                     return strtolower($methodItem);
                 }, $method);
@@ -320,11 +340,21 @@ class Router
                 $method = ArrayMethods::clean($method);
 
                 if (!in_array(strtolower($requestMethod), $method) && !empty($method)) {
-                    throw new RequestMethod(
+                    throw new MethodNotAllowedHttpException(
                         $method,
-                        "Request method {$request->getMethod()} not implemented for this endpoint"
+                        "Request method \"{$request->getMethod()}\" not implemented for this endpoint"
                     );
                 }
+
+                $event = new PostDispatchEvent($this, $request);
+                $this->dispatcher->dispatch($event);
+                if ($event->hasResponse()) {
+                    return $event->getResponse();
+                }
+                Events::fire(
+                    "terablaze.router.dispatch.after",
+                    array($url, $controller, $action, $parameters, $method)
+                );
 
                 return $this->pass($request, $controller, $action, $parameters, $requestMethod);
             }
@@ -342,7 +372,11 @@ class Router
                 }
             }
         }
-
+        $event = new PostDispatchEvent($this, $request);
+        $this->dispatcher->dispatch($event);
+        if ($event->hasResponse()) {
+            return $event->getResponse();
+        }
         Events::fire("terablaze.router.dispatch.after", array($url, $controller, $action, $parameters));
         return $this->pass($request, $controller, $action, $parameters, $requestMethod);
     }
@@ -352,15 +386,15 @@ class Router
      * @param array<string, mixed> $parameters
      * @param int $referenceType
      * @return string
-     * @throws Exception\MissingParametersException
-     * @throws Exception\RouteNotFoundException
+     * @throws MissingParametersException
      * @throws ReflectionException
+     * @throws RouteNotFoundException
      * @throws TypeException
      */
     public function generate(
         string $name,
         array $parameters = [],
-        int $referenceType = UrlGenerator::ABSOLUTE_PATH
+        int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
     ): string {
         return $this->getGenerator()->generate($name, $parameters, $referenceType);
     }
@@ -371,8 +405,8 @@ class Router
      */
     public function getGenerator(): UrlGeneratorInterface
     {
-        if (!$this->container->has(UrlGenerator::class)) {
-            $this->container->registerService(UrlGenerator::class, [
+        if (!$this->container->has(UrlGenerator::class) && !$this->container->has(UrlGeneratorInterface::class)) {
+            $this->container->registerService(UrlGeneratorInterface::class, [
                 'class' => UrlGenerator::class,
                 'arguments' => [$this->getRoutes()]
             ]);

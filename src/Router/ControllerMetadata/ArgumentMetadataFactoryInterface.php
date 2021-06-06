@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\ControllerMetadata;
+namespace TeraBlaze\Router\ControllerMetadata;
 
 /**
  * Builds method argument data.

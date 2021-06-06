@@ -9,16 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\Controller;
+namespace TeraBlaze\Router\Controller;
 
 use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Core\Kernel\Controller\ArgumentResolver\DefaultValueResolver;
-use TeraBlaze\Core\Kernel\Controller\ArgumentResolver\RequestAttributeValueResolver;
-use TeraBlaze\Core\Kernel\Controller\ArgumentResolver\RequestValueResolver;
-use TeraBlaze\Core\Kernel\Controller\ArgumentResolver\SessionValueResolver;
-use TeraBlaze\Core\Kernel\Controller\ArgumentResolver\VariadicValueResolver;
-use TeraBlaze\Core\Kernel\ControllerMetadata\ArgumentMetadataFactory;
-use TeraBlaze\Core\Kernel\ControllerMetadata\ArgumentMetadataFactoryInterface;
+use TeraBlaze\Router\Controller\ArgumentResolver\DefaultValueResolver;
+use TeraBlaze\Router\Controller\ArgumentResolver\RequestAttributeValueResolver;
+use TeraBlaze\Router\Controller\ArgumentResolver\RequestValueResolver;
+use TeraBlaze\Router\Controller\ArgumentResolver\VariadicValueResolver;
+use TeraBlaze\Router\ControllerMetadata\ArgumentMetadataFactory;
+use TeraBlaze\Router\ControllerMetadata\ArgumentMetadataFactoryInterface;
 
 /**
  * Responsible for resolving the arguments passed to an action.
@@ -64,7 +63,12 @@ final class ArgumentResolver implements ArgumentResolverInterface
                 }
 
                 if (!$atLeastOne) {
-                    throw new \InvalidArgumentException(sprintf('"%s::resolve()" must yield at least one value.', get_debug_type($resolver)));
+                    throw new \InvalidArgumentException(
+                        sprintf(
+                            '"%s::resolve()" must yield at least one value.',
+                            get_debug_type($resolver)
+                        )
+                    );
                 }
 
                 // continue to the next controller argument
@@ -79,7 +83,15 @@ final class ArgumentResolver implements ArgumentResolverInterface
                 $representative = \get_class($representative);
             }
 
-            throw new \RuntimeException(sprintf('Controller "%s" requires that you provide a value for the "$%s" argument. Either the argument is nullable and no null value has been provided, no default value has been provided or because there is a non optional argument after this one.', $representative, $metadata->getName()));
+            throw new \RuntimeException(
+                sprintf(
+                    'Controller "%s" requires that you provide a value for the "$%s" argument. ' .
+                    'Either the argument is nullable and no null value has been provided, no default ' .
+                    'value has been provided or because there is a non optional argument after this one.',
+                    $representative,
+                    $metadata->getName()
+                )
+            );
         }
 
         return $arguments;
@@ -90,7 +102,6 @@ final class ArgumentResolver implements ArgumentResolverInterface
         return [
             new RequestAttributeValueResolver(),
             new RequestValueResolver(),
-            new SessionValueResolver(),
             new DefaultValueResolver(),
             new VariadicValueResolver(),
         ];

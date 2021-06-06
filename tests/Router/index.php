@@ -74,7 +74,8 @@ dump($routes);
 
 $container = \TeraBlaze\Container\Container::getContainer();
 
-$router = new Router();
+$container->registerService(Router::class, [Router::class]);
+$router = $container->get(Router::class);
 
 // add defined routes
 $router->addRoutes($routes);

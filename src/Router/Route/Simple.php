@@ -12,10 +12,10 @@ use TeraBlaze\Router\Router;
 class Simple extends Route
 {
     /**
-     * @param $url
+     * @param string $url
      * @return bool
      */
-    public function matches($url): bool
+    public function matches(string $url): bool
     {
         $url = trim($url, '/');
         $path = explode("#", $this->path);
@@ -31,7 +31,8 @@ class Simple extends Route
             $keysToReplace[] = "{$key}";
             $keyParts = explode(":", trim($key, "{}"));
             $keyPattern = $keyParts[1] ?? "any";
-            $keyPatterns[] = in_array("#(:" . $keyPattern . ")#", Router::PATTERN_KEYS) ? ":" . $keyPattern : $keyPattern;
+            $keyPatterns[] = in_array("#(:" . $keyPattern . ")#", Router::PATTERN_KEYS) ?
+                ":" . $keyPattern : $keyPattern;
         }
 
         $pattern = str_replace($keysToReplace, $keyPatterns, $pattern);

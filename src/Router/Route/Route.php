@@ -24,7 +24,7 @@ abstract class Route
     /** @var string $action */
     public $action;
 
-    /** @var string|array|null $method */
+    /** @var string|string[]|null $method */
     public $method;
 
     /** @var string $controller */
@@ -33,10 +33,14 @@ abstract class Route
     /** @var bool $expectsJson */
     public $expectsJson;
 
-    /** @var array $parameters */
-    public $parameters = [];
+    /** @var array<string|int, mixed> $parameters */
+    public array $parameters = [];
 
-    public function __construct($route)
+    /**
+     * Route constructor.
+     * @param array<string, mixed> $route
+     */
+    public function __construct(array $route)
     {
         $this->path = $route['pattern'] ?? null;
         $this->controller = $route['controller'] ?? null;
@@ -45,7 +49,7 @@ abstract class Route
         $this->expectsJson = $route['expects_json'] ?? false;
     }
 
-    abstract function matches($url): bool;
+    abstract public function matches(string $url): bool;
 
     /**
      * @return string
@@ -80,7 +84,7 @@ abstract class Route
     }
 
     /**
-     * @return array
+     * @return array<string|int, mixed>
      */
     public function getParameters(): array
     {
@@ -93,14 +97,5 @@ abstract class Route
     public function getExpectsJson(): bool
     {
         return $this->expectsJson;
-    }
-
-    /**
-     * @param $method
-     * @return Exception\Implementation
-     */
-    public function _getExceptionForImplementation($method)
-    {
-        return new Exception\Implementation("{$method} method not implemented");
     }
 }
