@@ -55,10 +55,12 @@ class Handler implements RequestHandlerInterface
             return $middleware($request, $this);
         }
 
+        $middlewareString = is_object($middleware) ? get_class($middleware) : $middleware;
+
         throw new RuntimeException(
             sprintf(
                 'Invalid middleware queue entry: %s. Middleware must either be callable or implement %s.',
-                $middleware,
+                $middlewareString,
                 MiddlewareInterface::class
             )
         );
