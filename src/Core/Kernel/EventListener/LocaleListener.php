@@ -70,7 +70,7 @@ class LocaleListener implements EventSubscriberInterface
         return [
             KernelEvents::REQUEST => [
                 ['setDefaultLocale', 100],
-                // must be registered after the Router to have access to the _locale
+                // must be registered after the Routing to have access to the _locale
                 ['onKernelRequest', 16],
             ],
             KernelEvents::FINISH_REQUEST => [['onKernelFinishRequest', 0]],

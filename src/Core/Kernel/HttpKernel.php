@@ -15,6 +15,7 @@ use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\HttpBase\Exception\RequestExceptionInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
+use TeraBlaze\Profiler\Debugbar\DebugbarMiddleware;
 
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {

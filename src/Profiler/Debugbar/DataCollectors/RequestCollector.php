@@ -108,6 +108,8 @@ class RequestCollector extends DataCollector implements DataCollectorInterface, 
         foreach ($data as $key => $var) {
             if (!is_string($data[$key])) {
                 $data[$key] = DataCollector::getDefaultVarDumper()->renderVar($var);
+            } else {
+                $data[$key] = $var;
             }
         }
 

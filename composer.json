@@ -44,7 +44,7 @@
     },
     "files": [
       "src/Functions.php",
-      "src/Router/Generator/path.php"
+      "src/Routing/Generator/path.php"
     ]
   },
   "autoload-dev": {

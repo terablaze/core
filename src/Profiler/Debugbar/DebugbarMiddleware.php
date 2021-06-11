@@ -14,6 +14,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Profiler\Debugbar\DataCollectors\MySqliCollector;
 use TeraBlaze\Profiler\Debugbar\DataCollectors\RequestCollector;
+use TeraBlaze\Profiler\Debugbar\DataCollectors\RouteCollector;
+use TeraBlaze\Profiler\Debugbar\DataFormatter\QueryFormatter;
+use TeraBlaze\Routing\Router;
 
 class DebugbarMiddleware implements MiddlewareInterface
 {
@@ -59,7 +62,7 @@ class DebugbarMiddleware implements MiddlewareInterface
      * @param StreamFactoryInterface|null $streamFactory
      */
     public function __construct(
-        Bar $debugbar = null,
+        TeraBlazeDebugbar $debugbar = null,
         ResponseFactoryInterface $responseFactory = null,
         StreamFactoryInterface $streamFactory = null
     ) {
@@ -103,7 +106,8 @@ class DebugbarMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $renderer = $this->debugbar->getJavascriptRenderer($this->appUrl . '/vendor/maximebf/debugbar/src/DebugBar/Resources/');
+        $renderer = $this->debugbar
+            ->getJavascriptRenderer($this->appUrl . '/vendor/maximebf/debugbar/src/DebugBar/Resources/');
 
         //Asset response
         $path = $request->getUri()->getPath();
@@ -130,7 +134,17 @@ class DebugbarMiddleware implements MiddlewareInterface
         $container = Container::getContainer();
 
         $this->debugbar->addCollector(new RequestCollector($request, $response));
-        $this->debugbar->addCollector(new MySqliCollector($container->get('ripana.database.connector')->getQueryLogger()));
+
+        $mysqliCollector = new MySqliCollector($container->get('ripana.database.connector')->getQueryLogger());
+        $mysqliCollector->setDataFormatter(new QueryFormatter());
+        $this->debugbar->addCollector($mysqliCollector);
+        $this->debugbar
+            ->addCollector(
+                new RouteCollector(
+                    $container->get(Router::class),
+                    $container
+                )
+            );
 
         $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
 

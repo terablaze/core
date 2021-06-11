@@ -34,7 +34,7 @@ class SessionCollector extends DataCollector implements DataCollectorInterface, 
 
     /**
      * Returns a hash where keys are control names and their values
-     * an array of options as defined in {@see DebugBar\JavascriptRenderer::addControl()}
+     * an array of options as defined in {@see \DebugBar\JavascriptRenderer::addControl()}
      *
      * @return array
      */

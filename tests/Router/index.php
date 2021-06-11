@@ -1,7 +1,7 @@
 <?php
 
-use TeraBlaze\Router\Generator\UrlGenerator;
-use TeraBlaze\Router\Router;
+use TeraBlaze\Routing\Generator\UrlGenerator;
+use TeraBlaze\Routing\Router;
 
 error_reporting(-1);
 ini_set('display_errors', 1);

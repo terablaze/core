@@ -11,8 +11,8 @@ namespace TeraBlaze\Controller;
 
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Router\Generator\UrlGeneratorInterface;
-use TeraBlaze\Router\Router;
+use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
+use TeraBlaze\Routing\Router;
 
 /**
  * Class Controller

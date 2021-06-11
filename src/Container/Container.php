@@ -61,12 +61,17 @@ class Container implements ContainerInterface
      * argument is an instance of ContainerParameter the argument will be
      * replaced with the corresponding parameter from the container before the
      * class is instantiated.
+     * @throws ServiceNotFoundException
      */
     private function __construct()
     {
         $this->resolvedServices = [];
 
         $this->registerServiceInstance('terablaze.container', $this);
+        $interfaces = class_implements($this);
+        foreach ($interfaces as $interface) {
+            $this->setAlias($interface, 'terablaze.container');
+        }
     }
 
     /**

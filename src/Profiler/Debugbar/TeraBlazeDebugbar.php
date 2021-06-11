@@ -11,6 +11,7 @@ use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use DebugBar\DataCollector\TimeDataCollector;
 use DebugBar\DebugBar;
+use TeraBlaze\Profiler\Debugbar\DataCollectors\RouteCollector;
 
 class TeraBlazeDebugbar extends DebugBar
 {

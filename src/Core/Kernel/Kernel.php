@@ -361,14 +361,14 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         foreach ($middlewares as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
                 if ($this->container->has($class)) {
-                    $this->middlewares[] = $this->container->get($class);
+                    $this->middlewares[$class] = $this->container->get($class);
                     continue;
                 }
                 if (!class_exists($class)) {
                     throw new Exception("Middleware with class name: {$class} not found");
                 }
                 $this->container->registerService($class, ['class' => $class]);
-                $this->middlewares[] = $this->container->get($class);
+                $this->middlewares[$class] = $this->container->get($class);
             }
         }
     }

@@ -288,7 +288,7 @@ class ExceptionHandler
         return new Response(
             $this->renderExceptionContent($e),
             $this->isHttpException($e) ? $e->getStatusCode() : 500,
-            $this->isHttpException($e) ? $e->getHeaders() : []
+            $this->isHttpException($e) ? $e->getHeaders() : ['Content-Type' => 'text/html']
         );
     }
 
@@ -361,7 +361,7 @@ class ExceptionHandler
         return (new JsonResponse(
             $this->convertExceptionToArray($e),
             $this->isHttpException($e) ? $e->getStatusCode() : 500,
-            $this->isHttpException($e) ? $e->getHeaders() : []
+            $this->isHttpException($e) ? $e->getHeaders() : ['Content-Type' => 'application/json']
         ))->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
