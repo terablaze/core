@@ -9,6 +9,7 @@ use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Container\ContainerAwareTrait;
 use TeraBlaze\Events\Events;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
+use TeraBlaze\Routing\RouterInterface;
 use TeraBlaze\View\Exception\Argument as ViewArgumentException;
 
 /**
@@ -116,7 +117,7 @@ abstract class Controller implements ControllerInterface
         array $parameters = [],
         int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
     ): string {
-        return $this->container->get('router')->generate($routeName, $parameters, $referenceType);
+        return $this->container->get(RouterInterface::class)->generate($routeName, $parameters, $referenceType);
     }
 
     /**

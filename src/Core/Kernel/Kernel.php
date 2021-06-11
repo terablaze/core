@@ -23,6 +23,8 @@ use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\EventDispatcher\ListenerProvider;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
+use TeraBlaze\Routing\Router;
+use TeraBlaze\Routing\RouterInterface;
 
 abstract class Kernel implements KernelInterface, RebootableInterface, TerminableInterface
 {
@@ -49,6 +51,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     public static array $internalServices = [
         ListenerProviderInterface::class => ListenerProvider::class,
         EventDispatcherInterface::class => Dispatcher::class,
+        RouterInterface::class => Router::class,
     ];
 
     public function __construct(string $environment, bool $debug)

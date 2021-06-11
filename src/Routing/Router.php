@@ -34,16 +34,8 @@ use TeraBlaze\Routing\Route;
  *
  * handles url routing
  */
-class Router
+class Router implements RouterInterface
 {
-    public const SERVICE_ALIAS = "router";
-
-    public const NAMED_ROUTE_MATCH = "{(\w[\w:.,\-'\"{}^$+*?\#\[\]()\\\\\ ]+)}";
-    public const PATTERN_KEYS =
-        ["#(:any)#", "#(:alpha)#", "#(:alphabet)#", "#(:num)#", "#(:numeric)#", "#(:mention)#"];
-    public const PATTERN_KEYS_REPLACEMENTS =
-        ["([^/]+)", "([a-zA-Z]+)", "([a-zA-Z]+)", "([\d]+)", "([\d]+)", "(@[a-zA-Z0-9-_]+)"];
-
     /** @var Container $container */
     protected $container;
     /**
@@ -94,7 +86,7 @@ class Router
     /**
      * @return Request
      */
-    public function getCurrentRequest()
+    public function getCurrentRequest(): ServerRequestInterface
     {
         return $this->currentRequest;
     }
@@ -102,7 +94,7 @@ class Router
     /**
      * @return Route
      */
-    public function getCurrentRoute()
+    public function getCurrentRoute(): Route
     {
         return $this->current;
     }
