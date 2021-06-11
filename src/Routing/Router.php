@@ -119,7 +119,7 @@ class Router
 
     /**
      * @param array<string|int, array> $routes
-     * @param array<string, string|bool> $config
+     * @param array<string, mixed> $config
      * @param int $nestLevel
      */
     public function addRoutes(array $routes, array $config = [], int $nestLevel = 0): void
@@ -131,7 +131,10 @@ class Router
             ) {
                 $groupConfig['prefix'] = ($config['prefix'] ?? '') . ($route['@prefix'] ?? '');
                 $groupConfig['name_prefix'] = ($config['name_prefix'] ?? '') . ($route['@name_prefix'] ?? '');
-                $groupConfig['middlewares'] = ($config['middlewares'] ?? []) . ($route['@middlewares'] ?? []);
+                $groupConfig['middlewares'] = array_merge(
+                    $config['middlewares'] ?? [],
+                    $route['@middlewares'] ?? []
+                );
                 $groupConfig['expects_json'] = $route['@expects_json'] ?? $config['expects_json'] ?? false;
                 $nestLevel++;
                 $this->addRoutes($route['@routes'] ?? [], $groupConfig, $nestLevel);
