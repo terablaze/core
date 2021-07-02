@@ -4,18 +4,17 @@ namespace TeraBlaze\Core\Kernel;
 
 use Psr\Http\Message\ResponseInterface;
 use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Kernel\Event\ExceptionEvent;
-use TeraBlaze\Core\Kernel\Event\FinishRequestEvent;
-use TeraBlaze\Core\Kernel\Event\RequestEvent;
-use TeraBlaze\Core\Kernel\Event\ResponseEvent;
-use TeraBlaze\Core\Kernel\Event\TerminateEvent;
+use TeraBlaze\Core\Kernel\Events\ExceptionEvent;
+use TeraBlaze\Core\Kernel\Events\FinishRequestEvent;
+use TeraBlaze\Core\Kernel\Events\RequestEvent;
+use TeraBlaze\Core\Kernel\Events\ResponseEvent;
+use TeraBlaze\Core\Kernel\Events\TerminateEvent;
 use TeraBlaze\ErrorHandler\Exception\Http\BadRequestHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\HttpBase\Exception\RequestExceptionInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Profiler\Debugbar\DebugbarMiddleware;
 
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {
@@ -120,7 +119,7 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
 
         $this->dispatcher->dispatch($event);
 
-        $this->finishRequest($request);
+        $this->finishRequest($event->getRequest());
 
         return $event->getResponse();
     }

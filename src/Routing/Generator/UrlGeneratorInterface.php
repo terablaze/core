@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Routing\Generator;
 
-use TeraBlaze\Collections\Exceptions\TypeException;
+use TeraBlaze\Collection\Exceptions\TypeException;
 use TeraBlaze\Routing\Exception as Exception;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;
 

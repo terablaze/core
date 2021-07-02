@@ -7,7 +7,7 @@ use TeraBlaze\Cache\Driver\Memcache;
 use TeraBlaze\Cache\Driver\File;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\Cache\Exception\Argument as ArgumentException;
-use TeraBlaze\Configuration\Driver\DriverInterface;
+use TeraBlaze\Config\Driver\DriverInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\Parcel;

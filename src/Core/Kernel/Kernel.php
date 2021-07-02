@@ -5,18 +5,24 @@ namespace TeraBlaze\Core\Kernel;
 use Exception;
 use LogicException;
 use Middlewares\Utils\Factory;
+use Monolog\Logger;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use Psr\Log\LoggerInterface;
 use ReflectionException;
-use TeraBlaze\Configuration\Configuration;
-use TeraBlaze\Configuration\Exception\ArgumentException;
+use TeraBlaze\Config\Config;
+use TeraBlaze\Config\Configuration;
+use TeraBlaze\Config\Exception\ArgumentException;
+use TeraBlaze\Config\FileLocator;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
+use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\ErrorHandler\HandleExceptions;
 use TeraBlaze\EventDispatcher\Dispatcher;
@@ -49,15 +55,24 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     protected ?Container $container = null;
 
     public static array $internalServices = [
+        LoggerInterface::class => Logger::class,
         ListenerProviderInterface::class => ListenerProvider::class,
         EventDispatcherInterface::class => Dispatcher::class,
         RouterInterface::class => Router::class,
     ];
 
+    private Dispatcher $dispatcher;
+    private Request $initialRequest;
+    private string $configDir;
+    private string $envConfigDir;
+
     public function __construct(string $environment, bool $debug)
     {
         $this->environment = $environment;
         $this->debug = $debug;
+        $this->dispatcher = new Dispatcher(new ListenerProvider());
+        $this->configDir = "{$this->getProjectDir()}/config/";
+        $this->envConfigDir = "{$this->getProjectDir()}/config/{$this->getEnvironment()}/";
     }
 
     /**
@@ -72,22 +87,21 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         }
         (new HandleExceptions())->bootstrap($this);
 
-        $configuration = (new Configuration("phparray", $this))->initialize();
-
         try {
-            $services = $configuration->parseArray('services');
+            $services = loadConfigArray('services');
         } catch (Exception $exceptionS) {
             $services = [];
         }
         try {
-            $parameters = $configuration->parseArray('parameters');
+            $parameters = loadConfigArray('parameters');
         } catch (Exception $exceptionP) {
             $parameters = [];
         }
+
         $this->container = Container::getContainer($services, $parameters);
 
         $this->container->registerServiceInstance('kernel', $this);
-        $this->container->registerServiceInstance('configuration', $configuration);
+        $this->container->setAlias(KernelInterface::class, 'kernel');
 
         $constantsFile = $this->getProjectDir() . '/config/constants.php';
         if (file_exists($constantsFile)) {
@@ -97,9 +111,11 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $this->registerInternalServices();
 
         $this->initializeParcels();
-        $this->registerMiddlewares();
+        $this->registerMiddleWares();
 
         $this->booted = true;
+
+        $this->dispatcher->dispatch(new PostKernelBootEvent($this));
     }
 
     /**
@@ -140,6 +156,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         foreach ($this->getParcels() as $parcel) {
             $parcel->shutdown();
             $parcel->setContainer(null);
+            $parcel->setEventDispatcher(null);
         }
 
         $this->container = null;
@@ -159,9 +176,15 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
                 \TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory::class,
             ));
         }
+        $this->initialRequest = $request;
         $this->boot();
 
         return $this->getHttpKernel()->handle($request, $catch);
+    }
+
+    public function getInitialRequest(): ?Request
+    {
+        return $this->initialRequest ?? null;
     }
 
     /**
@@ -202,7 +225,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
                     'Parcel "%s" does not exist or it is not enabled. Maybe you forgot to add it in the ' .
                     '"registerParcels()" method of your "%s.php" file?',
                     $name,
-                    'config/parcels'
+                    static::class
                 )
             );
         }
@@ -250,6 +273,42 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         return $this->projectDir;
     }
 
+    /**
+     * @param string $configDir
+     * @return KernelInterface
+     */
+    public function setConfigDir(string $configDir): KernelInterface
+    {
+        $this->configDir = $configDir;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConfigDir(): string
+    {
+        return $this->configDir;
+    }
+
+    /**
+     * @param string $envConfigDir
+     * @return KernelInterface
+     */
+    public function setEnvConfigDir(string $envConfigDir): KernelInterface
+    {
+        $this->envConfigDir = $envConfigDir;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEnvConfigDir(): string
+    {
+        return $this->envConfigDir;
+    }
+
     public function getVarDir(): string
     {
         $dir = $this->getProjectDir() . '/var/';
@@ -287,6 +346,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     }
 
     /**
+     * @return ContainerInterface|Container
      */
     public function getContainer(): ContainerInterface
     {
@@ -302,11 +362,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
      */
     public function registerParcels(): iterable
     {
-        $parcels = [];
-        $configFile = $this->getProjectDir() . '/config/parcels.php';
-        if (file_exists($configFile)) {
-            $parcels = require $configFile;
-        }
+        $parcels = loadConfigArray('parcels');
         foreach ($parcels as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
                 if ($this->container->has($class)) {
@@ -343,37 +399,39 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
         foreach ($this->getParcels() as $parcel) {
             $parcel->setContainer($this->container);
+            $parcel->setEventDispatcher($this->dispatcher);
             $parcel->boot();
         }
     }
 
     /**
-     * @throws ContainerException
-     * @throws ParameterNotFoundException
      * @throws ReflectionException
-     * @throws ServiceNotFoundException
-     * @throws Exception
      */
-    public function registerMiddlewares(): void
+    public function registerMiddleWares(): void
     {
-        $middlewares = [];
-        $configFile = $this->getProjectDir() . '/config/middlewares.php';
-        if (file_exists($configFile)) {
-            $middlewares = require $configFile;
-        }
+        $middlewares = loadConfigArray('middlewares');
         foreach ($middlewares as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
-                if ($this->container->has($class)) {
-                    $this->middlewares[$class] = $this->container->get($class);
-                    continue;
-                }
-                if (!class_exists($class)) {
-                    throw new Exception("Middleware with class name: {$class} not found");
-                }
-                $this->container->registerService($class, ['class' => $class]);
-                $this->middlewares[$class] = $this->container->get($class);
+                $this->registerMiddleWare($class);
             }
         }
+    }
+
+    /**
+     * @param string $class
+     * @throws ReflectionException
+     */
+    public function registerMiddleWare(string $class): void
+    {
+        if ($this->container->has($class)) {
+            $this->middlewares[$class] = $this->container->get($class);
+            return;
+        }
+        if (!class_exists($class)) {
+            throw new Exception("Middleware with class name: {$class} not found");
+        }
+        $this->container->registerService($class, ['class' => $class]);
+        $this->middlewares[$class] = $this->container->get($class);
     }
 
     public function registerInternalServices(): void

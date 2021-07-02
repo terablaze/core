@@ -1,17 +1,10 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 2/1/2017
- * Time: 4:39 AM
- */
-
 namespace TeraBlaze\Ripana\ORM;
 
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
-use TeraBlaze\Ripana\Database\ConnectorInterface;
+use TeraBlaze\Ripana\Database\Connectors\ConnectorInterface;
 use TeraBlaze\Ripana\ORM\Exception\EntityNotFoundException;
 use TeraBlaze\Ripana\ORM\Repository\EntityRepository;
 

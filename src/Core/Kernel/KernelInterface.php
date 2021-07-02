@@ -2,8 +2,10 @@
 
 namespace TeraBlaze\Core\Kernel;
 
+use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\ParcelInterface;
+use TeraBlaze\HttpBase\Request;
 
 interface KernelInterface extends HttpKernelInterface
 {
@@ -37,7 +39,7 @@ interface KernelInterface extends HttpKernelInterface
     /**
      * Gets the current container.
      *
-     * @return ContainerInterface
+     * @return ContainerInterface|Container
      */
     public function getContainer(): ContainerInterface;
 
@@ -47,6 +49,14 @@ interface KernelInterface extends HttpKernelInterface
      * @return string
      */
     public function getProjectDir(): string;
+
+    public function setConfigDir(string $configDir): KernelInterface;
+
+    public function getConfigDir(): string;
+
+    public function setEnvConfigDir(string $envConfigDir): KernelInterface;
+
+    public function getEnvConfigDir(): string;
 
     /**
      * Returns an array of parcels to register.
@@ -71,6 +81,9 @@ interface KernelInterface extends HttpKernelInterface
      */
     public function getParcel(string $name): ParcelInterface;
 
+    public function registerMiddleWares(): void;
 
-    public function registerMiddleWares();
+    public function registerMiddleWare(string $class): void;
+
+    public function getInitialRequest(): ?Request;
 }

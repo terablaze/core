@@ -10,7 +10,7 @@
 namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
-use TeraBlaze\Configuration\Driver\DriverInterface;
+use TeraBlaze\Config\Driver\DriverInterface;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\HttpBase\Session\Exception as Exception;
 

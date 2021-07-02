@@ -10,7 +10,7 @@ use TeraBlaze\Events\Events;
 trait ContainerAwareTrait
 {
     /**
-     * @var ContainerInterface $container
+     * @var ContainerInterface|Container $container
      */
     protected $container;
 

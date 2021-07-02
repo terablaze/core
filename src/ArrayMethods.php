@@ -1,13 +1,8 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 11/27/2016
- * Time: 11:57 AM
- */
-
 namespace TeraBlaze;
+
+use ArrayAccess;
 
 /**
  * Class ArrayMethods
@@ -20,6 +15,33 @@ class ArrayMethods
         // do nothing
     }
 
+    /**
+     * Determine whether the given value is array accessible.
+     *
+     * @param  mixed  $value
+     * @return bool
+     */
+    public static function accessible($value): bool
+    {
+        return is_array($value) || $value instanceof ArrayAccess;
+    }
+
+    /**
+     * Determine if the given key exists in the provided array.
+     *
+     * @param ArrayAccess|array  $array
+     * @param  string|int  $key
+     * @return bool
+     */
+    public static function exists($array, $key)
+    {
+        if ($array instanceof ArrayAccess) {
+            return $array->offsetExists($key);
+        }
+
+        return array_key_exists($key, $array);
+    }
+
     public static function trim($array)
     {
         return array_map(function ($item) {
@@ -29,7 +51,7 @@ class ArrayMethods
 
     public static function toObject($array)
     {
-        $result = new \stdClass();
+        $result = new class($array) extends \ArrayObject {};
 
         foreach ($array as $key => $value) {
             if (is_array($value)) {

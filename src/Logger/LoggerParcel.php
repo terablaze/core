@@ -6,7 +6,7 @@ use Monolog\Handler\SlackWebhookHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
-use TeraBlaze\Configuration\Driver\DriverInterface;
+use TeraBlaze\Config\Driver\DriverInterface;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Logger\HandlerFactories\SlackWebhookHandlerFactory;

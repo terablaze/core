@@ -2,11 +2,28 @@
 
 namespace TeraBlaze\Core\Parcel;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
+use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerAwareInterface;
+use TeraBlaze\Container\ContainerAwareTrait;
 use TeraBlaze\Container\ContainerInterface;
+use TeraBlaze\EventDispatcher\Dispatcher;
 
-interface ParcelInterface extends ContainerAwareInterface
+interface ParcelInterface
 {
+
+    /**
+     * @param ContainerInterface|null $container
+     * @return $this;
+     */
+    public function setContainer(?ContainerInterface $container = null): self;
+
+    /**
+     * @param Dispatcher|EventDispatcherInterface|null $dispatcher
+     * @return $this;
+     */
+    public function setEventDispatcher(?EventDispatcherInterface $dispatcher = null): self;
+
     /**
      * Boots the Parcel.
      */

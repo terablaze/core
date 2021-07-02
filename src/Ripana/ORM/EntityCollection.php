@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Ripana\ORM;
 
-use TeraBlaze\Collections\ArrayCollection;
+use TeraBlaze\Collection\ArrayCollection;
 
 class EntityCollection extends ArrayCollection
 {

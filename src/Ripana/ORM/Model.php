@@ -3,10 +3,10 @@
 namespace TeraBlaze\Ripana\ORM;
 
 use DateTime;
-use TeraBlaze\Configuration\PolymorphismTrait;
+use TeraBlaze\Config\PolymorphismTrait;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
-use TeraBlaze\Ripana\Database\ConnectorInterface;
+use TeraBlaze\Ripana\Database\Connectors\ConnectorInterface;
 use TeraBlaze\Ripana\ORM\Column\Column;
 use TeraBlaze\Ripana\ORM\Column\ManyToOne;
 use TeraBlaze\Ripana\ORM\Column\OneToMany;
@@ -350,7 +350,7 @@ abstract class Model
             if ($this->__container->has($connectorString)) {
                 $database = $this->__container->get($connectorString);
             } else {
-                throw new ConnectorException("Connector: {$connectorString} not found");
+                throw new ConnectorException("MysqliConnector: {$connectorString} not found");
             }
             $this->__connector = $database;
         }

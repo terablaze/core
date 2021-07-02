@@ -2,17 +2,53 @@
 
 namespace TeraBlaze\Core\Parcel;
 
-use TeraBlaze\Container\ContainerAwareTrait;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
+use TeraBlaze\Core\Kernel\KernelInterface;
+use TeraBlaze\EventDispatcher\Dispatcher;
 
 abstract class Parcel implements ParcelInterface
 {
-    use ContainerAwareTrait;
-
     protected $name;
     protected $extension;
     protected $path;
     private $namespace;
+
+    /**
+     * @var ContainerInterface|Container $container
+     */
+    protected $container;
+
+    /**
+     * @var Dispatcher|EventDispatcherInterface $dispatcher
+     */
+    protected $dispatcher;
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setContainer(?ContainerInterface $container = null): self
+    {
+        $this->container = $container;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setEventDispatcher(?EventDispatcherInterface $dispatcher = null): self
+    {
+        $this->dispatcher = $dispatcher;
+
+        return $this;
+    }
+
+    public function getKernel(): KernelInterface
+    {
+        return $this->container->get('kernel');
+    }
 
     /**
      * {@inheritdoc}

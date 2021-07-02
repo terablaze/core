@@ -3,7 +3,7 @@
 namespace TeraBlaze\Ripana\ORM\Repository;
 
 use TeraBlaze\Container\Container;
-use TeraBlaze\Ripana\Database\QueryInterface;
+use TeraBlaze\Ripana\Database\Query\QueryInterface;
 use TeraBlaze\Ripana\ORM\EntityManager;
 use TeraBlaze\Ripana\ORM\Exception\Connector;
 use TeraBlaze\Ripana\ORM\Model;

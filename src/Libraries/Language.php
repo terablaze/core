@@ -25,7 +25,7 @@ namespace {
 namespace TeraBlaze\Libraries {
 
     use TeraBlaze\Base as Base;
-    use TeraBlaze\Configuration\Exception as Exception;
+    use TeraBlaze\Config\Exception as Exception;
     use TeraBlaze\Events\Events as Events;
 
     class Language extends Base

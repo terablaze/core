@@ -1,7 +1,7 @@
 <?php
 
 use TeraBlaze\Container\Container;
-use TeraBlaze\Ripana\Database\Drivers\Mysqli\Connector;
+use TeraBlaze\Ripana\Database\Connectors\MysqliConnector;
 use TeraBlaze\Ripana\ORM\EntityManager;
 use Tests\TeraBlaze\Model\User;
 
@@ -11,7 +11,7 @@ ini_set('display_errors', 1);
 
 include_once __DIR__ . "/../../vendor/autoload.php";
 
-$connector = new Connector([
+$connector = new MysqliConnector([
     "type" => 'mysqli',
     "host" => 'localhost',
     "username" => 'root',

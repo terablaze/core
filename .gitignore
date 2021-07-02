@@ -1,8 +1,8 @@
-.idea/
+/.idea
 *.log
-var/
-vendor/
+/var
+/vendor
 composer.lock
-config/
-tests/
+/config
+/tests
 .phpcs-cache

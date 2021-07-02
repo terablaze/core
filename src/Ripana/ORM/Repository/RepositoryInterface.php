@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Ripana\ORM\Repository;
 
-use TeraBlaze\Ripana\Database\QueryInterface;
+use TeraBlaze\Ripana\Database\Query\QueryInterface;
 
 interface RepositoryInterface
 {

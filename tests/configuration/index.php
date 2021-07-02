@@ -2,7 +2,7 @@
 
 include_once __DIR__ . "/../../vendor/autoload.php";
 
-use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Config\Configuration;
 
 $configuration = new Configuration('phparray');
 $configuration = $configuration->initialize();

@@ -725,7 +725,7 @@ class Request extends Psr7ServerRequest
     {
         if ($this->isFromTrustedProxy() && $host = $this->getTrustedValues(self::HEADER_X_FORWARDED_HOST)) {
             $host = $host[0];
-        } elseif (!$host = $this->getHeaderLine('HOST')) {
+        } elseif (!$host = $this->getHeader('HOST')[0]) {
             if (!$host = $this->getServerParam('SERVER_NAME')) {
                 $host = $this->getServerParam('SERVER_ADDR', '');
             }

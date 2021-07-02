@@ -41,7 +41,7 @@ class Container implements ContainerInterface
     private array $resolvedServices = [];
 
     /**
-     * @var array
+     * @var array<string, mixed>
      */
     private array $parameters = [];
 
@@ -49,6 +49,16 @@ class Container implements ContainerInterface
      * @var array<string, mixed>
      */
     private array $resolvedParameters = [];
+
+    /**
+     * @var array<string, mixed>
+     */
+    private array $config = [];
+
+    /**
+     * @var array<string, mixed>
+     */
+    private array $resolvedConfig = [];
 
     /**
      * Constructor for the container.
@@ -202,14 +212,39 @@ class Container implements ContainerInterface
      */
     public function registerParameter(string $key, $parameter): self
     {
-        if (array_key_exists($key, $this->parameters)) {
-            $newValue = (is_array($parameter)) ?
-                array_merge($this->parameters[$key], $parameter) :
-                array_merge($this->parameters[$key], [$parameter]);
+        return $this->registerValue('parameter', $key, $parameter);
+    }
+
+    /**
+     * Registers a parameter
+     *
+     * @param string $key
+     * @param mixed $parameter
+     * @return Container
+     */
+    public function registerConfig(string $key, $parameter): self
+    {
+        return $this->registerValue('config', $key, $parameter);
+    }
+
+    /**
+     * Registers a value
+     *
+     * @param string $var
+     * @param string $key
+     * @param mixed $value
+     * @return Container
+     */
+    private function registerValue(string $var, string $key, $value): self
+    {
+        if (array_key_exists($key, $this->$var)) {
+            $newValue = (is_array($value)) ?
+                array_merge($this->$var[$key], $value) :
+                array_merge($this->$var[$key], [$value]);
         } else {
-            $newValue = $parameter;
+            $newValue = $value;
         }
-        $this->parameters[$key] = $newValue;
+        $this->$var[$key] = $newValue;
         return $this;
     }
 
@@ -220,7 +255,7 @@ class Container implements ContainerInterface
     public function get($id): object
     {
         if (!$this->has($id)) {
-            throw new ServiceNotFoundException('Service not found: ' . $id);
+            throw new ServiceNotFoundException('ServiceException not found: ' . $id);
         }
 
         if (isset($this->resolvedServices[$id])) {
@@ -295,6 +330,37 @@ class Container implements ContainerInterface
         }
 
         return true;
+    }
+
+    public function getAllConfig(): array
+    {
+        return $this->config;
+    }
+
+    public function getConfig($name, $default = null)
+    {
+        // If we haven't created it, create it and save to store
+        if (!isset($this->resolvedConfig[$name])) {
+            $tokens = explode('.', $name);
+            $context = $this->config;
+
+            while (null !== ($token = array_shift($tokens))) {
+                if (!isset($context[$token])) {
+                    return $default;
+                }
+                $context = $context[$token];
+            }
+
+            if (!is_string($context)) {
+                // TODO: Resolve parameters
+            } elseif ($this->isParameter($context)) {
+                $context = $this->getConfig($this->cleanParameterReference($context));
+            }
+
+            $this->resolvedConfig[$name] = $context;
+        }
+
+        return $this->resolvedConfig[$name];
     }
 
     /**

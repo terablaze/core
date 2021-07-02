@@ -5,7 +5,7 @@ namespace TeraBlaze\Ripana\Logging;
 use function microtime;
 
 /**
- * Includes executed SQLs in a Query Logger.
+ * Includes executed SQLs in a MysqliQuery Logger.
  */
 class QueryLogger
 {

@@ -1,8 +1,10 @@
 <?php
 
+use TeraBlaze\ArrayMethods;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception\JsonDecodeException;
 use TeraBlaze\Core\Exception\JsonEncodeException;
+use TeraBlaze\HigherOrderTapProxy;
 
 /**
  * Created by TeraBoxX.
@@ -37,3 +39,186 @@ function jsonEncode($value, $flags = 0, $depth = 512): string
     }
     return $ret;
 }
+
+if (!function_exists('data_set')) {
+    /**
+     * Set an item on an array or object using dot notation.
+     *
+     * @param mixed $target
+     * @param string|array $key
+     * @param mixed $value
+     * @param bool $overwrite
+     * @return mixed
+     */
+    function data_set(&$target, $key, $value, $overwrite = true)
+    {
+        $segments = is_array($key) ? $key : explode('.', $key);
+
+        if (($segment = array_shift($segments)) === '*') {
+            if (!ArrayMethods::accessible($target)) {
+                $target = [];
+            }
+
+            if ($segments) {
+                foreach ($target as &$inner) {
+                    data_set($inner, $segments, $value, $overwrite);
+                }
+            } elseif ($overwrite) {
+                foreach ($target as &$inner) {
+                    $inner = $value;
+                }
+            }
+        } elseif (ArrayMethods::accessible($target)) {
+            if ($segments) {
+                if (!ArrayMethods::exists($target, $segment)) {
+                    $target[$segment] = [];
+                }
+
+                data_set($target[$segment], $segments, $value, $overwrite);
+            } elseif ($overwrite || !ArrayMethods::exists($target, $segment)) {
+                $target[$segment] = $value;
+            }
+        } elseif (is_object($target)) {
+            if ($segments) {
+                if (!isset($target->{$segment})) {
+                    $target->{$segment} = [];
+                }
+
+                data_set($target->{$segment}, $segments, $value, $overwrite);
+            } elseif ($overwrite || !isset($target->{$segment})) {
+                $target->{$segment} = $value;
+            }
+        } else {
+            $target = [];
+
+            if ($segments) {
+                data_set($target[$segment], $segments, $value, $overwrite);
+            } elseif ($overwrite) {
+                $target[$segment] = $value;
+            }
+        }
+
+        return $target;
+    }
+
+    if (!function_exists('tap')) {
+        /**
+         * Call the given Closure with the given value then return the value.
+         *
+         * @param mixed $value
+         * @param callable|null $callback
+         * @return mixed
+         */
+        function tap($value, $callback = null)
+        {
+            if (is_null($callback)) {
+                return new HigherOrderTapProxy($value);
+            }
+
+            $callback($value);
+
+            return $value;
+        }
+    }
+}
+
+
+if (! function_exists('env')) {
+    /**
+     * Gets the value of an environment variable.
+     *
+     * @param  string  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    function env($key, $default = null)
+    {
+        $value = getenv($key);
+
+        if ($value === false) {
+            return value($default);
+        }
+
+        switch (strtolower($value)) {
+            case 'true':
+            case '(true)':
+                return true;
+            case 'false':
+            case '(false)':
+                return false;
+            case 'empty':
+            case '(empty)':
+                return '';
+            case 'null':
+            case '(null)':
+                return;
+        }
+
+        if (($valueLength = strlen($value)) > 1 && $value[0] === '"' && $value[$valueLength - 1] === '"') {
+            return substr($value, 1, -1);
+        }
+
+        return $value;
+    }
+}
+
+if (! function_exists('value')) {
+    /**
+     * Return the default value of the given value.
+     *
+     * @param  mixed  $value
+     * @return mixed
+     */
+    function value($value)
+    {
+        return $value instanceof Closure ? $value() : $value;
+    }
+}
+
+if (! function_exists('loadConfig')) {
+    /**
+     * Return the default value of the given value.
+     *
+     * @param $context
+     * @param string|null $prefix
+     * @param string[] $paths
+     * @return mixed
+     * @throws ReflectionException
+     * @throws \TeraBlaze\Config\Exception\ArgumentException
+     * @throws \TeraBlaze\Config\Exception\InvalidContextException
+     */
+    function loadConfig($context, ?string $prefix = null, array $paths = []): \TeraBlaze\Config\ConfigInterface
+    {
+        $container = Container::getContainer();
+        /** @var \TeraBlaze\Core\Kernel\KernelInterface $kernel */
+        $kernel = $container->get(\TeraBlaze\Core\Kernel\KernelInterface::class);
+        if (empty($paths)) {
+            $paths = [$kernel->getEnvConfigDir(), $kernel->getConfigDir()];
+        }
+        $config = new \TeraBlaze\Config\Config(
+            $context,
+            $prefix,
+            $paths
+        );
+        return $config;
+    }
+}
+
+if (! function_exists('loadConfigArray')) {
+    /**
+     * Return the default value of the given value.
+     *
+     * @param $context
+     * @param string|null $prefix
+     * @param string[] $paths
+     * @return mixed
+     * @throws ReflectionException
+     * @throws \TeraBlaze\Config\Exception\ArgumentException
+     * @throws \TeraBlaze\Config\Exception\InvalidContextException
+     */
+    function loadConfigArray($context, ?string $prefix = null, array $paths = [])
+    {
+        return (loadConfig($context, $prefix, $paths))->toArray();
+    }
+}
+

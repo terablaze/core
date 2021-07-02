@@ -3,89 +3,72 @@
 namespace TeraBlaze\Ripana;
 
 use ReflectionException;
-use TeraBlaze\Configuration\Configuration;
-use TeraBlaze\Configuration\Driver\DriverInterface;
-use TeraBlaze\Configuration\Exception\ArgumentException as ConfigArgumentException;
-use TeraBlaze\Configuration\Exception\Syntax;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerInterface;
+use TeraBlaze\Config\Exception\ArgumentException as ConfigArgumentException;
+use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\Events\Events;
-use TeraBlaze\Ripana\Database\Drivers\Mysqli\Connector;
-use TeraBlaze\Ripana\Database\Exception\Argument;
+use TeraBlaze\Ripana\Database\Connectors\MysqliConnector;
+use TeraBlaze\Ripana\Database\Exception\ArgumentException;
+use TeraBlaze\Ripana\Events\InitializeEvent;
+use TeraBlaze\Ripana\Events\PreInitializeEvent;
 use TeraBlaze\Ripana\ORM\EntityManager;
 
 class RipanaParcel extends Parcel implements ParcelInterface
 {
-    public const RIPANA_INITIALIZE_BEFORE_EVENT = "terablaze.ripana.initialize.before",
-        RIPANA_INITIALIZE_AFTER_EVENT = "terablaze.ripana.initialize.after";
-
-    protected $type;
-
-    protected $options;
-
     /**
-     * @throws Argument
+     * @throws ArgumentException
      * @throws ReflectionException
      * @throws ServiceNotFoundException
+     * @throws ConfigArgumentException
+     * @throws InvalidContextException
      */
     public function boot(): void
     {
-        if (!$this->container->has('configuration')) {
-            return;
-        }
-        /** @var DriverInterface $configuration */
-        $configuration = $this->container->get('configuration');
-
-        $parsed = $configuration->parse("ripana");
+        $parsed = loadConfigArray('ripana');
 
         foreach ($parsed as $key => $conf) {
-            if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {
-                $this->type = $parsed->{$key}->type;
-                $this->options = (array)$parsed->{$key};
-                $this->initialize($key);
-            }
+            $this->initialize($key, $conf);
         }
     }
 
     /**
-     * @param string $dbConf
-     * @throws Argument
+     * @param string $confKey
+     * @param array<string, mixed> $conf
+     * @throws ArgumentException
      * @throws ReflectionException
      * @throws ServiceNotFoundException
      */
-    public function initialize(string $dbConf = "default")
+    private function initialize(string $confKey, array $conf): void
     {
-        Events::fire(self::RIPANA_INITIALIZE_BEFORE_EVENT, array($this->type, $this->options));
-        $connectionName = "ripana.database.connector.{$dbConf}";
-        $entityManagerName = "ripana.orm.entity_manager.{$dbConf}";
-        $dbConnection = null;
+        $preInitEvent = new PreInitializeEvent($confKey, $conf);
+        $this->dispatcher->dispatch($preInitEvent);
 
-        if (!$this->type) {
-            throw new Argument("Invalid type");
+        $confKey = $preInitEvent->getConfKey();
+        $options = $preInitEvent->getConf();
+        $type = $options['type'] ?? [];
+
+        $connectionName = "ripana.database.connector.{$confKey}";
+        $entityManagerName = "ripana.orm.entity_manager.{$confKey}";
+        if (empty($type)) {
+            throw new ArgumentException("Database driver type not set");
         }
 
-        switch ($this->type) {
+        switch ($type) {
             case "mysql":
             case "mysqli":
-            {
-                $dbConnection = (new Connector($this->options))->setDatabaseConfName($dbConf);
+                $dbConnection = (new MysqliConnector($options))->setDatabaseConfName($confKey);
                 break;
-            }
             default:
-            {
-                throw new Argument("Invalid or unimplemented database type");
-            }
+                throw new ArgumentException(sprintf("Invalid or unimplemented database type: %s", $type));
         }
+        $initEvent = new InitializeEvent($dbConnection);
         $this->container->registerServiceInstance($connectionName, $dbConnection);
         $entityManager = new EntityManager($this->container->get($connectionName));
         $this->container->registerServiceInstance($entityManagerName, $entityManager);
-        if ($dbConf == 'default') {
+        if ($confKey == 'default') {
             $this->container->setAlias('ripana.database.connector', $connectionName);
             $this->container->setAlias('ripana.orm.entity_manager', $entityManagerName);
         }
-        Events::fire(self::RIPANA_INITIALIZE_AFTER_EVENT, array($this->type, $this->options));
     }
 }

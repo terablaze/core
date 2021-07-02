@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Routing\Generator;
 
-use TeraBlaze\Collections\ArrayCollection;
+use TeraBlaze\Collection\ArrayCollection;
 use TeraBlaze\Container\Container;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\Routing\Exception as Exception;
@@ -50,7 +50,7 @@ class UrlGenerator implements UrlGeneratorInterface
      * @throws Exception\MissingParametersException
      * @throws Exception\MissingRouteParameterNameException
      * @throws RouteNotFoundException
-     * @throws \TeraBlaze\Collections\Exceptions\TypeException
+     * @throws \TeraBlaze\Collection\Exceptions\TypeException
      *
      * {@inheritDoc}
      */

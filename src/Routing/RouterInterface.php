@@ -5,7 +5,7 @@ namespace TeraBlaze\Routing;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
-use TeraBlaze\Collections\Exceptions\TypeException;
+use TeraBlaze\Collection\Exceptions\TypeException;
 use TeraBlaze\Routing\Exception\ImplementationException;
 use TeraBlaze\Routing\Exception\MissingParametersException;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;

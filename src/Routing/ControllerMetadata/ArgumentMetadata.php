@@ -106,7 +106,7 @@ class ArgumentMetadata
         if (!$this->hasDefaultValue) {
             throw new \LogicException(
                 sprintf(
-                    'Argument $%s does not have a default value. ' .
+                    'ArgumentException $%s does not have a default value. ' .
                     'Use "%s::hasDefaultValue()" to avoid this exception.',
                     $this->name,
                     __CLASS__

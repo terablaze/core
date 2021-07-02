@@ -14,7 +14,7 @@ if ($trustedProxies = $_SERVER['TRUSTED_PROXIES'] ?? false) {
     );
 }
 
-if ($trustedHosts = '^(localhost|example\.com)$' ?? false) {
+if ($trustedHosts = '^(localhost|core.terablaze.test)$' ?? false) {
     Request::setTrustedHosts([$trustedHosts]);
 }
 

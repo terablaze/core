@@ -6,7 +6,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TeraBlaze\Configuration\Driver\DriverInterface;
+use TeraBlaze\Config\Config;
+use TeraBlaze\Config\Driver\DriverInterface;
 use TeraBlaze\Container\Container;
 
 class RouterMiddleware implements MiddlewareInterface
@@ -25,10 +26,7 @@ class RouterMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        /** @var DriverInterface $configuration */
-        $configuration = $this->container->get('configuration');
-
-        $routes = $configuration->parseArray("routes");
+        $routes = loadConfigArray('routes');
 
         // add defined routes
         if (!empty($routes) && is_array($routes)) {

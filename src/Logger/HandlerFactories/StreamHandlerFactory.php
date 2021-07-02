@@ -6,15 +6,15 @@ use Exception;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use ReflectionException;
-use TeraBlaze\Configuration\Configuration;
+use TeraBlaze\Config\Configuration;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Events\Events;
-use TeraBlaze\Ripana\Database\Drivers\Mysqli\Connector;
-use TeraBlaze\Ripana\Database\Exception\Argument;
+use TeraBlaze\Ripana\Database\Drivers\Mysqli\MysqliConnector;
+use TeraBlaze\Ripana\Database\Exception\ArgumentException;
 use TeraBlaze\Ripana\ORM\EntityManager;
 
 class StreamHandlerFactory
