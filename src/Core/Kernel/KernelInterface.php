@@ -2,6 +2,8 @@
 
 namespace TeraBlaze\Core\Kernel;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
+use TeraBlaze\Config\ConfigInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\ParcelInterface;
@@ -14,6 +16,13 @@ interface KernelInterface extends HttpKernelInterface
      * Boots the current kernel.
      */
     public function boot(): void;
+
+    /**
+     * Returns the global config
+     *
+     * @return ConfigInterface
+     */
+    public function getConfig(): ConfigInterface;
 
     /**
      * Shutdowns the kernel.
@@ -58,6 +67,14 @@ interface KernelInterface extends HttpKernelInterface
 
     public function getEnvConfigDir(): string;
 
+    public function getVarDir(): string;
+
+    public function getCacheDir(): string;
+
+    public function getLogsDir(): string;
+
+    public function getSessionsDir(): string;
+
     /**
      * Returns an array of parcels to register.
      *
@@ -86,4 +103,6 @@ interface KernelInterface extends HttpKernelInterface
     public function registerMiddleWare(string $class): void;
 
     public function getInitialRequest(): ?Request;
+
+    public function getEventDispatcher(): EventDispatcherInterface;
 }

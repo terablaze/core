@@ -2,31 +2,27 @@
 
 namespace TeraBlaze\Profiler\DebugBar;
 
-use DebugBar\Bridge\MonologCollector;
-use DebugBar\Bridge\SwiftMailer\SwiftLogCollector;
-use DebugBar\Bridge\SwiftMailer\SwiftMailCollector;
 use DebugBar\DataCollector\ConfigCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\ExceptionsCollector;
 use DebugBar\DataCollector\MemoryCollector;
 use DebugBar\DataCollector\MessagesCollector;
-use DebugBar\DataCollector\RequestDataCollector;
-use DebugBar\DataFormatter\DataFormatter;
-use DebugBar\Storage\PdoStorage;
-use DebugBar\Storage\RedisStorage;
+use DebugBar\DebugBarException;
+use ErrorException;
 use Exception;
+use Middlewares\Utils\Factory;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use DebugBar\DataCollector\TimeDataCollector;
 use DebugBar\DebugBar;
-use TeraBlaze\Core\Kernel\Events\KernelEvent;
 use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
-use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\EventDispatcher\ListenerProvider;
@@ -38,6 +34,7 @@ use TeraBlaze\Profiler\DebugBar\DataCollectors\RequestCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RouteCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\TeraBlazeCollector;
 use TeraBlaze\Profiler\DebugBar\DataFormatter\QueryFormatter;
+use TeraBlaze\Profiler\DebugBar\Storage\FilesystemStorage;
 use TeraBlaze\Routing\Router;
 
 class TeraBlazeDebugbar extends DebugBar
@@ -64,12 +61,22 @@ class TeraBlazeDebugbar extends DebugBar
     /** @var Dispatcher $dispatcher */
     protected $dispatcher;
 
-    /** @var ListenerProvider $listener */
-    protected $listener;
+    /** @var ListenerProvider $listenerProvider */
+    protected $listenerProvider;
     /**
      * @var KernelInterface
      */
     private $kernel;
+
+    /**
+     * @var ResponseFactoryInterface
+     */
+    private $responseFactory;
+
+    /**
+     * @var StreamFactoryInterface
+     */
+    private $streamFactory;
 
     /**
      * @var ?bool
@@ -78,21 +85,30 @@ class TeraBlazeDebugbar extends DebugBar
 
     private LoggerInterface $logger;
 
+    private static $mimes = [
+        'css' => 'text/css',
+        'js' => 'text/javascript',
+    ];
 
-    public function __construct(?ContainerInterface $container = null)
-    {
+
+    public function __construct(
+        ?ContainerInterface $container = null,
+        ?ResponseFactoryInterface $responseFactory = null,
+        ?StreamFactoryInterface $streamFactory = null
+    ) {
         $this->container = $container ?: Container::getContainer();
+        $this->responseFactory = $responseFactory ?: Factory::getResponseFactory();
+        $this->streamFactory = $streamFactory ?: Factory::getStreamFactory();
         $this->dispatcher = $this->container->get(EventDispatcherInterface::class);
-        $this->listener = $this->container->get(ListenerProviderInterface::class);
+        $this->listenerProvider = $this->container->get(ListenerProviderInterface::class);
 //        $this->logger = $logger;
         $this->kernel = $this->container->get('kernel');
     }
 
-
     /**
      * Boot the debugbar (add collectors, renderer and listener)
      */
-    public function boot(ServerRequestInterface $request, ResponseInterface $response)
+    public function boot(): void
     {
         if ($this->booted) {
             return;
@@ -102,11 +118,22 @@ class TeraBlazeDebugbar extends DebugBar
         $debugbar = $this;
 
         // Set custom error handler
-        if ($this->container->getConfig('profiler.debugbar.error_handler', false)) {
-            set_error_handler([$this, 'handleError']);
+        if (getConfig('profiler.debugbar.error_handler', false)) {
+            set_error_handler([$debugbar, 'handleError']);
         }
 
-        $this->selectStorage($this);
+        $this->selectStorage($debugbar);
+
+        if ($this->shouldCollect('exceptions', true)) {
+            try {
+                $exceptionCollector = new ExceptionsCollector();
+                $exceptionCollector->setChainExceptions(
+                    getConfig('profiler.debugbar.options.exceptions.chain', true)
+                );
+                $this->addCollector($exceptionCollector);
+            } catch (Exception $e) {
+            }
+        }
 
         if ($this->shouldCollect('phpinfo', true)) {
             $this->addCollector(new PhpInfoCollector());
@@ -114,23 +141,6 @@ class TeraBlazeDebugbar extends DebugBar
 
         if ($this->shouldCollect('messages', true)) {
             $this->addCollector(new MessagesCollector());
-        }
-
-        if ($this->shouldCollect('time', true)) {
-            $this->addCollector(new TimeDataCollector());
-
-            if (!$this->isLumen()) {
-                $this->listener->addListener(PostKernelBootEvent::class,
-                    function () use ($debugbar) {
-                        $startTime = $this->kernel->getInitialRequest()->getServerParam('REQUEST_TIME_FLOAT');
-                        if ($startTime) {
-                            $debugbar['time']->addMeasure('Booting', $startTime, microtime(true));
-                        }
-                    }
-                );
-            }
-
-            $debugbar->startMeasure('application', 'Application');
         }
 
         if ($this->shouldCollect('terablaze', false)) {
@@ -156,27 +166,6 @@ class TeraBlazeDebugbar extends DebugBar
 
         if ($this->shouldCollect('memory', true)) {
             $this->addCollector(new MemoryCollector());
-        }
-
-        if ($this->shouldCollect('exceptions', true)) {
-            try {
-                $exceptionCollector = new ExceptionsCollector();
-                $exceptionCollector->setChainExceptions(
-                    $this->container->getConfig('profiler.debugbar.options.exceptions.chain', true)
-                );
-                $this->addCollector($exceptionCollector);
-            } catch (Exception $e) {
-            }
-        }
-
-        if ($this->shouldCollect('request', true)) {
-            $this->addCollector(new RequestCollector($request, $response));
-        }
-
-        if ($this->shouldCollect('ripana.query', true)) {
-            $mysqliCollector = new MySqliCollector($this->container->get('ripana.database.connector')->getQueryLogger());
-            $mysqliCollector->setDataFormatter(new QueryFormatter());
-            $this->addCollector($mysqliCollector);
         }
 
 //        if ($this->shouldCollect('log', true)) {
@@ -239,26 +228,26 @@ class TeraBlazeDebugbar extends DebugBar
 //
 //            $queryCollector->setDataFormatter(new QueryFormatter());
 //
-//            if ($this->app['config']->get('debugbar.options.db.with_params')) {
+//            if ($this->app['config']->get('profiler.debugbar.options.db.with_params')) {
 //                $queryCollector->setRenderSqlWithParams(true);
 //            }
 //
-//            if ($this->app['config']->get('debugbar.options.db.backtrace')) {
+//            if ($this->app['config']->get('profiler.debugbar.options.db.backtrace')) {
 //                $middleware = !$this->is_lumen ? $this->app['router']->getMiddleware() : [];
 //                $queryCollector->setFindSource(true, $middleware);
 //            }
 //
-//            if ($this->app['config']->get('debugbar.options.db.backtrace_exclude_paths')) {
-//                $excludePaths = $this->app['config']->get('debugbar.options.db.backtrace_exclude_paths');
+//            if ($this->app['config']->get('profiler.debugbar.options.db.backtrace_exclude_paths')) {
+//                $excludePaths = $this->app['config']->get('profiler.debugbar.options.db.backtrace_exclude_paths');
 //                $queryCollector->mergeBacktraceExcludePaths($excludePaths);
 //            }
 //
-//            if ($this->app['config']->get('debugbar.options.db.explain.enabled')) {
-//                $types = $this->app['config']->get('debugbar.options.db.explain.types');
+//            if ($this->app['config']->get('profiler.debugbar.options.db.explain.enabled')) {
+//                $types = $this->app['config']->get('profiler.debugbar.options.db.explain.types');
 //                $queryCollector->setExplainSource(true, $types);
 //            }
 //
-//            if ($this->app['config']->get('debugbar.options.db.hints', true)) {
+//            if ($this->app['config']->get('profiler.debugbar.options.db.hints', true)) {
 //                $queryCollector->setShowHints(true);
 //            }
 //
@@ -373,7 +362,7 @@ class TeraBlazeDebugbar extends DebugBar
 //            try {
 //                $mailer = $this->app['mailer']->getSwiftMailer();
 //                $this->addCollector(new SwiftMailCollector($mailer));
-//                if ($this->app['config']->get('debugbar.options.mail.full_log') && $this->hasCollector(
+//                if ($this->app['config']->get('profiler.debugbar.options.mail.full_log') && $this->hasCollector(
 //                        'messages'
 //                    )
 //                ) {
@@ -390,7 +379,7 @@ class TeraBlazeDebugbar extends DebugBar
 //
 //        if ($this->shouldCollect('logs', false)) {
 //            try {
-//                $file = $this->app['config']->get('debugbar.options.logs.file');
+//                $file = $this->app['config']->get('profiler.debugbar.options.logs.file');
 //                $this->addCollector(new LogsCollector($file));
 //            } catch (Exception $e) {
 //                $this->addThrowable(
@@ -410,7 +399,7 @@ class TeraBlazeDebugbar extends DebugBar
 //                $authCollector = new MultiAuthCollector($app['auth'], $guards);
 //
 //                $authCollector->setShowName(
-//                    $this->app['config']->get('debugbar.options.auth.show_name')
+//                    $this->app['config']->get('profiler.debugbar.options.auth.show_name')
 //                );
 //                $this->addCollector($authCollector);
 //            } catch (Exception $e) {
@@ -433,7 +422,7 @@ class TeraBlazeDebugbar extends DebugBar
 //
 //        if ($this->shouldCollect('cache', false) && isset($this->app['events'])) {
 //            try {
-//                $collectValues = $this->app['config']->get('debugbar.options.cache.values', true);
+//                $collectValues = $this->app['config']->get('profiler.debugbar.options.cache.values', true);
 //                $startTime = $this->app['request']->server('REQUEST_TIME_FLOAT');
 //                $cacheCollector = new CacheCollector($startTime, $collectValues);
 //                $this->addCollector($cacheCollector);
@@ -451,16 +440,16 @@ class TeraBlazeDebugbar extends DebugBar
 //        }
 
         $renderer = $this->getJavascriptRenderer();
-        $renderer->setIncludeVendors($this->container->getConfig('profiler.debugbar.include_vendors', true));
-        $renderer->setBindAjaxHandlerToFetch($this->container->getConfig('profiler.debugbar.capture_ajax', true));
-        $renderer->setBindAjaxHandlerToXHR($this->container->getConfig('profiler.debugbar.capture_ajax', true));
+        $renderer->setIncludeVendors(getConfig('profiler.debugbar.include_vendors', true));
+        $renderer->setBindAjaxHandlerToFetch(getConfig('profiler.debugbar.capture_ajax', true));
+        $renderer->setBindAjaxHandlerToXHR(getConfig('profiler.debugbar.capture_ajax', true));
 
         $this->booted = true;
     }
 
     public function shouldCollect($name, $default = true)
     {
-        return $this->container->getConfig('profiler.debugbar.collectors.' . $name, $default);
+        return getConfig('profiler.debugbar.collectors.' . $name, $default);
     }
 
     /**
@@ -468,7 +457,7 @@ class TeraBlazeDebugbar extends DebugBar
      *
      * @param DataCollectorInterface $collector
      * @return $this|TeraBlazeDebugbar
-     * @throws \DebugBar\DebugBarException
+     * @throws DebugBarException
      */
     public function addCollector(DataCollectorInterface $collector)
     {
@@ -488,13 +477,12 @@ class TeraBlazeDebugbar extends DebugBar
      * @param $message
      * @param string $file
      * @param int $line
-     * @param array $context
-     * @throws \ErrorException
+     * @throws ErrorException
      */
-    public function handleError($level, $message, $file = '', $line = 0, $context = [])
+    public function handleError($level, $message, $file = '', $line = 0)
     {
         if (error_reporting() & $level) {
-            throw new \ErrorException($message, 0, $level, $file, $line);
+            throw new ErrorException($message, 0, $level, $file, $line);
         } else {
             $this->addMessage($message, 'deprecation');
         }
@@ -505,6 +493,7 @@ class TeraBlazeDebugbar extends DebugBar
      *
      * @param string $name Internal name, used to stop the measure
      * @param string $label Public name
+     * @throws DebugBarException
      */
     public function startMeasure($name, $label = null)
     {
@@ -537,7 +526,7 @@ class TeraBlazeDebugbar extends DebugBar
      * Adds an exception to be profiled in the debug bar
      *
      * @param Exception $e
-     * @throws \DebugBar\DebugBarException
+     * @throws DebugBarException
      */
     public function addThrowable($e)
     {
@@ -554,78 +543,146 @@ class TeraBlazeDebugbar extends DebugBar
      * @param ServerRequestInterface|Request $request
      * @param ResponseInterface|Response $response
      * @return ResponseInterface|Response
+     * @throws DebugBarException
+     * @throws \ReflectionException
      */
-//    public function modifyResponse(ServerRequestInterface $request, ResponseInterface $response): Request
-//    {
-//        if (!$this->isEnabled() || $this->isDebugbarRequest()) {
-//            return $response;
-//        }
-//
-//        // Show the Http Response Exception in the Debugbar, when available
-//        if (isset($response->exception)) {
-//            $this->addThrowable($response->exception);
-//        }
-//
-//        if ($this->shouldCollect('config', false)) {
-//            try {
-//                $configCollector = new ConfigCollector();
-//                $configCollector->setData($this->container->getAllConfig());
-//                $this->addCollector($configCollector);
-//            } catch (Exception $e) {
-//                $this->addThrowable(
-//                    new Exception(
-//                        'Cannot add ConfigCollector to TeraBlaze Debugbar: ' . $e->getMessage(),
-//                        $e->getCode(),
-//                        $e
-//                    )
-//                );
-//            }
-//        }
-//
-//        if ($response->isRedirection()) {
-//            try {
-//                $this->stackData();
-//            } catch (Exception $e) {
-//                $this->logger->error('Debugbar exception: ' . $e->getMessage());
-//            }
-//        } elseif (
-//            $request->expectsJson() &&
-//            $this->container->getConfig('profiler.debugbar.capture_ajax', true)
-//        ) {
-//            try {
-//                $this->sendDataInHeaders(true);
-//
-//                if ($this->container->getConfig('profiler.debugbar.add_ajax_timing', false)) {
-//                    $this->addServerTimingHeaders($response);
-//                }
-//
-//            } catch (Exception $e) {
-//                $this->logger->error('Debugbar exception: ' . $e->getMessage());
-//            }
-//        } elseif (
-//            ($response->getHeaderLine('Content-Type') &&
-//                strpos($response->getHeaderLine('Content-Type'), 'html') === false)
-//            || $request->getRequestFormat() !== 'html'
-//            || $response->getContent() === false
-//            || $this->isJsonRequest($request)
-//        ) {
-//            try {
-//                // Just collect + store data, don't inject it.
-//                $this->collect();
-//            } catch (Exception $e) {
-//                $app['log']->error('Debugbar exception: ' . $e->getMessage());
-//            }
-//        } elseif ($app['config']->get('debugbar.inject', true)) {
-//            try {
-//                $this->injectDebugbar($response);
-//            } catch (Exception $e) {
-//                $app['log']->error('Debugbar exception: ' . $e->getMessage());
-//            }
-//        }
-//
-//
-//        return $response;
-//    }
+    public function modifyResponse(ServerRequestInterface $request, ResponseInterface $response): Response
+    {
+        $renderer = $this->getJavascriptRenderer('/vendor/maximebf/debugbar/src/DebugBar/Resources/');
+
+        //Asset response
+        $path = $request->getUri()->getPath();
+        $baseUrl = $renderer->getBaseUrl();
+
+        if (strpos($path, $baseUrl) === 0) {
+            $file = $renderer->getBasePath() . substr($path, strlen($baseUrl));
+
+            if (file_exists($file)) {
+                $response = $this->responseFactory->createResponse();
+                $response->getBody()->write((string)file_get_contents($file));
+                $extension = pathinfo($file, PATHINFO_EXTENSION);
+
+                if (isset(self::$mimes[$extension])) {
+                    return $response->withHeader('Content-Type', self::$mimes[$extension]);
+                }
+
+                return $response; //@codeCoverageIgnore
+            }
+        }
+
+        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
+
+        if ($this->shouldCollect('request', true)) {
+            $this->addCollector(new RequestCollector($request, $response));
+        }
+
+        if ($this->shouldCollect('ripana.query', true)) {
+            $mysqliCollector = new MySqliCollector($this->container->get('ripana.database.connector')->getQueryLogger());
+            $mysqliCollector->setDataFormatter(new QueryFormatter());
+            $this->addCollector($mysqliCollector);
+        }
+        if (!$this->isEnabled() || $this->isDebugbarRequest($request)) {
+            return $response;
+        }
+
+        // Show the Http Response Exception in the Debugbar, when available
+        if (isset($response->exception)) {
+            $this->addThrowable($response->exception);
+        }
+
+        if ($this->shouldCollect('config', false)) {
+            try {
+                $configCollector = new ConfigCollector();
+                $configCollector->setData($this->kernel->getConfig()->toArray());
+                $this->addCollector($configCollector);
+            } catch (Exception $e) {
+                $this->addThrowable(
+                    new Exception(
+                        'Cannot add ConfigCollector to TeraBlaze Debugbar: ' . $e->getMessage(),
+                        $e->getCode(),
+                        $e
+                    )
+                );
+            }
+        }
+
+        if ($response->isRedirection()) {
+            try {
+                return $this->handleRedirect($response);
+            } catch (Exception $e) {
+                $this->logger->error('Debugbar exception: ' . $e->getMessage());
+            }
+        } elseif (
+            $request->expectsJson() &&
+            getConfig('profiler.debugbar.capture_ajax', true)
+        ) {
+            try {
+                $headers = $this->getDataAsHeaders();
+
+                foreach ($headers as $name => $value) {
+                    $response = $response->withHeader($name, $value);
+                }
+                $this->sendDataInHeaders(true);
+
+                if (getConfig('profiler.debugbar.add_ajax_timing', false)) {
+                    $response = $this->addServerTimingHeaders($response);
+                }
+            } catch (Exception $e) {
+                $this->logger->error('Debugbar exception: ' . $e->getMessage());
+            }
+        } elseif (
+            ($response->getHeaderLine('Content-Type') &&
+                strpos($response->getHeaderLine('Content-Type'), 'html') === false) ||
+            $this->isJsonRequest($request)
+        ) {
+            try {
+                // Just collect + store data, don't inject it.
+                $this->collect();
+            } catch (Exception $e) {
+                $this->logger->error('Debugbar exception: ' . $e->getMessage());
+            }
+        } elseif (getConfig('profiler.debugbar.inject', true)) {
+            try {
+                return $this->injectDebugbar($response);
+            } catch (Exception $e) {
+                $this->logger->error('Debugbar exception: ' . $e->getMessage());
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * Injects the web debug toolbar into the given Response.
+     *
+     * @param Response $response A Response instance
+     */
+    public function injectDebugbar(Response $response)
+    {
+        $content = (string)$response->getBody();
+
+        $renderer = $this->getJavascriptRenderer();
+        if ($this->getStorage()) {
+            $openHandlerUrl = path('profiler.debugbar.openhandler');
+            $renderer->setOpenHandlerUrl($openHandlerUrl);
+        }
+
+        $renderedContent = $renderer->renderHead() . $renderer->render();
+
+        $pos = strripos($content, '</body>');
+        if (false !== $pos) {
+            $content = substr($content, 0, $pos) . $renderedContent . substr($content, $pos);
+        } else {
+            $content = $content . $renderedContent;
+        }
+
+        $body = $this->streamFactory->createStream();
+        $body->write($content);
+
+        return $response
+            ->withBody($body)
+            ->withoutHeader('Content-Length');
+    }
 
     /**
      * Check if the Debugbar is enabled
@@ -634,13 +691,13 @@ class TeraBlazeDebugbar extends DebugBar
     public function isEnabled()
     {
         if ($this->enabled === null) {
-            $configEnabled = $this->container->getConfig('profiler.debugbar.enabled');
+            $configEnabled = getConfig('profiler.debugbar.enabled');
 
             if ($configEnabled === null) {
                 $configEnabled = $this->kernel->isDebug();
             }
 
-            $this->enabled = (bool) $configEnabled;
+            $this->enabled = (bool)$configEnabled;
         }
 
         return $this->enabled;
@@ -782,67 +839,88 @@ class TeraBlazeDebugbar extends DebugBar
     /**
      * @param DebugBar $debugbar
      */
-//    protected function selectStorage(DebugBar $debugbar)
-//    {
-//        $config = $this->app['config'];
-//        if ($config->get('debugbar.storage.enabled')) {
-//            $driver = $config->get('debugbar.storage.driver', 'file');
-//
-//            switch ($driver) {
-//                case 'pdo':
-//                    $connection = $config->get('debugbar.storage.connection');
-//                    $table = $this->app['db']->getTablePrefix() . 'phpdebugbar';
-//                    $pdo = $this->app['db']->connection($connection)->getPdo();
-//                    $storage = new PdoStorage($pdo, $table);
-//                    break;
-//                case 'redis':
-//                    $connection = $config->get('debugbar.storage.connection');
-//                    $client = $this->app['redis']->connection($connection);
-//                    if (is_a($client, 'Illuminate\Redis\Connections\Connection', false)) {
-//                        $client = $client->client();
-//                    }
-//                    $storage = new RedisStorage($client);
-//                    break;
-//                case 'custom':
-//                    $class = $config->get('debugbar.storage.provider');
-//                    $storage = $this->app->make($class);
-//                    break;
-//                case 'file':
-//                default:
-//                    $path = $config->get('debugbar.storage.path');
-//                    $storage = new FilesystemStorage($this->app['files'], $path);
-//                    break;
-//            }
-//
-//            $debugbar->setStorage($storage);
-//        }
-//    }
-//
-//    protected function addClockworkHeaders(Response $response)
-//    {
-//        $prefix = $this->app['config']->get('debugbar.route_prefix');
-//        $response->headers->set('X-Clockwork-Id', $this->getCurrentRequestId(), true);
-//        $response->headers->set('X-Clockwork-Version', 1, true);
-//        $response->headers->set('X-Clockwork-Path', $prefix .'/clockwork/', true);
-//    }
-//
-//    /**
-//     * Add Server-Timing headers for the TimeData collector
-//     *
-//     * @see https://www.w3.org/TR/server-timing/
-//     * @param Response $response
-//     */
-//    protected function addServerTimingHeaders(Response $response)
-//    {
-//        if ($this->hasCollector('time')) {
-//            $collector = $this->getCollector('time');
-//
-//            $headers = [];
-//            foreach ($collector->collect()['measures'] as $k => $m) {
-//                $headers[] = sprintf('app;desc="%s";dur=%F', str_replace('"', "'", $m['label']), $m['duration'] * 1000);
-//            }
-//
-//            $response->headers->set('Server-Timing', $headers, false);
-//        }
-//    }
+    protected function selectStorage(DebugBar $debugbar)
+    {
+        $config = $this->kernel->getConfig();
+        if ($config->get('profiler.debugbar.storage.enabled')) {
+            $driver = $config->get('profiler.debugbar.storage.driver', 'file');
+
+            switch ($driver) {
+                // TODO: More storage
+                case 'file':
+                default:
+                    $path = $config->get(
+                        'profiler.debugbar.storage.path',
+                        $this->kernel->getCacheDir() . "profiler" . DIRECTORY_SEPARATOR . "debugbar"
+                    );
+                    $storage = new FilesystemStorage($path);
+                    break;
+            }
+
+            $debugbar->setStorage($storage);
+        }
+    }
+
+    /**
+     * Add Server-Timing headers for the TimeData collector
+     *
+     * @see https://www.w3.org/TR/server-timing/
+     * @param Response $response
+     * @return Response
+     * @throws DebugBarException
+     */
+    protected function addServerTimingHeaders(Response $response): Response
+    {
+        if ($this->hasCollector('time')) {
+            $collector = $this->getCollector('time');
+
+            $headers = [];
+            foreach ($collector->collect()['measures'] as $k => $m) {
+                $headers[] = sprintf('app;desc="%s";dur=%F', str_replace('"', "'", $m['label']), $m['duration'] * 1000);
+            }
+
+            foreach ($headers as $header) {
+                $response = $response->withHeader('Server-Timing', $header);
+            }
+        }
+        return $response;
+    }
+
+    /**
+     * @param  Request $request
+     * @return bool
+     */
+    protected function isJsonRequest(Request $request)
+    {
+        // If XmlHttpRequest or Live, return true
+        if ('XMLHttpRequest' == $request->getHeaderLine('X-Requested-With')) {
+            return true;
+        }
+
+        // Check if the request wants Json
+        $acceptable = $request->expectsJson();
+        return (isset($acceptable[0]) && $acceptable[0] == 'application/json');
+    }
+
+    /**
+     * Check if this is a request to the Debugbar OpenHandler
+     *
+     * @return bool
+     */
+    protected function isDebugbarRequest(Request $request)
+    {
+        return $request->is(getConfig('profiler.route_prefix', '_profiler/*'));
+    }
+
+    /**
+     * Handle redirection responses
+     */
+    private function handleRedirect(ResponseInterface $response): ResponseInterface
+    {
+        if ($this->isDataPersisted() || session_status() === PHP_SESSION_ACTIVE) {
+            $this->stackData();
+        }
+
+        return $response;
+    }
 }

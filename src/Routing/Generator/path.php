@@ -14,6 +14,12 @@ if (!function_exists('path')) {
         return $router->getGenerator()->generate($path, $parameters, $referenceType);
     }
 }
+if (!function_exists('route')) {
+    function route(string $path = '', array $parameters = [], int $referenceType = UrlGenerator::ABSOLUTE_PATH)
+    {
+        return path($path, $parameters, $referenceType);
+    }
+}
 
 if (!function_exists('asset')) {
     function asset(string $uri = '', int $referenceType = UrlGenerator::ABSOLUTE_PATH)

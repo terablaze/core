@@ -7,6 +7,7 @@ use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
+use TeraBlaze\Routing\RouterInterface;
 
 abstract class Parcel implements ParcelInterface
 {
@@ -109,6 +110,13 @@ abstract class Parcel implements ParcelInterface
         }
 
         return $this->name;
+    }
+
+    public function registerRoutes(array $routes): void
+    {
+        if (!empty($routes) && is_array($routes)) {
+            $this->container->get(RouterInterface::class)->addRoutes($routes);
+        }
     }
 
     private function parseClassName()

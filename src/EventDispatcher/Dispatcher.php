@@ -40,4 +40,9 @@ class Dispatcher implements EventDispatcherInterface
         }
         return $event;
     }
+
+    public function getListenerProvider(): ListenerProviderInterface
+    {
+        return $this->listenerProvider;
+    }
 }

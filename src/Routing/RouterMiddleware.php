@@ -6,18 +6,13 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TeraBlaze\Config\Config;
-use TeraBlaze\Config\Driver\DriverInterface;
-use TeraBlaze\Container\Container;
 
 class RouterMiddleware implements MiddlewareInterface
 {
-    private Container $container;
     private Router $router;
 
-    public function __construct(Container $container, Router $router)
+    public function __construct(Router $router)
     {
-        $this->container = $container;
         $this->router = $router;
     }
 

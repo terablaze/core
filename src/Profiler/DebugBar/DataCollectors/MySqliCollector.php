@@ -26,7 +26,7 @@ class MySqliCollector extends DataCollector implements Renderable, AssetProvider
         $totalExecTime = 0;
         foreach ($this->queryLogger->queries as $query) {
             $queries[] = array(
-                'sql' => $query['sql'],
+                'sql' => $this->getDataFormatter()->formatSql($query['sql']),
                 'duration' => $query['executionTime'],
                 'duration_str' => $this->getDataFormatter()->formatDuration($query['executionTime']),
                 'row_count' => $query['affectedRows'],

@@ -36,7 +36,7 @@ class StreamHandlerFactory
                 $formatterOptions = $formatter[1] ?? [];
                 $this->handler->setFormatter(new $formatterClass(...$formatterOptions));
             } else {
-                $this->handler->setFormatter(new $formatter);
+                $this->handler->setFormatter(new $formatter());
             }
         }
     }

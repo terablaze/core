@@ -66,10 +66,10 @@
       "@acceptance_test"
     ],
     "init_test_database": {
-      "dropDataBase": "bin/console doctrine:database:drop --force --if-exists --env=test --ansi",
-      "createDataBase": "bin/console doctrine:database:create --env=test --ansi",
-      "createSchema": "bin/console doctrine:schema:create --env=test --ansi",
-      "loadFixture": "bin/console doctrine:fixtures:load --append --no-interaction --env=test --ansi"
+      "dropDataBase": "",
+      "createDataBase": "",
+      "createSchema": "",
+      "loadFixture": ""
     },
     "unit_test": [
       "phpdbg -d memory_limit=-1 -qrr vendor/bin/phpunit --coverage-text"

@@ -100,28 +100,70 @@ if (!function_exists('data_set')) {
 
         return $target;
     }
+}
 
-    if (!function_exists('tap')) {
-        /**
-         * Call the given Closure with the given value then return the value.
-         *
-         * @param mixed $value
-         * @param callable|null $callback
-         * @return mixed
-         */
-        function tap($value, $callback = null)
-        {
-            if (is_null($callback)) {
-                return new HigherOrderTapProxy($value);
+if (! function_exists('data_get')) {
+    /**
+     * Get an item from an array or object using "dot" notation.
+     *
+     * @param  mixed   $target
+     * @param  string|array  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    function data_get($target, $key, $default = null)
+    {
+        if (is_null($key)) {
+            return $target;
+        }
+
+        $key = is_array($key) ? $key : explode('.', $key);
+
+        while (! is_null($segment = array_shift($key))) {
+            if ($segment === '*') {
+                if ($target instanceof TeraBlaze\Collection\CollectionInterface) {
+                    $target = $target->all();
+                } elseif (! is_array($target)) {
+                    return value($default);
+                }
+
+                $result = ArrayMethods::pluck($target, $key);
+
+                return in_array('*', $key) ? ArrayMethods::collapse($result) : $result;
             }
 
-            $callback($value);
-
-            return $value;
+            if (ArrayMethods::accessible($target) && ArrayMethods::exists($target, $segment)) {
+                $target = $target[$segment];
+            } elseif (is_object($target) && isset($target->{$segment})) {
+                $target = $target->{$segment};
+            } else {
+                return value($default);
+            }
         }
+
+        return $target;
     }
 }
 
+if (!function_exists('tap')) {
+    /**
+     * Call the given Closure with the given value then return the value.
+     *
+     * @param mixed $value
+     * @param callable|null $callback
+     * @return mixed
+     */
+    function tap($value, $callback = null)
+    {
+        if (is_null($callback)) {
+            return new HigherOrderTapProxy($value);
+        }
+
+        $callback($value);
+
+        return $value;
+    }
+}
 
 if (! function_exists('env')) {
     /**
@@ -179,7 +221,7 @@ if (! function_exists('loadConfig')) {
     /**
      * Return the default value of the given value.
      *
-     * @param $context
+     * @param string $context
      * @param string|null $prefix
      * @param string[] $paths
      * @return mixed
@@ -187,7 +229,7 @@ if (! function_exists('loadConfig')) {
      * @throws \TeraBlaze\Config\Exception\ArgumentException
      * @throws \TeraBlaze\Config\Exception\InvalidContextException
      */
-    function loadConfig($context, ?string $prefix = null, array $paths = []): \TeraBlaze\Config\ConfigInterface
+    function loadConfig(string $context, ?string $prefix = null, array $paths = []): \TeraBlaze\Config\ConfigInterface
     {
         $container = Container::getContainer();
         /** @var \TeraBlaze\Core\Kernel\KernelInterface $kernel */
@@ -197,9 +239,10 @@ if (! function_exists('loadConfig')) {
         }
         $config = new \TeraBlaze\Config\Config(
             $context,
-            $prefix,
+            $prefix ?? $context,
             $paths
         );
+        $kernel->getConfig()->merge($config);
         return $config;
     }
 }
@@ -208,7 +251,7 @@ if (! function_exists('loadConfigArray')) {
     /**
      * Return the default value of the given value.
      *
-     * @param $context
+     * @param string $context
      * @param string|null $prefix
      * @param string[] $paths
      * @return mixed
@@ -216,9 +259,29 @@ if (! function_exists('loadConfigArray')) {
      * @throws \TeraBlaze\Config\Exception\ArgumentException
      * @throws \TeraBlaze\Config\Exception\InvalidContextException
      */
-    function loadConfigArray($context, ?string $prefix = null, array $paths = [])
+    function loadConfigArray(string $context, ?string $prefix = null, array $paths = [])
     {
-        return (loadConfig($context, $prefix, $paths))->toArray();
+        return (loadConfig($context, $prefix ?? $context, $paths))->toArray()[$prefix ?? $context];
     }
 }
 
+if (! function_exists('getConfig')) {
+    /**
+     * Retrieve a configuration option via a provided key.
+     *
+     * @param string $key Unique configuration option key
+     * @param mixed $default Default value to return if option does not exist
+     *
+     * @return mixed Stored config item or $default value
+     */
+    function getConfig(string $key, $default = null)
+    {
+//        $container = Container::getContainer();
+//        /** @var \TeraBlaze\Core\Kernel\KernelInterface $kernel */
+//        $kernel = $container->get(\TeraBlaze\Core\Kernel\KernelInterface::class);
+//
+//        return $kernel->getConfig()->get($key, $default);
+
+        return \TeraBlaze\Core\Kernel\Kernel::getConfigStatic()->get($key, $default);
+    }
+}

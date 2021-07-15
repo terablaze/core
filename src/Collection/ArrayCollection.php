@@ -4,6 +4,7 @@ namespace TeraBlaze\Collection;
 
 use ArrayIterator;
 use Closure;
+use TeraBlaze\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 
 use const ARRAY_FILTER_USE_BOTH;
@@ -12,7 +13,6 @@ use function array_filter;
 use function array_key_exists;
 use function array_keys;
 use function array_map;
-use function array_reverse;
 use function array_search;
 use function array_slice;
 use function array_values;
@@ -24,9 +24,7 @@ use function key;
 use function next;
 use function reset;
 use function spl_object_hash;
-use function uasort;
 use function dump;
-use function PHPSTORM_META\elementType;
 
 /**
  * An ArrayCollection is a Collection implementation that wraps a regular PHP array.
@@ -35,18 +33,12 @@ use function PHPSTORM_META\elementType;
  * and may break when we change the internals in the future. If you need to
  * serialize a collection use {@link toArray()} and reconstruct the collection
  * manually.
- *
- * @phpstan-template TKey
- * @psalm-template TKey of array-key
- * @psalm-template T
- * @template-implements Collection<TKey,T>
  */
 class ArrayCollection implements CollectionInterface
 {
     /**
      * An array containing the entries of this collection.
      *
-     * @psalm-var array<TKey,T>
      * @var array
      */
     private $elements;
@@ -62,8 +54,6 @@ class ArrayCollection implements CollectionInterface
      *
      * @param array $elements
      * @param string|null $type
-     *
-     * @psalm-param array<TKey,T> $elements
      */
     public function __construct(array $elements = [], ?string $type = null)
     {
@@ -83,9 +73,14 @@ class ArrayCollection implements CollectionInterface
     /**
      * {@inheritDoc}
      */
-    public function toArray()
+    public function all()
     {
         return $this->elements;
+    }
+
+    public function toArray()
+    {
+        return $this->all();
     }
 
     /**
@@ -105,9 +100,6 @@ class ArrayCollection implements CollectionInterface
      * @param array $elements Elements.
      *
      * @return static
-     *
-     * @psalm-param array<TKey,T> $elements
-     * @psalm-return static<TKey,T>
      */
     protected function createFrom(array $elements)
     {
@@ -181,8 +173,6 @@ class ArrayCollection implements CollectionInterface
      * Required by interface ArrayAccess.
      *
      * {@inheritDoc}
-     *
-     * @psalm-param TKey $offset
      */
     public function offsetExists($offset)
     {
@@ -193,8 +183,6 @@ class ArrayCollection implements CollectionInterface
      * Required by interface ArrayAccess.
      *
      * {@inheritDoc}
-     *
-     * @psalm-param TKey $offset
      */
     public function offsetGet($offset)
     {
@@ -221,8 +209,6 @@ class ArrayCollection implements CollectionInterface
      * Required by interface ArrayAccess.
      *
      * {@inheritDoc}
-     *
-     * @psalm-param TKey $offset
      */
     public function offsetUnset($offset)
     {
@@ -310,8 +296,6 @@ class ArrayCollection implements CollectionInterface
     /**
      * {@inheritDoc}
      *
-     * @psalm-suppress InvalidPropertyAssignmentValue
-     *
      * This breaks assumptions about the template type, but it would
      * be a backwards-incompatible change to remove this method
      */
@@ -344,10 +328,6 @@ class ArrayCollection implements CollectionInterface
      * {@inheritDoc}
      *
      * @return static
-     *
-     * @psalm-template U
-     * @psalm-param Closure(T=):U $func
-     * @psalm-return static<TKey, U>
      */
     public function map(Closure $func)
     {
@@ -358,8 +338,6 @@ class ArrayCollection implements CollectionInterface
      * {@inheritDoc}
      *
      * @return static
-     *
-     * @psalm-return static<TKey,T>
      */
     public function filter(Closure $p)
     {
@@ -399,16 +377,6 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
-     * Returns a string representation of this object.
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return self::class . '@' . spl_object_hash($this);
-    }
-
-    /**
      * {@inheritDoc}
      */
     public function clear()
@@ -424,9 +392,31 @@ class ArrayCollection implements CollectionInterface
         return array_slice($this->elements, $offset, $length, true);
     }
 
+    /**
+     * Get the values of a given key.
+     *
+     * @param  string|array  $value
+     * @param  string|null  $key
+     * @return static
+     */
+    public function pluck($value, $key = null)
+    {
+        return new static(ArrayMethods::pluck($this->elements, $value, $key));
+    }
+
     public function dump()
     {
         dump($this->elements);
+    }
+
+    /**
+     * Returns a string representation of this object.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return self::class . '@' . spl_object_hash($this);
     }
 
     private function verifyType()

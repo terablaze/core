@@ -68,7 +68,8 @@ class RouteCollector extends DataCollector implements Renderable
                 str_replace(
                     $this->container->get('kernel')->getProjectDir(),
                     '',
-                    $reflector->getFileName()),
+                    $reflector->getFileName()
+                ),
                 '/'
             );
             $result['file'] = $filename . ':' . $reflector->getStartLine() . '-' . $reflector->getEndLine();

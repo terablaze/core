@@ -51,16 +51,6 @@ class Container implements ContainerInterface
     private array $resolvedParameters = [];
 
     /**
-     * @var array<string, mixed>
-     */
-    private array $config = [];
-
-    /**
-     * @var array<string, mixed>
-     */
-    private array $resolvedConfig = [];
-
-    /**
      * Constructor for the container.
      *
      * Entries into the $services array must be an associative array with a
@@ -110,8 +100,9 @@ class Container implements ContainerInterface
         if (!$this->has($name)) {
             throw new ServiceNotFoundException('Setting alias for an unregistered service: ' . $name);
         }
-        $this->serviceAliases[$alias] = $name;
-
+        if ($this->serviceAliases[$alias] ?? '' !== $name) {
+            $this->serviceAliases[$alias] = $name;
+        }
         return $this;
     }
 
@@ -330,37 +321,6 @@ class Container implements ContainerInterface
         }
 
         return true;
-    }
-
-    public function getAllConfig(): array
-    {
-        return $this->config;
-    }
-
-    public function getConfig($name, $default = null)
-    {
-        // If we haven't created it, create it and save to store
-        if (!isset($this->resolvedConfig[$name])) {
-            $tokens = explode('.', $name);
-            $context = $this->config;
-
-            while (null !== ($token = array_shift($tokens))) {
-                if (!isset($context[$token])) {
-                    return $default;
-                }
-                $context = $context[$token];
-            }
-
-            if (!is_string($context)) {
-                // TODO: Resolve parameters
-            } elseif ($this->isParameter($context)) {
-                $context = $this->getConfig($this->cleanParameterReference($context));
-            }
-
-            $this->resolvedConfig[$name] = $context;
-        }
-
-        return $this->resolvedConfig[$name];
     }
 
     /**

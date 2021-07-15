@@ -2,7 +2,6 @@
 
 namespace TeraBlaze\Config\Loaders;
 
-
 use TeraBlaze\Config\Exception\InvalidFileException;
 
 class Php extends Loader

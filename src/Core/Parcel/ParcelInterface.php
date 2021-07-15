@@ -63,4 +63,11 @@ interface ParcelInterface
      * @return string The Parcel absolute path
      */
     public function getPath(): string;
+
+    /**
+     * Adds parcel routes to global routes
+     *
+     * @param array<string|int, array> $routes
+     */
+    public function registerRoutes(array $routes): void;
 }

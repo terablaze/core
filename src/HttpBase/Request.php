@@ -12,6 +12,7 @@ use TeraBlaze\HttpBase\Utils\HeaderUtils;
 use TeraBlaze\HttpBase\Utils\IpUtils;
 use TeraBlaze\Psr7\ServerRequest as Psr7ServerRequest;
 use TeraBlaze\Psr7Server\ServerRequestCreator;
+use TeraBlaze\StringMethods;
 
 use function dirname;
 
@@ -183,6 +184,45 @@ class Request extends Psr7ServerRequest
 
     private bool $isHostValid = true;
     private bool $isForwardedValid = true;
+
+    /**
+     * Determine if the current request URI matches a pattern.
+     *
+     * @param $patterns
+     * @return bool
+     */
+    public function is(...$patterns)
+    {
+        foreach ($patterns as $pattern) {
+            if (StringMethods::is($pattern, $this->decodedPath())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the current path info for the request.
+     *
+     * @return string
+     */
+    public function path()
+    {
+        $pattern = trim($this->getPathInfo(), '/');
+
+        return $pattern == '' ? '/' : $pattern;
+    }
+
+    /**
+     * Get the current decoded path info for the request.
+     *
+     * @return string
+     */
+    public function decodedPath()
+    {
+        return rawurldecode($this->path());
+    }
 
     /**
      * Sets a list of trusted proxies.

@@ -32,7 +32,6 @@ class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
      * @param string|null $prefix
      * @param string[] $paths
      * @param FileLocatorInterface|null $fileLocator
-     * @throws Exception\ArgumentException
      * @throws InvalidContextException
      */
     public function __construct(
@@ -40,8 +39,7 @@ class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
         ?string $prefix = null,
         array $paths = [],
         ?FileLocatorInterface $fileLocator = null
-    )
-    {
+    ) {
         switch (gettype($context)) {
             case 'NULL':
                 break;
@@ -245,7 +243,7 @@ class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
         $configArray = $loader->getArray();
 
         if (array_key_exists('@import', $configArray)) {
-            $importFiles = $configArray['@import'];
+            $importFiles = (array)$configArray['@import'];
             $imports = [];
             foreach ($importFiles as $importFile) {
                 $importedConfig = (new self($importFile, null, $this->paths, $this->fileLocator))->toArray();

@@ -14,6 +14,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionException;
 use TeraBlaze\Config\Config;
+use TeraBlaze\Config\ConfigInterface;
 use TeraBlaze\Config\Configuration;
 use TeraBlaze\Config\Exception\ArgumentException;
 use TeraBlaze\Config\FileLocator;
@@ -61,18 +62,22 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         RouterInterface::class => Router::class,
     ];
 
-    private Dispatcher $dispatcher;
-    private Request $initialRequest;
-    private string $configDir;
-    private string $envConfigDir;
+    protected Dispatcher $dispatcher;
+    protected Request $initialRequest;
+    protected string $configDir;
+    protected string $envConfigDir;
+
+    protected ConfigInterface $config;
+    protected static ConfigInterface $configStatic;
 
     public function __construct(string $environment, bool $debug)
     {
         $this->environment = $environment;
         $this->debug = $debug;
-        $this->dispatcher = new Dispatcher(new ListenerProvider());
         $this->configDir = "{$this->getProjectDir()}/config/";
         $this->envConfigDir = "{$this->getProjectDir()}/config/{$this->getEnvironment()}/";
+        $this->config = new Config();
+        static::$configStatic = $this->config;
     }
 
     /**
@@ -87,13 +92,23 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         }
         (new HandleExceptions())->bootstrap($this);
 
+        $paths = [$this->getEnvConfigDir(), $this->getConfigDir()];
+
         try {
-            $services = loadConfigArray('services');
+            $services = (new \TeraBlaze\Config\Config(
+                'services',
+                null,
+                $paths
+            ))->toArray();
         } catch (Exception $exceptionS) {
             $services = [];
         }
         try {
-            $parameters = loadConfigArray('parameters');
+            $parameters = (new \TeraBlaze\Config\Config(
+                'parameters',
+                null,
+                $paths
+            ))->toArray();
         } catch (Exception $exceptionP) {
             $parameters = [];
         }
@@ -107,6 +122,8 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         if (file_exists($constantsFile)) {
             include_once($constantsFile);
         }
+
+        $this->bootEventDispatcher();
 
         $this->registerInternalServices();
 
@@ -162,6 +179,16 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $this->container = null;
     }
 
+    public function getConfig(): ConfigInterface
+    {
+        return $this->config;
+    }
+
+    public static function getConfigStatic(): ConfigInterface
+    {
+        return static::$configStatic;
+    }
+
     /**
      * Handle a Request and turn it in to a response.
      * @param Request $request
@@ -179,6 +206,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $this->initialRequest = $request;
         $this->boot();
 
+//        $this->dispatcher->dispatch()
         return $this->getHttpKernel()->handle($request, $catch);
     }
 
@@ -434,13 +462,43 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $this->middlewares[$class] = $this->container->get($class);
     }
 
+    protected function bootEventDispatcher()
+    {
+        $eventServices = [
+            EventDispatcherInterface::class => [
+                'class' => Dispatcher::class
+            ],
+            ListenerProviderInterface::class => [
+                'class' => ListenerProvider::class
+            ]
+        ];
+        $this->container->register(['services' => $eventServices]);
+        $this->dispatcher = $this->container->get(EventDispatcherInterface::class);
+    }
+
     public function registerInternalServices(): void
     {
         foreach (static::$internalServices as $name => $internalService) {
-            if (!class_exists($internalService)) {
+//            if (!class_exists($internalService)) {
+//                continue;
+//            }
+            if ($this->container->has($name)) {
+                $this->container->setAlias($name, $internalService);
+                continue;
+            }
+            if ($this->container->has($internalService)) {
+                $this->container->setAlias($internalService, $name);
                 continue;
             }
             $this->container->registerService($name, ['class' => $internalService]);
         }
+    }
+
+    public function getEventDispatcher(): EventDispatcherInterface
+    {
+        if ($this->dispatcher instanceof EventDispatcherInterface) {
+            $this->bootEventDispatcher();
+        }
+        return $this->dispatcher;
     }
 }
