@@ -15,13 +15,8 @@ use Psr\Log\LoggerInterface;
 use ReflectionException;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
-use TeraBlaze\Config\Configuration;
-use TeraBlaze\Config\Exception\ArgumentException;
-use TeraBlaze\Config\FileLocator;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
 use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
 use TeraBlaze\Core\Parcel\ParcelInterface;
@@ -82,7 +77,6 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     /**
      * @throws ServiceNotFoundException
-     * @throws ArgumentException
      * @throws Exception
      */
     public function boot(): void
@@ -95,20 +89,12 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $paths = [$this->getEnvConfigDir(), $this->getConfigDir()];
 
         try {
-            $services = (new \TeraBlaze\Config\Config(
-                'services',
-                null,
-                $paths
-            ))->toArray();
+            $services = (new Config('services', null, $paths))->toArray();
         } catch (Exception $exceptionS) {
             $services = [];
         }
         try {
-            $parameters = (new \TeraBlaze\Config\Config(
-                'parameters',
-                null,
-                $paths
-            ))->toArray();
+            $parameters = (new Config('parameters', null, $paths))->toArray();
         } catch (Exception $exceptionP) {
             $parameters = [];
         }
@@ -213,6 +199,14 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     public function getInitialRequest(): ?Request
     {
         return $this->initialRequest ?? null;
+    }
+
+    public function getCurrentRequest(): ?Request
+    {
+        if ($this->container->has('request')) {
+            return $this->container->get('request');
+        }
+        return $this->getInitialRequest();
     }
 
     /**

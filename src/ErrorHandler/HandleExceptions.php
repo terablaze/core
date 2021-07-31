@@ -4,6 +4,7 @@ namespace TeraBlaze\ErrorHandler;
 
 use ErrorException;
 use Exception;
+use Psr\Http\Message\ServerRequestInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception\FatalError;
 use TeraBlaze\Core\Kernel\Kernel;
@@ -57,10 +58,10 @@ class HandleExceptions
     /**
      * Convert PHP errors to ErrorException instances.
      *
-     * @param  int  $level
-     * @param  string  $message
-     * @param  string  $file
-     * @param  int  $line
+     * @param int $level
+     * @param string $message
+     * @param string $file
+     * @param int $line
      * @return void
      *
      * @throws ErrorException
@@ -87,16 +88,12 @@ class HandleExceptions
         try {
             self::$reservedMemory = null;
 
-            $this->getExceptionHandler()->report($e);
+            $this->getExceptionHandler()->report($e, $this->kernel->getCurrentRequest());
         } catch (Throwable $e) {
             //
         }
 
-        try {
-            $this->renderHttpResponse($e);
-        } catch (Throwable $e) {
-            //
-        }
+        $this->renderHttpResponse($e, $this->kernel->getCurrentRequest());
     }
 
     /**
@@ -114,8 +111,8 @@ class HandleExceptions
     /**
      * Create a new fatal error instance from an error array.
      *
-     * @param  array  $error
-     * @param  int|null  $traceOffset
+     * @param array $error
+     * @param int|null $traceOffset
      * @return FatalError
      */
     protected function fatalErrorFromPhpError(array $error, $traceOffset = null): FatalError
@@ -137,12 +134,12 @@ class HandleExceptions
     /**
      * Render an exception as an HTTP response and send it.
      *
-     * @param Throwable  $e
+     * @param Throwable $e
      * @return void
      */
-    protected function renderHttpResponse(Throwable $e)
+    protected function renderHttpResponse(Throwable $e, ServerRequestInterface $request)
     {
-        $this->getExceptionHandler()->render($e)->send();
+        $this->getExceptionHandler()->render($e, $request)->send();
     }
 
     /**

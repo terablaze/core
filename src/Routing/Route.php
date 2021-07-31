@@ -13,13 +13,13 @@ class Route
     /** @var string $name */
     public $name;
 
-    /** @var string $path */
-    public $path;
+    /** @var string $pattern */
+    public $pattern;
 
     /** @var string $action */
     public $action;
 
-    /** @var string[]|null $method */
+    /** @var string[] $method */
     public $method;
 
     /** @var string $controller */
@@ -42,10 +42,10 @@ class Route
     public function __construct($name, array $route = [])
     {
         $this->name = (string)$name;
-        $this->path = $route['pattern'] ?? null;
+        $this->pattern = $route['pattern'] ?? '/';
         $this->controller = $route['controller'] ?? null;
         $this->action = $route['action'] ?? null;
-        $this->method = is_array($route['method'] ?? []) ? $route['method'] ?? [] : [$route['method']];
+        $this->method = (array) ($route['method'] ?? []);
         $this->expectsJson = $route['expects_json'] ?? false;
         $this->middlewares = $route['middlewares'] ?? [];
     }
@@ -61,9 +61,9 @@ class Route
     /**
      * @return string
      */
-    public function getPath(): ?string
+    public function getPattern(): ?string
     {
-        return $this->path;
+        return $this->pattern;
     }
 
     /**
@@ -75,9 +75,9 @@ class Route
     }
 
     /**
-     * @return array|string|null
+     * @return string[]
      */
-    public function getMethod()
+    public function getMethod(): array
     {
         return $this->method;
     }
@@ -115,16 +115,17 @@ class Route
     }
 
     /**
-     * @param string $url
+     * @param string $path
      * @return bool
      */
-    public function matches(string $url): bool
+    public function matches(string $method, string $path): bool
     {
-        $url = trim($url, '/');
-        $path = explode("#", $this->path);
-        $pattern = $path[0];
-        $path = explode("?", $pattern);
-        $pattern = $path[0];
+        if (strtolower(reset($this->method)) === strtolower($method) && $this->pattern === $path) {
+            return true;
+        }
+        $path = $this->normalizePath($path);
+
+        $pattern = $this->normalizePath($this->pattern);
 
         preg_match_all("#" . Router::NAMED_ROUTE_MATCH . "|:([a-zA-Z0-9]+)#", $pattern, $keys);
 
@@ -149,14 +150,14 @@ class Route
             $keys = $keys[1];
         } else {
             // no keys in the pattern, return a simple match
-            return preg_match("#^{$pattern}$#", $url);
+            return preg_match("#^{$pattern}$#", $path);
         }
 
         // normalize route pattern
         $pattern = preg_replace(Router::PATTERN_KEYS, Router::PATTERN_KEYS_REPLACEMENTS, $pattern);
 
         // check values
-        preg_match_all("#^{$pattern}$#", $url, $values);
+        preg_match_all("#^{$pattern}$#", $path, $values);
 
         if (sizeof($values) && sizeof($values[0]) && sizeof($values[1])) {
             // unset the matched url
@@ -171,5 +172,12 @@ class Route
         }
 
         return false;
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $path = trim($path, '/');
+        $path = "/{$path}/";
+        return preg_replace('/[\/]{2,}/', '/', $path);
     }
 }

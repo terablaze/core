@@ -194,6 +194,30 @@ class Container implements ContainerInterface
         return $this;
     }
 
+    public function removeService($name): self
+    {
+        if (is_object($name)) {
+            $name = get_class($name);
+        }
+        $possibleInstanceKeys = [];
+        foreach ($this->services as $key => $value) {
+            if ($key == $name) {
+                unset($this->services[$key]);
+                $possibleInstanceKeys[] = $key;
+            }
+        }
+        foreach ($this->serviceAliases as $key => $value) {
+            if ($key == $name || $value == $name) {
+                unset($this->serviceAliases[$key]);
+                $possibleInstanceKeys[] = $value;
+            }
+        }
+        foreach ($possibleInstanceKeys as $possibleInstanceKey) {
+            unset($this->resolvedServices[$possibleInstanceKey]);
+        }
+        return $this;
+    }
+
     /**
      * Registers a parameter
      *
@@ -261,12 +285,8 @@ class Container implements ContainerInterface
             return $this->resolvedServices[$resolvedAlias];
         }
 
-        if (isset($this->services[$id])) {
-            $this->resolvedServices[$id] = $this->createService($id);
-        } else {
-            $id = $resolvedAlias;
-            $this->resolvedServices[$id] = $this->createService($id);
-        }
+        $id = isset($this->services[$id]) ? $id : $resolvedAlias;
+        $this->resolvedServices[$id] = $this->createService($id);
 
         // Return service from store
         return $this->resolvedServices[$id];

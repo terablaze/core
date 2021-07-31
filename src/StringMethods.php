@@ -17,9 +17,9 @@ namespace TeraBlaze;
  */
 class StringMethods
 {
-    private static $_delimiter = "#";
+    private static $delimeter = "#";
 
-    private static $_singular = array(
+    private static $singular = array(
         "(matr)ices$" => "\\1ix",
         "(vert|ind)ices$" => "\\1ex",
         "^(ox)en" => "\\1",
@@ -49,7 +49,7 @@ class StringMethods
         "([^u])s$" => "\\1"
     );
 
-    private static $_plural = array(
+    private static $plural = array(
         "^(ox)$" => "\\1\\2en",
         "([m|l])ouse$" => "\\1ice",
         "(matr|vert|ind)ix|ex$" => "\\1ices",
@@ -85,7 +85,7 @@ class StringMethods
      */
     public static function getDelimiter()
     {
-        return self::$_delimiter;
+        return self::$delimeter;
     }
 
     /**
@@ -93,7 +93,7 @@ class StringMethods
      */
     public static function setDelimiter($delimiter)
     {
-        self::$_delimiter = $delimiter;
+        self::$delimeter = $delimiter;
     }
 
     /**
@@ -103,7 +103,7 @@ class StringMethods
      */
     public static function match($string, $pattern)
     {
-        preg_match_all(self::_normalize($pattern), $string, $matches, PREG_PATTERN_ORDER);
+        preg_match_all(self::normalize($pattern), $string, $matches, PREG_PATTERN_ORDER);
 
         if (!empty($matches[1])) {
             return (array)$matches[1];
@@ -120,9 +120,9 @@ class StringMethods
      * @param $pattern
      * @return string
      */
-    private static function _normalize($pattern)
+    private static function normalize($pattern)
     {
-        return self::$_delimiter . trim($pattern, self::$_delimiter) . self::$_delimiter;
+        return self::$delimeter . trim($pattern, self::$delimeter) . self::$delimeter;
     }
 
     /**
@@ -134,7 +134,7 @@ class StringMethods
     public static function split($string, $pattern, $limit = null)
     {
         $flags = PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE;
-        return preg_split(self::_normalize($pattern), $string, $limit, $flags);
+        return preg_split(self::normalize($pattern), $string, $limit, $flags);
     }
 
     /**
@@ -153,7 +153,7 @@ class StringMethods
         }
 
         foreach ($parts as $part) {
-            $normalized = self::_normalize("\\{$part}");
+            $normalized = self::normalize("\\{$part}");
             $string = preg_replace(
                 "{$normalized}m",
                 "\\{$part}",
@@ -207,8 +207,8 @@ class StringMethods
     {
         $result = $string;
 
-        foreach (self::$_singular as $rule => $replacement) {
-            $rule = self::_normalize($rule);
+        foreach (self::$singular as $rule => $replacement) {
+            $rule = self::normalize($rule);
 
             if (preg_match($rule, $string)) {
                 $result = preg_replace($rule, $replacement, $string);
@@ -229,8 +229,8 @@ class StringMethods
     {
         $result = $string;
 
-        foreach (self::$_plural as $rule => $replacement) {
-            $rule = self::_normalize($rule);
+        foreach (self::$plural as $rule => $replacement) {
+            $rule = self::normalize($rule);
 
             if (preg_match($rule, $string)) {
                 $result = preg_replace($rule, $replacement, $string);

@@ -43,7 +43,7 @@ class RouteCollector extends DataCollector implements Renderable
             return [];
         }
         $routeMethods = $route->getMethod();
-        $uri = strtoupper(reset($routeMethods)) . ' /' . $route->getPath();
+        $uri = strtoupper(reset($routeMethods)) . ' /' . $route->getPattern();
         $controller = $route->getController();
         $action = $route->getAction();
 

@@ -20,7 +20,7 @@ class Request extends Psr7ServerRequest
 {
     use UriTrait;
 
-    public static bool $expectsJson = false;
+    public bool $expectsJson = false;
     private $pathInfo;
     private $requestUri;
     private $baseUrl;
@@ -104,12 +104,12 @@ class Request extends Psr7ServerRequest
 
     public function expectsJson(): bool
     {
-        return self::$expectsJson;
+        return $this->expectsJson;
     }
 
     public function setExpectsJson(bool $expectsJson): self
     {
-        self::$expectsJson = $expectsJson;
+        $this->expectsJson = $expectsJson;
 
         return $this;
     }

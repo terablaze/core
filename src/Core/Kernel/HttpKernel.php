@@ -98,9 +98,7 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
             return $this->filterResponse($event->getResponse(), $request);
         }
 
-        $handler = new Handler($this->middlewares);
-
-        $this->container->registerServiceInstance('request', $request);
+        $handler = new Handler($this->container, $this->middlewares);
 
         /** @var Response $response */
         $response = $handler->handle($request);

@@ -3,11 +3,13 @@
 namespace TeraBlaze\Core\Kernel;
 
 use InvalidArgumentException;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use RuntimeException;
+use TeraBlaze\Container\Container;
 
 class Handler implements RequestHandlerInterface
 {
@@ -15,9 +17,12 @@ class Handler implements RequestHandlerInterface
     private $queue;
     /** @var callable $resolver */
     private $resolver;
+    /** @var ContainerInterface|Container $container */
+    private ContainerInterface $container;
 
-    public function __construct($queue, callable $resolver = null)
+    public function __construct(ContainerInterface $container, $queue, callable $resolver = null)
     {
+        $this->container = $container;
         if (!is_array($queue)) {
             $queue = [$queue];
         }
@@ -39,6 +44,9 @@ class Handler implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        $this->container->removeService('request');
+        $this->container->registerServiceInstance('request', $request);
+        $this->container->setAlias(ServerRequestInterface::class, 'request');
         $entry = current($this->queue);
         $middleware = call_user_func($this->resolver, $entry);
         next($this->queue);

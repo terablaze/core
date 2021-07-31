@@ -104,5 +104,7 @@ interface KernelInterface extends HttpKernelInterface
 
     public function getInitialRequest(): ?Request;
 
+    public function getCurrentRequest(): ?Request;
+
     public function getEventDispatcher(): EventDispatcherInterface;
 }

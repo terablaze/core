@@ -226,7 +226,6 @@ if (! function_exists('loadConfig')) {
      * @param string[] $paths
      * @return mixed
      * @throws ReflectionException
-     * @throws \TeraBlaze\Config\Exception\ArgumentException
      * @throws \TeraBlaze\Config\Exception\InvalidContextException
      */
     function loadConfig(string $context, ?string $prefix = null, array $paths = []): \TeraBlaze\Config\ConfigInterface
@@ -256,7 +255,6 @@ if (! function_exists('loadConfigArray')) {
      * @param string[] $paths
      * @return mixed
      * @throws ReflectionException
-     * @throws \TeraBlaze\Config\Exception\ArgumentException
      * @throws \TeraBlaze\Config\Exception\InvalidContextException
      */
     function loadConfigArray(string $context, ?string $prefix = null, array $paths = [])

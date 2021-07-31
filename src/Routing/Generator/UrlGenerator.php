@@ -63,10 +63,10 @@ class UrlGenerator implements UrlGeneratorInterface
         }
         $route = $this->routes[$name];
 
-        preg_match_all("#" . Router::NAMED_ROUTE_MATCH . "#", $route->getPath(), $keys);
+        preg_match_all("#" . Router::NAMED_ROUTE_MATCH . "#", $route->getPattern(), $keys);
         $params = new ArrayCollection($parameters);
 
-        $url = $route->getPath();
+        $url = $route->getPattern();
         $urlAndAnchor = explode("#", $url, 2);
         $url = $urlAndAnchor[0];
         $anchor = isset($urlAndAnchor[1]) ? "#" . $urlAndAnchor[1] : "";

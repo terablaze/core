@@ -2,8 +2,6 @@
 
 namespace TeraBlaze\Config;
 
-use TeraBlaze\Config\Exception\ArgumentException;
-
 /**
  * Class FileLocator
  *

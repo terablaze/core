@@ -11,7 +11,6 @@ use TeraBlaze\Ripana\ORM\Column\Column;
 use TeraBlaze\Ripana\ORM\Column\ManyToOne;
 use TeraBlaze\Ripana\ORM\Column\OneToMany;
 use TeraBlaze\Ripana\ORM\Exception\Connector as ConnectorException;
-use TeraBlaze\Ripana\ORM\Exception\Implementation;
 use TeraBlaze\Ripana\ORM\Exception\Primary;
 use TeraBlaze\Ripana\ORM\Exception\PropertyException;
 
@@ -53,7 +52,7 @@ abstract class Model
     private $__container;
 
     /** @var string $__dbConf */
-    private $__dbConf = "default";
+    private $__dbConf;
 
     /** @var array $__syncSQL */
     private $__syncSQL = [];
@@ -62,24 +61,11 @@ abstract class Model
 
     public function __construct($initData = [])
     {
-        $this->__inspector = new Inspector($this);
-        $this->__columns = $this->getColumns();
-        $this->__container = Container::getContainer();
-        $this->__connector = $this->getConnector();
-        $this->__table = $this->getTable();
-        $this->__primary = $this->getPrimaryColumn();
         if (is_array($initData) && (!empty($initData))) {
             $this->initData($initData);
         }
     }
 
-    public function __clone()
-    {
-        $primary = $this->__primary;
-        $primaryRaw = $primary["raw"];
-
-        unset($this->$primaryRaw);
-    }
 
     /**
      * Maps associative array to object properties
@@ -93,20 +79,20 @@ abstract class Model
         }
         foreach ($initData as $key => $value) {
             try {
-                $prop = $this->getInitProp($key);
+                $prop = $this->_getInitProp($key);
             } catch (PropertyException $propertyException) {
                 // TODO: Add a logger to log the exception
                 continue;
             }
             // Get key to search in self::__columns
-            if ((!isset($this->__columns[$key])) && isset($this->__columnsReverseMap[$key])) {
-                $key = $this->__columnsReverseMap[$key];
+            if ((!isset($this->_getColumns()[$key])) && isset($this->__getColumnsReverseMap()[$key])) {
+                $key = $this->__getColumnsReverseMap()[$key];
             }
             if (
-                in_array(mb_strtolower($this->__columns[$key]['type']), ['date', 'time', 'datetime'], true) &&
+                in_array(mb_strtolower($this->_getColumns()[$key]['type']), ['date', 'time', 'datetime'], true) &&
                 (!$value instanceof DateTime) &&
                 (!empty($value)) &&
-                $this->__columns[$key]['autoconvert'] != false
+                $this->_getColumns()[$key]['autoconvert'] != false
             ) {
                 try {
                     $value = new DateTime($value);
@@ -122,11 +108,11 @@ abstract class Model
      * @return string
      * @throws PropertyException
      */
-    private function getInitProp(string $key): string
+    private function _getInitProp(string $key): string
     {
-        if (isset($this->__columns[$key])) {
-            return $this->__columns[$key]['raw'];
-        } elseif (isset($this->__columnsReverseMap[$key])) {
+        if (isset($this->_getColumns()[$key])) {
+            return $this->_getColumns()[$key]['raw'];
+        } elseif (isset($this->__getColumnsReverseMap()[$key])) {
             return $key;
         }
         throw new PropertyException("Entity property with property name or column name '{$key}' not found");
@@ -134,17 +120,17 @@ abstract class Model
 
     public function save()
     {
-        $primary = $this->__primary;
+        $primary = $this->_getPrimaryColumn();
         $primaryRaw = $primary["raw"];
         $primaryName = $primary["name"];
-        $query = $this->__connector
+        $query = $this->_getConnector()
             ->query()
-            ->from($this->__table);
+            ->from($this->_getTable());
         if (!empty($this->$primaryRaw)) {
             $query->where("{$primaryName} = ?", $this->$primaryRaw);
         }
         $data = array();
-        foreach ($this->__columns as $key => $column) {
+        foreach ($this->_getColumns() as $key => $column) {
             $prop = $column["raw"];
             if ($column != $primary && $column) {
                 $datum = $this->saveDatum($prop, $column);
@@ -176,7 +162,7 @@ abstract class Model
             $datum = $this->$prop ?? ($column['default'] ?? '');
         }
         if ($datum instanceof DateTime && $column['autoconvert'] != false) {
-            $dateTimeMode = $this->getConnector()->getDateTimeMode();
+            $dateTimeMode = $this->_getConnector()->getDateTimeMode();
             if ($dateTimeMode == 'TIMESTAMP') {
                 $datum = $datum->getTimestamp();
             } elseif ($dateTimeMode == 'DATETIME') {
@@ -198,13 +184,13 @@ abstract class Model
 
     public function delete()
     {
-        $primary = $this->__primary;
+        $primary = $this->_getPrimaryColumn();
         $primaryRaw = $primary["raw"];
         $primaryName = $primary["name"];
         if (!empty($this->$primaryRaw)) {
-            return $this->__connector
+            return $this->_getConnector()
                 ->query()
-                ->from($this->__table)
+                ->from($this->_getTable())
                 ->where("{$primaryName} = ?", $this->$primaryRaw)
                 ->delete();
         }
@@ -214,9 +200,9 @@ abstract class Model
     public static function deleteAll($where = array())
     {
         $instance = new static();
-        $query = $instance->__connector
+        $query = $instance->_getConnector()
             ->query()
-            ->from($instance->__table);
+            ->from($instance->_getTable());
         foreach ($where as $clause => $value) {
             $query->where($clause, $value);
         }
@@ -240,9 +226,9 @@ abstract class Model
             $fields = [$fields];
         }
         $query = $this
-            ->__connector
+            ->_getConnector()
             ->query()
-            ->from($this->__table, $fields);
+            ->from($this->_getTable(), $fields);
         foreach ($where as $clause => $value) {
             $query->where($clause, $value);
         }
@@ -255,7 +241,7 @@ abstract class Model
         $rows = $query->all();
         $objectRows = [];
         // TODO: Implement fetching relationships
-        //$primaryKey = $this->getPrimaryColumn()['name'];
+        //$primaryKey = $this->_getPrimaryColumn()['name'];
         // $primaryKeys = array_column($rows, $primaryKey);
         foreach ($rows as $row) {
             $object = clone $this;
@@ -284,9 +270,9 @@ abstract class Model
             $fields = [$fields];
         }
         $query = $this
-            ->__connector
+            ->_getConnector()
             ->query()
-            ->from($this->__table, $fields);
+            ->from($this->_getTable(), $fields);
         foreach ($where as $clause => $value) {
             $query->where($clause, $value);
         }
@@ -304,7 +290,7 @@ abstract class Model
     public static function find($modelId): ?self
     {
         $model = new static();
-        $primaryKey = $model->getPrimaryColumn()['name'];
+        $primaryKey = $model->_getPrimaryColumn()['name'];
         return $model->_first([
             "{$primaryKey} = ?" => $modelId,
         ]);
@@ -319,36 +305,58 @@ abstract class Model
     protected function _count($where = array())
     {
         $query = $this
-            ->__connector
+            ->_getConnector()
             ->query()
-            ->from($this->__table);
+            ->from($this->_getTable());
         foreach ($where as $clause => $value) {
             $query->where($clause, $value);
         }
         return $query->count();
     }
 
-    public function _getExceptionForImplementation($method)
+    public function __clone()
     {
-        return new Implementation('{$method} method not implemented');
+        $primary = $this->_getPrimaryColumn();
+        $primaryRaw = $primary["raw"];
+
+        unset($this->$primaryRaw);
     }
 
-    public function getTable()
+    private function _getInspector(): Inspector
+    {
+        return $this->__inspector = $this->__inspector ?: new Inspector($this);
+    }
+
+    private function _getContainer(): Container
+    {
+        return $this->__container = $this->__container ?: Container::getContainer();
+    }
+
+    public function _getDbConf()
+    {
+        if (empty($this->__dbConf)) {
+            $classMeta = $this->_getInspector()->getClassMeta();
+            $this->__dbConf = $classMeta['@dbConf'][0] ?? 'default';
+        }
+        return $this->__dbConf;
+    }
+
+    public function _getTable()
     {
         if (empty($this->__table)) {
-            $classMeta = $this->__inspector->getClassMeta();
+            $classMeta = $this->_getInspector()->getClassMeta();
             $this->__table = $classMeta['@table']['name'] ?? $classMeta['@table'][0] ??
-                $this->__inspector->getClassName();
+                $this->_getInspector()->getClassName();
         }
         return $this->__table;
     }
 
-    public function getConnector(): ConnectorInterface
+    public function _getConnector(): ConnectorInterface
     {
-        $connectorString = 'ripana.database.connector.' . $this->__dbConf;
+        $connectorString = 'ripana.database.connector.' . $this->_getDbConf();
         if (empty($this->__connector)) {
-            if ($this->__container->has($connectorString)) {
-                $database = $this->__container->get($connectorString);
+            if ($this->_getContainer()->has($connectorString)) {
+                $database = $this->_getContainer()->get($connectorString);
             } else {
                 throw new ConnectorException("MysqliConnector: {$connectorString} not found");
             }
@@ -357,22 +365,22 @@ abstract class Model
         return $this->__connector;
     }
 
-    public function getDatabase(): ConnectorInterface
+    public function _getDatabase(): ConnectorInterface
     {
-        return $this->getConnector();
+        return $this->_getConnector();
     }
 
-    public function getColumns()
+    public function _getColumns()
     {
         if (empty($this->__columns)) {
             $primaries = 0;
             $columns = [];
             $columnsReverseMap = [];
             $class = get_class($this);
-            $properties = $this->__inspector->getClassProperties();
+            $properties = $this->_getInspector()->getClassProperties();
 
             foreach ($properties as $property) {
-                $propertyMeta = $this->__inspector->getPropertyMeta($property);
+                $propertyMeta = $this->_getInspector()->getPropertyMeta($property);
                 if (!empty($propertyMeta['@column'])) {
                     $primary = !empty($propertyMeta['@primary']);
                     if ($primary) {
@@ -413,19 +421,27 @@ abstract class Model
         return $this->__columns;
     }
 
-    public function getColumn(string $name): ?string
+    protected function _getColumnsReverseMap()
     {
-        if (!empty($this->__columns[$name])) {
-            return $this->__columns[$name];
+        if (empty($this->__columnsReverseMap)) {
+            $this->_getColumns();
+        }
+        return $this->__columnsReverseMap;
+    }
+
+    public function _getColumn(string $name): ?string
+    {
+        if (!empty($this->_getColumns()[$name])) {
+            return $this->_getColumns()[$name];
         }
         return null;
     }
 
-    public function getPrimaryColumn()
+    public function _getPrimaryColumn()
     {
         if (!isset($this->__primary)) {
             $primary = '';
-            foreach ($this->__columns as $column) {
+            foreach ($this->_getColumns() as $column) {
                 if ($column['primary']) {
                     $primary = $column;
                     break;

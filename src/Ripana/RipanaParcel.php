@@ -3,7 +3,6 @@
 namespace TeraBlaze\Ripana;
 
 use ReflectionException;
-use TeraBlaze\Config\Exception\ArgumentException as ConfigArgumentException;
 use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
 use TeraBlaze\Core\Parcel\Parcel;
@@ -18,14 +17,16 @@ class RipanaParcel extends Parcel implements ParcelInterface
 {
     /**
      * @throws ArgumentException
+     * @throws InvalidContextException
      * @throws ReflectionException
      * @throws ServiceNotFoundException
-     * @throws ConfigArgumentException
-     * @throws InvalidContextException
      */
     public function boot(): void
     {
         $parsed = loadConfigArray('ripana');
+        if (empty($parsed)) {
+            $parsed = loadConfigArray('database');
+        }
 
         foreach ($parsed as $key => $conf) {
             $this->initialize($key, $conf);

@@ -95,7 +95,8 @@ class TeraBlazeDebugbar extends DebugBar
         ?ContainerInterface $container = null,
         ?ResponseFactoryInterface $responseFactory = null,
         ?StreamFactoryInterface $streamFactory = null
-    ) {
+    )
+    {
         $this->container = $container ?: Container::getContainer();
         $this->responseFactory = $responseFactory ?: Factory::getResponseFactory();
         $this->streamFactory = $streamFactory ?: Factory::getStreamFactory();
@@ -144,7 +145,7 @@ class TeraBlazeDebugbar extends DebugBar
         }
 
         if ($this->shouldCollect('terablaze', false)) {
-            $this->addCollector(new TeraBlazeCollector());
+            $this->addCollector(new TeraBlazeCollector($this->kernel));
         }
 
         if ($this->shouldCollect('route')) {
@@ -577,9 +578,13 @@ class TeraBlazeDebugbar extends DebugBar
         }
 
         if ($this->shouldCollect('ripana.query', true)) {
-            $mysqliCollector = new MySqliCollector($this->container->get('ripana.database.connector')->getQueryLogger());
-            $mysqliCollector->setDataFormatter(new QueryFormatter());
-            $this->addCollector($mysqliCollector);
+            if ($this->container->has('ripana.database.connector')) {
+                $mysqliCollector = new MySqliCollector(
+                    $this->container->get('ripana.database.connector')->getQueryLogger()
+                );
+                $mysqliCollector->setDataFormatter(new QueryFormatter());
+                $this->addCollector($mysqliCollector);
+            }
         }
         if (!$this->isEnabled() || $this->isDebugbarRequest($request)) {
             return $response;
@@ -887,7 +892,7 @@ class TeraBlazeDebugbar extends DebugBar
     }
 
     /**
-     * @param  Request $request
+     * @param Request $request
      * @return bool
      */
     protected function isJsonRequest(Request $request)

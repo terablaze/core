@@ -198,7 +198,7 @@ class MysqliConnector extends Connector implements ConnectorInterface
         } else {
             $lines = [];
             $indices = [];
-            $columns = $model->getColumns();
+            $columns = $model->_getColumns();
             $template = "CREATE TABLE `%s` (\n%s,\n%s\n) ENGINE=%s DEFAULT CHARSET=%s;";
             foreach ($columns as $column) {
                 $raw = $column["raw"];
@@ -289,7 +289,7 @@ class MysqliConnector extends Connector implements ConnectorInterface
                     }
                 }
             }
-            $table = $model->getTable();
+            $table = $model->_getTable();
             $sql = sprintf(
                 $template,
                 $table,

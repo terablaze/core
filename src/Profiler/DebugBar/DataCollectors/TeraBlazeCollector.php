@@ -7,6 +7,7 @@ use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\Renderable;
 use DebugBar\DebugBar;
 use TeraBlaze\Core\Kernel\Kernel;
+use TeraBlaze\Core\Kernel\KernelInterface;
 
 /**
  * Class TeraBlazeCollector
@@ -16,6 +17,11 @@ use TeraBlaze\Core\Kernel\Kernel;
  */
 class TeraBlazeCollector extends DataCollector implements DataCollectorInterface, Renderable
 {
+    private KernelInterface $kernel;
+
+    public function __construct(KernelInterface $kernel) {
+        $this->kernel = $kernel;
+    }
 
     /**
      * Called by the DebugBar when data needs to be collected
@@ -43,7 +49,7 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
 
     /**
      * Returns a hash where keys are control names and their values
-     * an array of options as defined in {@see DebugBar\JavascriptRenderer::addControl()}
+     * an array of options as defined in {@see \DebugBar\JavascriptRenderer::addControl()}
      *
      * @return array
      */
@@ -73,11 +79,11 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
 
     private function getEnvironmentInformation()
     {
-        return $GLOBALS['_ENV']['TERABLAZE_CONTEXT'] ?? '.';
+        return $this->kernel->getEnvironment();
     }
 
     private function getLocale()
     {
-        return $GLOBALS['TSFE']->config['config']['locale_all'] ?? '.';
+        return '';
     }
 }
