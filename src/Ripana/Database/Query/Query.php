@@ -24,7 +24,7 @@ abstract class Query implements QueryInterface
 
     protected int $limit = 0;
 
-    protected int $offset;
+    protected ?int $offset = null;
 
     /**
      * @var string[]|string
@@ -376,7 +376,7 @@ abstract class Query implements QueryInterface
     public function first()
     {
         $limit = $this->limit;
-        $offset = $this->offset ?? null;
+        $offset = $this->offset;
 
         $this->limit(1);
 

@@ -85,8 +85,8 @@ abstract class Model
                 continue;
             }
             // Get key to search in self::__columns
-            if ((!isset($this->_getColumns()[$key])) && isset($this->__getColumnsReverseMap()[$key])) {
-                $key = $this->__getColumnsReverseMap()[$key];
+            if ((!isset($this->_getColumns()[$key])) && isset($this->_getColumnsReverseMap()[$key])) {
+                $key = $this->_getColumnsReverseMap()[$key];
             }
             if (
                 in_array(mb_strtolower($this->_getColumns()[$key]['type']), ['date', 'time', 'datetime'], true) &&
@@ -112,7 +112,7 @@ abstract class Model
     {
         if (isset($this->_getColumns()[$key])) {
             return $this->_getColumns()[$key]['raw'];
-        } elseif (isset($this->__getColumnsReverseMap()[$key])) {
+        } elseif (isset($this->_getColumnsReverseMap()[$key])) {
             return $key;
         }
         throw new PropertyException("Entity property with property name or column name '{$key}' not found");
