@@ -9,6 +9,7 @@ use TeraBlaze\Routing\Exception as Exception;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;
 use TeraBlaze\Routing\Route;
 use TeraBlaze\Routing\Router;
+use TeraBlaze\Routing\RouterInterface;
 
 /**
  * Class UrlGenerator
@@ -18,11 +19,13 @@ use TeraBlaze\Routing\Router;
  */
 class UrlGenerator implements UrlGeneratorInterface
 {
+    protected RouterInterface $router;
+
     /** @var Route[] $routes */
-    protected $routes;
+    protected array $routes;
 
     /** @var Container $container */
-    protected $container;
+    protected Container $container;
 
     /** @var Request $request */
     protected $request;
@@ -31,11 +34,12 @@ class UrlGenerator implements UrlGeneratorInterface
      */
     private $virtualLocation;
 
-    public function __construct($routes)
+    public function __construct(Router $router)
     {
-        $this->routes = $routes;
+        $this->router = $router;
+        $this->routes = $router->getRoutes();
         $this->container = Container::getContainer();
-        $this->request = Request::createFromGlobals();
+        $this->request = $router->getCurrentRequest();
         $scriptName = $this->request->getServerParams()['SCRIPT_NAME'];
         $this->virtualLocation = $this->container->hasParameter('virtual_location') ?
             $this->container->getParameter('virtual_location') :
@@ -56,6 +60,9 @@ class UrlGenerator implements UrlGeneratorInterface
      */
     public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
     {
+        if (empty($name)) {
+            return $this->resolveReference('', $referenceType);
+        }
         if (!isset($this->routes[$name])) {
             throw new RouteNotFoundException(
                 sprintf("The named route: %s you are trying to reference does not exist", $name)

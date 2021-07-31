@@ -376,7 +376,7 @@ abstract class Query implements QueryInterface
     public function first()
     {
         $limit = $this->limit;
-        $offset = $this->offset;
+        $offset = $this->offset ?? null;
 
         $this->limit(1);
 

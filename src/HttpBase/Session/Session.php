@@ -10,7 +10,6 @@
 namespace TeraBlaze\HttpBase\Session;
 
 use TeraBlaze\Base as Base;
-use TeraBlaze\Config\Driver\DriverInterface;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\HttpBase\Session\Exception as Exception;
 
@@ -37,33 +36,31 @@ class Session extends Base
         }
 
         if (!$this->type) {
-                /** @var DriverInterface $configuration */
-            $configuration = $this->container->get('configuration');
+            $parsed = loadConfigArray('session');
 
-            if ($configuration) {
-                $parsed = $configuration->parse("session");
-
-                if (!empty($parsed->{$session_conf}) && !empty($parsed->{$session_conf}->type)) {
-                    $this->type = $parsed->{$session_conf}->type;
-                    //unset($parsed->session->{$session_conf}->type);
-                    $this->options = (array)$parsed->{$session_conf};
-                }
+            if (!empty($parsed[$session_conf]) && !empty($parsed[$session_conf]['type'])) {
+                $this->type = $parsed[$session_conf]['type'];
+                //unset($parsed->session->{$session_conf}->type);
+                $this->options = (array)$parsed[$session_conf];
             }
         }
 
         Events::fire("terablaze.libraries.session.initialize.after", array($this->type, $this->options));
 
         switch (strtolower($this->type)) {
-            case "server": {
+            case "server":
+            {
                 $session = new Driver\Server($this->options);
                 break;
             }
             case "memcache":
-            case "memcached": {
+            case "memcached":
+            {
                 $session = new Driver\Memcached($this->options);
                 break;
             }
-            default: {
+            default:
+            {
                 throw new Exception\Argument("Invalid session type or session configuration not properly set in APP_DIR/configuration/session.php");
                 break;
             }

@@ -26,7 +26,6 @@ use TeraBlaze\Routing\Exception\MissingParametersException;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;
 use TeraBlaze\Routing\Generator\UrlGenerator;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
-use TeraBlaze\Routing\Route;
 
 /**
  * Class Routing
@@ -412,7 +411,7 @@ class Router implements RouterInterface
         if (!$this->container->has(UrlGenerator::class) && !$this->container->has(UrlGeneratorInterface::class)) {
             $this->container->registerService(UrlGeneratorInterface::class, [
                 'class' => UrlGenerator::class,
-                'arguments' => [$this->getRoutes()]
+                'arguments' => [$this]
             ]);
         }
         return $this->container->get(UrlGenerator::class);

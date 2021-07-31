@@ -21,12 +21,9 @@ class CacheParcel extends Parcel implements ParcelInterface
 
     public function boot(): void
     {
-        /** @var DriverInterface $configuration */
-        $configuration = $this->container->get('configuration');
+        $parsed = loadConfigArray('cache');
 
-        if ($configuration) {
-            $parsed = $configuration->parse("cache");
-
+        if ($parsed) {
             foreach ($parsed as $key => $conf) {
                 if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {
                     $this->type = $parsed->{$key}->type;
