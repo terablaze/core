@@ -159,7 +159,7 @@ abstract class Model
         if (in_array(strtolower($column['type']), self::DATE_TYPES)) {
             $datum = $this->$prop ?? null;
         } else {
-            $datum = $this->$prop ?? ($column['default'] ?? '');
+            $datum = $this->$prop ?? $column['default'] ?? null;
         }
         if ($datum instanceof DateTime && $column['autoconvert'] != false) {
             $dateTimeMode = $this->_getConnector()->getDateTimeMode();
