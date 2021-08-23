@@ -1,46 +1,126 @@
 <?php
 
 use TeraBlaze\ArrayMethods;
+use TeraBlaze\Config\Config;
+use TeraBlaze\Config\ConfigInterface;
+use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception\JsonDecodeException;
 use TeraBlaze\Core\Exception\JsonEncodeException;
+use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\HigherOrderTapProxy;
+use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
+use TeraBlaze\Routing\Router;
+use TeraBlaze\Routing\RouterInterface;
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 3/20/2017
- * Time: 11:22 AM
- */
-
-function makeDir($dir, $recursive = true, $permissions = 0777)
-{
-    if (!is_dir($dir)) {
-        return mkdir($dir, $permissions, $recursive);
-    } else {
-        return $dir;
+if (!function_exists('container')) {
+    /**
+     * @param array $services
+     * @param array $parameters
+     * @return Container
+     */
+    function container(array $services = [], array $parameters = [])
+    {
+        return Container::getContainer($services, $parameters);
     }
 }
 
-function jsonDecode($json, $assoc = false, $depth = 512, $options = 0)
-{
-    $ret = json_decode($json, $assoc, $depth, $options);
-    if ($error = json_last_error()) {
-        throw new JsonDecodeException(json_last_error_msg(), $error);
+if (!function_exists('kernel')) {
+    /**
+     * Gets the active Kernel instance from the controller
+     *
+     * @return KernelInterface
+     * @throws ReflectionException
+     */
+    function kernel()
+    {
+        /** @var KernelInterface $kernel */
+        static $kernel;
+        if (!$kernel) {
+            $kernel = container()->get(KernelInterface::class);
+        }
+        return $kernel;
     }
-    return $ret;
 }
 
-function jsonEncode($value, $flags = 0, $depth = 512): string
-{
-    $ret = json_encode($value, $flags, $depth);
-    if ($error = json_last_error()) {
-        throw new JsonEncodeException(json_last_error_msg(), $error);
+/****************************
+ ** ROUTER RELATED HELPERS **
+ ****************************/
+if (!function_exists('router')) {
+    /**
+     * Returns the Router object
+     */
+    function router()
+    {
+        /** @var RouterInterface $router */
+        static $router;
+        if (!$router) {
+            $router = container()->get(Router::class);
+        }
+
+        return $router;
     }
-    return $ret;
 }
 
-if (!function_exists('data_set')) {
+if (!function_exists('route')) {
+    /**
+     * Generate the URL to a named route.
+     *
+     * @param string $path
+     * @param array $parameters
+     * @param int $referenceType
+     * @return string
+     */
+    function route(string $path = '', array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH)
+    {
+        return router()->getGenerator()->generate($path, $parameters, $referenceType);
+    }
+}
+
+if (!function_exists('asset')) {
+    function asset(string $uri = '', int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH)
+    {
+        return router()->getGenerator()->generateAsset($uri, $referenceType);
+    }
+}
+/****************************
+ ** ROUTER RELATED HELPERS **
+ ****************************/
+
+if (!function_exists('makeDir')) {
+    function makeDir($dir, $recursive = true, $permissions = 0777)
+    {
+        if (!is_dir($dir)) {
+            return mkdir($dir, $permissions, $recursive);
+        } else {
+            return $dir;
+        }
+    }
+}
+
+if (!function_exists('jsonDecode')) {
+    function jsonDecode($json, $assoc = false, $depth = 512, $options = 0)
+    {
+        $ret = json_decode($json, $assoc, $depth, $options);
+        if ($error = json_last_error()) {
+            throw new JsonDecodeException(json_last_error_msg(), $error);
+        }
+        return $ret;
+    }
+}
+
+if (!function_exists('jsonEncode')) {
+    function jsonEncode($value, $flags = 0, $depth = 512): string
+    {
+        $ret = json_encode($value, $flags, $depth);
+        if ($error = json_last_error()) {
+            throw new JsonEncodeException(json_last_error_msg(), $error);
+        }
+        return $ret;
+    }
+}
+
+if (!function_exists('dataSet')) {
     /**
      * Set an item on an array or object using dot notation.
      *
@@ -50,7 +130,7 @@ if (!function_exists('data_set')) {
      * @param bool $overwrite
      * @return mixed
      */
-    function data_set(&$target, $key, $value, $overwrite = true)
+    function dataSet(&$target, $key, $value, $overwrite = true)
     {
         $segments = is_array($key) ? $key : explode('.', $key);
 
@@ -61,7 +141,7 @@ if (!function_exists('data_set')) {
 
             if ($segments) {
                 foreach ($target as &$inner) {
-                    data_set($inner, $segments, $value, $overwrite);
+                    dataSet($inner, $segments, $value, $overwrite);
                 }
             } elseif ($overwrite) {
                 foreach ($target as &$inner) {
@@ -74,7 +154,7 @@ if (!function_exists('data_set')) {
                     $target[$segment] = [];
                 }
 
-                data_set($target[$segment], $segments, $value, $overwrite);
+                dataSet($target[$segment], $segments, $value, $overwrite);
             } elseif ($overwrite || !ArrayMethods::exists($target, $segment)) {
                 $target[$segment] = $value;
             }
@@ -84,7 +164,7 @@ if (!function_exists('data_set')) {
                     $target->{$segment} = [];
                 }
 
-                data_set($target->{$segment}, $segments, $value, $overwrite);
+                dataSet($target->{$segment}, $segments, $value, $overwrite);
             } elseif ($overwrite || !isset($target->{$segment})) {
                 $target->{$segment} = $value;
             }
@@ -92,7 +172,7 @@ if (!function_exists('data_set')) {
             $target = [];
 
             if ($segments) {
-                data_set($target[$segment], $segments, $value, $overwrite);
+                dataSet($target[$segment], $segments, $value, $overwrite);
             } elseif ($overwrite) {
                 $target[$segment] = $value;
             }
@@ -102,16 +182,16 @@ if (!function_exists('data_set')) {
     }
 }
 
-if (! function_exists('data_get')) {
+if (!function_exists('dataGet')) {
     /**
      * Get an item from an array or object using "dot" notation.
      *
-     * @param  mixed   $target
-     * @param  string|array  $key
-     * @param  mixed   $default
+     * @param mixed $target
+     * @param string|array $key
+     * @param mixed $default
      * @return mixed
      */
-    function data_get($target, $key, $default = null)
+    function dataGet($target, $key, $default = null)
     {
         if (is_null($key)) {
             return $target;
@@ -119,11 +199,11 @@ if (! function_exists('data_get')) {
 
         $key = is_array($key) ? $key : explode('.', $key);
 
-        while (! is_null($segment = array_shift($key))) {
+        while (!is_null($segment = array_shift($key))) {
             if ($segment === '*') {
                 if ($target instanceof TeraBlaze\Collection\CollectionInterface) {
                     $target = $target->all();
-                } elseif (! is_array($target)) {
+                } elseif (!is_array($target)) {
                     return value($default);
                 }
 
@@ -165,12 +245,12 @@ if (!function_exists('tap')) {
     }
 }
 
-if (! function_exists('env')) {
+if (!function_exists('env')) {
     /**
      * Gets the value of an environment variable.
      *
-     * @param  string  $key
-     * @param  mixed   $default
+     * @param string $key
+     * @param mixed $default
      * @return mixed
      */
     function env($key, $default = null)
@@ -193,7 +273,7 @@ if (! function_exists('env')) {
                 return '';
             case 'null':
             case '(null)':
-                return;
+                return null;
         }
 
         if (($valueLength = strlen($value)) > 1 && $value[0] === '"' && $value[$valueLength - 1] === '"') {
@@ -204,11 +284,11 @@ if (! function_exists('env')) {
     }
 }
 
-if (! function_exists('value')) {
+if (!function_exists('value')) {
     /**
      * Return the default value of the given value.
      *
-     * @param  mixed  $value
+     * @param mixed $value
      * @return mixed
      */
     function value($value)
@@ -217,7 +297,7 @@ if (! function_exists('value')) {
     }
 }
 
-if (! function_exists('loadConfig')) {
+if (!function_exists('loadConfig')) {
     /**
      * Return the default value of the given value.
      *
@@ -226,17 +306,15 @@ if (! function_exists('loadConfig')) {
      * @param string[] $paths
      * @return mixed
      * @throws ReflectionException
-     * @throws \TeraBlaze\Config\Exception\InvalidContextException
+     * @throws InvalidContextException
      */
-    function loadConfig(string $context, ?string $prefix = null, array $paths = []): \TeraBlaze\Config\ConfigInterface
+    function loadConfig(string $context, ?string $prefix = null, array $paths = []): ConfigInterface
     {
-        $container = Container::getContainer();
-        /** @var \TeraBlaze\Core\Kernel\KernelInterface $kernel */
-        $kernel = $container->get(\TeraBlaze\Core\Kernel\KernelInterface::class);
+        $kernel = kernel();
         if (empty($paths)) {
             $paths = [$kernel->getEnvConfigDir(), $kernel->getConfigDir()];
         }
-        $config = new \TeraBlaze\Config\Config(
+        $config = new Config(
             $context,
             $prefix ?? $context,
             $paths
@@ -246,7 +324,7 @@ if (! function_exists('loadConfig')) {
     }
 }
 
-if (! function_exists('loadConfigArray')) {
+if (!function_exists('loadConfigArray')) {
     /**
      * Return the default value of the given value.
      *
@@ -255,7 +333,7 @@ if (! function_exists('loadConfigArray')) {
      * @param string[] $paths
      * @return mixed
      * @throws ReflectionException
-     * @throws \TeraBlaze\Config\Exception\InvalidContextException
+     * @throws InvalidContextException
      */
     function loadConfigArray(string $context, ?string $prefix = null, array $paths = [])
     {
@@ -263,7 +341,7 @@ if (! function_exists('loadConfigArray')) {
     }
 }
 
-if (! function_exists('getConfig')) {
+if (!function_exists('getConfig')) {
     /**
      * Retrieve a configuration option via a provided key.
      *
@@ -271,15 +349,56 @@ if (! function_exists('getConfig')) {
      * @param mixed $default Default value to return if option does not exist
      *
      * @return mixed Stored config item or $default value
+     * @throws ReflectionException
      */
     function getConfig(string $key, $default = null)
     {
-//        $container = Container::getContainer();
-//        /** @var \TeraBlaze\Core\Kernel\KernelInterface $kernel */
-//        $kernel = $container->get(\TeraBlaze\Core\Kernel\KernelInterface::class);
-//
-//        return $kernel->getConfig()->get($key, $default);
+        /** @var ConfigInterface $config */
+        static $config;
+        if (!$config) {
+            $config = kernel()->getConfig();
+        }
+        return $config->get($key, $default);
+    }
+}
 
-        return \TeraBlaze\Core\Kernel\Kernel::getConfigStatic()->get($key, $default);
+if (!function_exists('baseDir')) {
+    function baseDir(string $path = '', bool $trailingSlash = false)
+    {
+        $baseDir = kernel()->getProjectDir();
+
+        return $baseDir . normalizeDir($path, $trailingSlash);
+    }
+}
+
+if (!function_exists('publicDir')) {
+    function publicDir(string $path = '', bool $trailingSlash = false)
+    {
+        return baseDir('public' . normalizeDir($path), $trailingSlash);
+    }
+}
+
+if (!function_exists('configDir')) {
+    function configDir(string $path = '', bool $trailingSlash = false)
+    {
+        return baseDir('config' . normalizeDir($path), $trailingSlash);
+    }
+}
+
+if (!function_exists('storageDir')) {
+    function storageDir(string $path = '', bool $trailingSlash = false)
+    {
+        return baseDir('storage' . normalizeDir($path), $trailingSlash);
+    }
+}
+
+if (!function_exists('normalizeDir')) {
+    function normalizeDir(string $path, bool $trailingSlash = false)
+    {
+        $path = trim($path, DIRECTORY_SEPARATOR);
+        $path = "/{$path}/";
+        $replacePattern = "/[\/\\\\\\" . DIRECTORY_SEPARATOR . "]{2,}/";
+        $path = preg_replace($replacePattern, DIRECTORY_SEPARATOR, $path);
+        return $trailingSlash ? $path : rtrim($path, DIRECTORY_SEPARATOR);
     }
 }
