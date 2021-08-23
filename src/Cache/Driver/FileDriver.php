@@ -2,34 +2,88 @@
 
 namespace TeraBlaze\Cache\Driver;
 
-class FileCacheDriver extends CacheDriver
+class FileDriver extends CacheDriver
 {
     private array $cached = [];
 
-    public function __construct(array $config = [])
+    public function has($key, bool $fixKey = true): bool
     {
-        parent::__construct($config);
-
-//        $files = glob($this->directory . $this->prefix . 'cache.*');
-//
-//        if ($files) {
-//            foreach ($files as $file) {
-//                $time = substr(strrchr($file, '.'), 1);
-//
-//                if ($time < time()) {
-//                    if (file_exists($file)) {
-//                        unlink($file);
-//                    }
-//                }
-//            }
-//        }
-    }
-
-    public function has(string $key): bool
-    {
+        if ($fixKey) {
+            $key = $this->fixKey($key);
+        }
         $data = $this->cached[$key] = $this->read($key);
 
         return isset($data['expires']) and $data['expires'] > time();
+    }
+
+    public function get($key, $default = null)
+    {
+        $key = $this->fixKey($key);
+        if ($this->has($key, false)) {
+            return $this->cached[$key]['value'];
+        }
+
+        return $default;
+    }
+
+    public function set($key, $value, $ttl = null): bool
+    {
+        $key = $this->fixKey($key);
+        if (!is_int($ttl)) {
+            $ttl = $this->ttl();
+        }
+
+        $data = $this->cached[$key] = [
+            'value' => $value,
+            'expires' => time() + $ttl,
+        ];
+
+        $this->write($key, $data);
+
+        if ($this->has($key, false)) {
+            return true;
+        }
+        return false;
+    }
+
+    public function delete($key): bool
+    {
+        $key = $this->fixKey($key);
+        unset($this->cached[$key]);
+
+        $path = $this->path($key);
+
+        if (is_file($path)) {
+            unlink($path);
+        }
+
+        if ($this->has($key, false)) {
+            return false;
+        }
+        return true;
+    }
+
+    public function clear(): bool
+    {
+        $this->cached = [];
+
+        $base = $this->base();
+        $separator = DIRECTORY_SEPARATOR;
+
+        $files = glob("{$base}{$separator}*.cache");
+
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+        return true;
+    }
+
+    private function write(string $key, $value): self
+    {
+        file_put_contents($this->path($key), serialize($value));
+        return $this;
     }
 
     private function path(string $key): string
@@ -38,15 +92,15 @@ class FileCacheDriver extends CacheDriver
         $separator = DIRECTORY_SEPARATOR;
         $key = sha1($key);
 
-        return "{$base}{$separator}{$key}.json";
+        return "{$base}{$separator}{$key}.cache";
     }
 
     private function base(): string
     {
-        $base = App::getInstance()->resolve('paths.base');
-        $separator = DIRECTORY_SEPARATOR;
-
-        return "{$base}{$separator}storage{$separator}framework{$separator}cache";
+        $base = $this->config['path'] ?? $this->config['root']
+            ?? (kernel()->getCacheDir() . 'app_cache');
+        makeDir($base);
+        return $base;
     }
 
     private function read(string $key)
@@ -57,66 +111,6 @@ class FileCacheDriver extends CacheDriver
             return [];
         }
 
-        return json_decode(file_get_contents($path), true);
-    }
-
-    public function get(string $key, $default = null)
-    {
-        if ($this->has($key)) {
-            return $this->cached[$key]['value'];
-        }
-
-        return $default;
-    }
-
-    public function put(string $key, $value, int $seconds = null): self
-    {
-        if (!is_int($seconds)) {
-            $seconds = (int) $this->config['seconds'];
-        }
-
-        $data = $this->cached[$key] = [
-            'value' => $value,
-            'expires' => time() + $seconds,
-        ];
-
-        return $this->write($key, $data);
-    }
-
-    private function write(string $key, $value)
-    {
-        file_put_contents($this->path($key), json_encode($value));
-        return $this;
-    }
-
-    public function delete(string $key): self
-    {
-        unset($this->cached[$key]);
-
-        $path = $this->path($key);
-
-        if (is_file($path)) {
-            unlink($path);
-        }
-
-        return $this;
-    }
-
-    public function clear(): self
-    {
-        $this->cached = [];
-
-        $base = $this->base();
-        $separator = DIRECTORY_SEPARATOR;
-
-        $files = glob("{$base}{$separator}*.json");
-
-        foreach ($files as $file){
-            if (is_file($file)) {
-                unlink($file);
-            }
-        }
-
-        return $this;
+        return unserialize(file_get_contents($path));
     }
 }

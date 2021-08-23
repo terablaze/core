@@ -2,8 +2,8 @@
 
 namespace TeraBlaze\Cache\Exception;
 
-use TeraBlaze\Core as Core;
+use Psr\SimpleCache\InvalidArgumentException;
 
-class Argument extends Core\Exception\Argument
+class ArgumentException extends \InvalidArgumentException implements InvalidArgumentException
 {
 }

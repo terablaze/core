@@ -2,14 +2,16 @@
 
 namespace TeraBlaze\Cache;
 
-use TeraBlaze\Cache\Driver\Memcached;
-use TeraBlaze\Cache\Driver\Memcache;
-use TeraBlaze\Cache\Driver\File;
-use TeraBlaze\Events\Events as Events;
-use TeraBlaze\Cache\Exception\Argument as ArgumentException;
-use TeraBlaze\Config\Driver\DriverInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerInterface;
+use Psr\SimpleCache\CacheInterface;
+use TeraBlaze\Cache\Driver\CacheDriver;
+use TeraBlaze\Cache\Driver\CacheDriverInterface;
+use TeraBlaze\Cache\Driver\MemcachedDriver;
+use TeraBlaze\Cache\Driver\FileDriver;
+use TeraBlaze\Cache\Driver\MemoryDriver;
+use TeraBlaze\Cache\Driver\NullDriver;
+use TeraBlaze\Cache\Exception\ArgumentException;
+use TeraBlaze\Cache\Exception\DriverException;
+use TeraBlaze\Container\Exception\ServiceNotFoundException;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 
@@ -21,48 +23,52 @@ class CacheParcel extends Parcel implements ParcelInterface
 
     public function boot(): void
     {
-        $parsed = loadConfigArray('cache');
+        $parsed = loadConfig("cache");
 
-        if ($parsed) {
-            foreach ($parsed as $key => $conf) {
-                if (!empty($parsed->{$key}) && !empty($parsed->{$key}->type)) {
-                    $this->type = $parsed->{$key}->type;
-                    $this->options = (array)$parsed->{$key};
-                    $this->initialize($key);
-                }
-            }
+        foreach ($parsed->get('cache.stores') as $key => $conf) {
+            $this->initialize($key, $conf);
         }
     }
 
-    public function initialize($cacheConf = "default")
+    /**
+     * @throws ServiceNotFoundException
+     * @throws ArgumentException
+     */
+    public function initialize(string $confKey, array $config): void
     {
-        Events::fire("terablaze.libraries.cache.initialize.before", array($this->type, $this->options));
-        $cache = null;
+        $type = $config['type'] ?? $config['driver'] ?? '';
 
-        switch ($this->type) {
-            case "memcached": {
-                    $cache = new Memcached($this->options);
-                    break;
-            }
-            case "memcache": {
-                    $cache = new Memcache($this->options);
-                    break;
-            }
-            case "file": {
-                    $cache = new File($this->options);
-                    break;
-            }
-            default: {
-                    throw new ArgumentException("Invalid cache type or cache configuration not properly set in config/cache.php");
-                    break;
-            }
-        }
-        $this->container->registerServiceInstance('cache.' . $cacheConf, $cache);
-        if ($cacheConf == 'default') {
-            $this->container->setAlias('cache', 'cache.default');
+        $driverName = "cache.stores.{$confKey}";
+        if (empty($type)) {
+            throw new DriverException("Cache driver type not set");
         }
 
-        Events::fire("terablaze.libraries.cache.initialize.after", array($this->type, $this->options));
-        return;
+        switch ($type) {
+            case "memcache":
+            case "memcached":
+                $cacheDriver = new MemcachedDriver($config);
+                break;
+            case "file":
+                $cacheDriver = new FileDriver($config);
+                break;
+            case "memory":
+                $cacheDriver = new MemoryDriver($config);
+                break;
+            case "null":
+                $cacheDriver = new NullDriver($config);
+                break;
+            default:
+                throw new ArgumentException(
+                    "Invalid cache type or cache configuration not properly set"
+                );
+        }
+        $this->container->registerServiceInstance($driverName, $cacheDriver);
+        $this->container->setAlias("cache.store.{$confKey}", $driverName);
+
+        if (getConfig('cache.default') === $confKey) {
+            $this->container->setAlias('cache', $driverName);
+            $this->container->setAlias(CacheInterface::class, $driverName);
+            $this->container->setAlias(CacheDriverInterface::class, $driverName);
+        }
     }
 }

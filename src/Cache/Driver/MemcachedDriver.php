@@ -1,148 +1,77 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 1/30/2017
- * Time: 4:17 PM
- */
-
 namespace TeraBlaze\Cache\Driver;
 
-use TeraBlaze\Cache\Exception\Service as ServiceException;
+use Memcached;
+use TeraBlaze\Cache\Exception\ServiceException;
 
-class Memcached extends CacheDriver
+class MemcachedDriver extends CacheDriver
 {
-    private $memcached_compressed = \Memcached::OPT_COMPRESSION;
+    private ?Memcached $memcached = null;
 
-    public function connect()
+    public function __construct(array $config)
+    {
+        parent::__construct($config);
+        $this->connect();
+    }
+
+    protected function connect(): void
     {
         try {
-            $this->_service = new \Memcached();
+            $this->memcached = new Memcached();
 
-            $servers = [];
-            $_servers = (array)$this->_servers;
-            foreach ($_servers as $server) {
-                $servers[] = [
-                    $server->host,
-                    $server->port
-                ];
+            if (!empty($this->config['host'])) {
+                $this->memcached->addServer($this->config['host'], $this->config['port'] ?? 11211);
             }
 
-            if (empty($servers)) {
-                $this->_service->addServer(
-                    $this->host,
-                    $this->port
-                );
+            foreach ($this->config['servers'] ?? [] as $server) {
+                $this->memcached->addServer($server['host'], ($server['port'] ?? 11211), $server['weight']);
             }
-
-            if (is_array($servers) && !empty($servers)) {
-                $this->_service->addServers(
-                    $servers
-                );
-            }
-
-            $this->_service->setOption(\Memcached::OPT_COMPRESSION, true);
-
-            $this->isConnected = true;
         } catch (\Exception $e) {
             throw new ServiceException("Unable to connect to service");
         }
-
-        return $this;
     }
-
-    // TODO: Add support for multiple servers
 
     public function disconnect()
     {
-        if ($this->_isValidService()) {
-            $this->_service->resetServerList();
-            $this->isConnected = false;
-        }
-
-        return $this;
+        $this->memcached->resetServerList();
+        $this->memcached = null;
     }
 
-    protected function _isValidService()
+    public function has($key)
     {
-        $isEmpty = empty($this->_service);
-        $isInstance = $this->_service instanceof \Memcached;
-
-        if ($this->isConnected && $isInstance && !$isEmpty) {
-            return true;
-        }
-
-        return false;
+        $key = $this->fixKey($key);
+        return $this->memcached->get($key) !== false;
     }
 
     public function get($key, $default = null)
     {
-        if (!$this->_isValidService()) {
-            throw new ServiceException("Not connected to a valid service");
-        }
-
-        $value = $this->_service->get($this->prefix . $key);
-
-        if ($value) {
-            return unserialize($value);
+        $key = $this->fixKey($key);
+        if ($value = $this->memcached->get($key)) {
+            return $value;
         }
 
         return $default;
     }
 
-    public function set($key, $value, $duration = "")
+    public function set($key, $value, $ttl = null)
     {
-        if (!$this->_isValidService()) {
-            throw new ServiceException("Not connected to a valid service");
+        $key = $this->fixKey($key);
+        if (!is_int($ttl)) {
+            $ttl = $this->ttl();
         }
 
-        if (empty($duration)) {
-            $duration = $this->duration;
-        }
-        $this->_service->set($this->prefix . $key, serialize($value), $duration);
-        return $this;
+        return $this->memcached->set($key, $value, time() + $ttl);
     }
 
-    public function add($key, $value, $duration = "")
+    public function delete($key): bool
     {
-        if (!$this->_isValidService()) {
-            throw new ServiceException("Not connected to a valid service");
-        }
-
-        if (empty($duration)) {
-            $duration = $this->duration;
-        }
-        $this->_service->add($this->prefix . $key, serialize($value), $duration);
-        return $this;
+        $key = $this->fixKey($key);
+        return $this->memcached->delete($key);
     }
 
-    public function replace($key, $value, $duration = "")
+    public function clear(): bool
     {
-        if (!$this->_isValidService()) {
-            throw new ServiceException("Not connected to a valid service");
-        }
-
-        if (empty($duration)) {
-            $duration = $this->duration;
-        }
-        $this->_service->replace($this->prefix . $key, serialize($value), $duration);
-        return $this;
-    }
-
-
-    public function erase($key)
-    {
-        return $this->delete($key);
-    }
-
-    public function delete($key)
-    {
-        if (!$this->_isValidService()) {
-            throw new ServiceException("Not connected to a valid service");
-        }
-
-        $this->_service->delete($this->prefix . $key);
-        return $this;
+        return $this->memcached->flush();
     }
 }
