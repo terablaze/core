@@ -35,7 +35,7 @@
             $last = $exceptionAsArrayCount - 1;
             foreach ($exceptionAsArray as $i => $e) {
                 foreach ($e['trace'] as $trace) {
-                    if ($trace['file'] && false === mb_strpos($trace['file'], '/vendor/') && false === mb_strpos($trace['file'], '/var/cache/') && $i < $last) {
+                    if ($trace['file'] && false === mb_strpos($trace['file'], '/vendor/') && false === mb_strpos($trace['file'], '/storage/cache/') && $i < $last) {
                         $exceptionWithUserCode[] = $i;
                     }
                 }

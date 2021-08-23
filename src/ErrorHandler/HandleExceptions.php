@@ -37,6 +37,9 @@ class HandleExceptions
      */
     public function bootstrap(Kernel $kernel)
     {
+        if ($kernel->inConsole()) {
+            return;
+        }
         self::$reservedMemory = str_repeat('x', 10240);
 
         $this->kernel = $kernel;
