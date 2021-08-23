@@ -11,45 +11,39 @@ namespace TeraBlaze\Cache\Driver;
 
 use TeraBlaze\Cache\Exception\Service as ServiceException;
 
-class Memcache extends Driver
+class Memcached extends CacheDriver
 {
-    protected $_service;
-
-    /**
-     * @readwrite
-     */
-    protected $_host;
-
-    /**
-     * @readwrite
-     */
-    protected $_port;
-
-    /**
-     * @readwrite
-     */
-    protected $_prefix;
-
-    /**
-     * @readwrite
-     */
-    protected $_duration;
-
-    /**
-     * @readwrite
-     */
-    protected $_isConnected = false;
-
-    private $memcached_compressed = \MEMCACHE_COMPRESSED;
+    private $memcached_compressed = \Memcached::OPT_COMPRESSION;
 
     public function connect()
     {
         try {
-            $this->_service = new \Memcache();
-            $this->_service->connect(
-                $this->host,
-                $this->port
-            );
+            $this->_service = new \Memcached();
+
+            $servers = [];
+            $_servers = (array)$this->_servers;
+            foreach ($_servers as $server) {
+                $servers[] = [
+                    $server->host,
+                    $server->port
+                ];
+            }
+
+            if (empty($servers)) {
+                $this->_service->addServer(
+                    $this->host,
+                    $this->port
+                );
+            }
+
+            if (is_array($servers) && !empty($servers)) {
+                $this->_service->addServers(
+                    $servers
+                );
+            }
+
+            $this->_service->setOption(\Memcached::OPT_COMPRESSION, true);
+
             $this->isConnected = true;
         } catch (\Exception $e) {
             throw new ServiceException("Unable to connect to service");
@@ -63,7 +57,7 @@ class Memcache extends Driver
     public function disconnect()
     {
         if ($this->_isValidService()) {
-            $this->_service->close();
+            $this->_service->resetServerList();
             $this->isConnected = false;
         }
 
@@ -73,7 +67,7 @@ class Memcache extends Driver
     protected function _isValidService()
     {
         $isEmpty = empty($this->_service);
-        $isInstance = $this->_service instanceof \Memcache;
+        $isInstance = $this->_service instanceof \Memcached;
 
         if ($this->isConnected && $isInstance && !$isEmpty) {
             return true;
@@ -88,7 +82,7 @@ class Memcache extends Driver
             throw new ServiceException("Not connected to a valid service");
         }
 
-        $value = $this->_service->get($this->prefix . $key, $this->memcached_compressed);
+        $value = $this->_service->get($this->prefix . $key);
 
         if ($value) {
             return unserialize($value);
@@ -106,7 +100,7 @@ class Memcache extends Driver
         if (empty($duration)) {
             $duration = $this->duration;
         }
-        $this->_service->set($this->prefix . $key, serialize($value), $this->memcached_compressed, $duration);
+        $this->_service->set($this->prefix . $key, serialize($value), $duration);
         return $this;
     }
 
@@ -119,7 +113,7 @@ class Memcache extends Driver
         if (empty($duration)) {
             $duration = $this->duration;
         }
-        $this->_service->add($this->prefix . $key, serialize($value), $this->memcached_compressed, $duration);
+        $this->_service->add($this->prefix . $key, serialize($value), $duration);
         return $this;
     }
 
@@ -132,11 +126,17 @@ class Memcache extends Driver
         if (empty($duration)) {
             $duration = $this->duration;
         }
-        $this->_service->replace($this->prefix . $key, serialize($value), $this->memcached_compressed, $duration);
+        $this->_service->replace($this->prefix . $key, serialize($value), $duration);
         return $this;
     }
 
+
     public function erase($key)
+    {
+        return $this->delete($key);
+    }
+
+    public function delete($key)
     {
         if (!$this->_isValidService()) {
             throw new ServiceException("Not connected to a valid service");

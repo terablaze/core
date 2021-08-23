@@ -4,15 +4,18 @@ namespace TeraBlaze\Container;
 
 use ReflectionClass;
 use ReflectionException;
+use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
+use TeraBlaze\ArrayMethods;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\DependencyIsNotInstantiableException;
 use TeraBlaze\Container\Exception\InvalidArgumentException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
+use TeraBlaze\Ripana\ORM\Model;
 
 /**
  * The container interface. This extends the interface defined by
@@ -227,39 +230,12 @@ class Container implements ContainerInterface
      */
     public function registerParameter(string $key, $parameter): self
     {
-        return $this->registerValue('parameter', $key, $parameter);
-    }
-
-    /**
-     * Registers a parameter
-     *
-     * @param string $key
-     * @param mixed $parameter
-     * @return Container
-     */
-    public function registerConfig(string $key, $parameter): self
-    {
-        return $this->registerValue('config', $key, $parameter);
-    }
-
-    /**
-     * Registers a value
-     *
-     * @param string $var
-     * @param string $key
-     * @param mixed $value
-     * @return Container
-     */
-    private function registerValue(string $var, string $key, $value): self
-    {
-        if (array_key_exists($key, $this->$var)) {
-            $newValue = (is_array($value)) ?
-                array_merge($this->$var[$key], $value) :
-                array_merge($this->$var[$key], [$value]);
+        if (array_key_exists($key, $this->parameters)) {
+            $newValue = array_merge($this->parameters[$key], ArrayMethods::wrap($parameter));
         } else {
-            $newValue = $value;
+            $newValue = $parameter;
         }
-        $this->$var[$key] = $newValue;
+        $this->parameters[$key] = $newValue;
         return $this;
     }
 
@@ -430,13 +406,8 @@ class Container implements ContainerInterface
             }
         }
 
-        if (count($argumentDefinitions) === count($reflectionParameters)) {
-            return $arguments;
-        }
-
-//        // if $arguments is empty, initialize with 1 so that we can loop through it later
-//        if (empty($arguments)) {
-//            $arguments = [1];
+//        if (count($argumentDefinitions) === count($reflectionParameters)) {
+//            return $arguments;
 //        }
 
         // Loops through the details of reflectionParameters
@@ -458,22 +429,31 @@ class Container implements ContainerInterface
             $type = $types[0] ?? null;
             $typeName = is_null($type) ? null : $type->getName();
             $resolvedType = $this->resolveType($typeName);
-            try {
+
+            if ($reflectionParameter->isDefaultValueAvailable()) {
                 $defaultValue = $reflectionParameter->getDefaultValue();
-            } catch (ReflectionException $reflectionException) {
-                unset($defaultValue);
             }
+
             $resolvedArgument = $defaultValue ?? $resolvedType;
             foreach ($arguments as $key => $argument) {
-                if ($name === $key) {
+                if (is_a($typeName, Model::class, true)) {
                     unset($arguments[$key]);
-                    $resolvedArgument = $argument;
-                    continue;
+                    $resolvedArgument = $typeName::find($argument);
+                    if (is_null($resolvedArgument)) {
+                        throw new InvalidArgumentException(
+                            sprintf('No model found with the specified id: %s', $argument)
+                        );
+                    }
+                    break;
                 }
-                if (is_object($argument) && $argument instanceof $typeName) {
+                if (
+                    ($name === $key) ||
+                    (is_object($argument) && ($argument instanceof $typeName)) ||
+                    (!is_object($resolvedArgument) && is_int($key))
+                ) {
                     unset($arguments[$key]);
                     $resolvedArgument = $argument;
-                    continue;
+                    break;
                 }
             }
             $resolvedArguments[] = $resolvedArgument;
@@ -510,7 +490,10 @@ class Container implements ContainerInterface
      */
     private function resolveType(?string $typeName): ?object
     {
-        if (!class_exists($typeName) && !interface_exists($typeName)) {
+        if (
+            is_null($typeName) ||
+            (!class_exists($typeName) && !interface_exists($typeName))
+        ) {
             return null;
         }
         if (!$this->has($typeName) && class_exists($typeName)) {
@@ -520,6 +503,43 @@ class Container implements ContainerInterface
             return $this->get($typeName);
         }
         return null;
+    }
+
+    /**
+     * Initialize a route action
+     *
+     * @param array|callable $service The service.
+     * @param array $parameters The call parameters
+     *
+     * @return object
+     */
+    public function call($callable, array $parameters = [])
+    {
+        $reflector = $this->getReflector($callable);
+
+        $reflectionParameters = $reflector->getParameters();
+
+        if (empty($reflectionParameters)) {
+            return call_user_func($callable);
+        }
+
+        $methodArguments = $this->resolveArguments($parameters, $reflectionParameters);
+
+        return call_user_func_array($callable, $methodArguments);
+    }
+
+    /**
+     * @var callable|array $callable
+     *
+     * @return ReflectionMethod|ReflectionFunction
+     */
+    private function getReflector($callable)
+    {
+        if (is_array($callable)) {
+            return new ReflectionMethod($callable[0], $callable[1]);
+        }
+
+        return new ReflectionFunction($callable);
     }
 
     /**
