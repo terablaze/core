@@ -34,20 +34,34 @@ class Route
     /** @var string[] $middlewares */
     public array $middlewares = [];
 
+    public $callableRoute;
+
     /**
      * Route constructor.
      * @param int|string $name
-     * @param array<string, mixed> $route
+     * @param callable|array<string, mixed> $route
      */
-    public function __construct($name, array $route = [])
+    public function __construct($name, $route)
     {
         $this->name = (string)$name;
         $this->pattern = $route['pattern'] ?? '/';
+        unset($route['pattern']);
         $this->controller = $route['controller'] ?? null;
+        unset($route['controller']);
         $this->action = $route['action'] ?? null;
+        unset($route['action']);
         $this->method = (array) ($route['method'] ?? []);
+        unset($route['method']);
         $this->expectsJson = $route['expects_json'] ?? false;
+        unset($route['expects_json']);
         $this->middlewares = $route['middlewares'] ?? [];
+        unset($route['middlewares']);
+        foreach ($route as $callable) {
+            if (is_callable($callable)) {
+                $this->callableRoute = $callable;
+                continue;
+            }
+        }
     }
 
     /**
@@ -112,6 +126,16 @@ class Route
     public function getMiddlewares(): array
     {
         return $this->middlewares;
+    }
+
+    public function isCallableRoute(): bool
+    {
+        return is_callable($this->callableRoute);
+    }
+
+    public function getCallable()
+    {
+        return $this->callableRoute;
     }
 
     /**

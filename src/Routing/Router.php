@@ -230,6 +230,7 @@ class Router implements RouterInterface
                     return $result;
                 }
             }
+            return null;
         };
 
         $event = new PreBeforeHookEvent($action, $parameters);
@@ -249,19 +250,7 @@ class Router implements RouterInterface
 
         Events::fire("terablaze.router.action.before", array($action, $parameters));
 
-        $reflectionMethod = new \ReflectionMethod($controllerInstance, $action);
-        $reflectionParameters = $reflectionMethod->getParameters();
-        if (!empty($reflectionParameters) && is_object($firstArgument = $reflectionParameters[0])) {
-            $reflectionClass = $firstArgument->getType();
-            $reflectionClassName = is_null($reflectionClass) ? "" : $reflectionClass->getName();
-            if ($reflectionClassName === Request::class) {
-                array_unshift($parameters, $request);
-            }
-        }
-        $response = call_user_func_array([
-            $controllerInstance,
-            $action
-        ], $parameters);
+        $response = $this->container->call([$controllerInstance, $action], $parameters);
 
         if (is_null($response)) {
             throw new ImplementationException(
@@ -347,6 +336,19 @@ class Router implements RouterInterface
                 "terablaze.router.dispatch.after",
                 array($path, $controller, $action, $parameters, $method)
             );
+            if ($matchedRoute->isCallableRoute()) {
+                $response = $this->container->call($matchedRoute->getCallable(), $parameters);
+                if (!$response instanceof ResponseInterface) {
+                    throw new ImplementationException(
+                        sprintf(
+                            "Result of this closure is of type %s, ensure the an instance of %s is returned",
+                            gettype($response),
+                            ResponseInterface::class
+                        )
+                    );
+                }
+                return $response;
+            }
 
             return $this->pass($request, $controller, $action, $parameters, $requestMethod);
         }
