@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Ripana\Database\QueryBuilder\Expression;
 
+use TeraBlaze\ArrayMethods;
 use TeraBlaze\Ripana\Database\Connection\ConnectionInterface;
 
 use function func_get_arg;
@@ -278,7 +279,7 @@ class ExpressionBuilder
      */
     public function in($x, $y)
     {
-        return $this->comparison($x, 'IN', '(' . implode(', ', (array) $y) . ')');
+        return $this->comparison($x, 'IN', '(' . implode(', ', ArrayMethods::wrap($y)) . ')');
     }
 
     /**
@@ -291,7 +292,7 @@ class ExpressionBuilder
      */
     public function notIn($x, $y)
     {
-        return $this->comparison($x, 'NOT IN', '(' . implode(', ', (array) $y) . ')');
+        return $this->comparison($x, 'NOT IN', '(' . implode(', ', ArrayMethods::wrap($y)) . ')');
     }
 
 //    /**

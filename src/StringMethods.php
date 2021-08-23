@@ -248,7 +248,7 @@ class StringMethods
      */
     public static function contains(string $haystack, $needles): bool
     {
-        foreach ((array)$needles as $needle) {
+        foreach (ArrayMethods::wrap($needles) as $needle) {
             if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
                 return true;
             }
@@ -284,7 +284,7 @@ class StringMethods
      */
     public static function endsWith(string $haystack, $needles): bool
     {
-        foreach ((array)$needles as $needle) {
+        foreach (ArrayMethods::wrap($needles) as $needle) {
             if ($needle !== '' && substr($haystack, -strlen($needle)) === (string)$needle) {
                 return true;
             }
@@ -524,14 +524,14 @@ class StringMethods
         preg_match_all(self::normalize($pattern), $string, $matches, PREG_PATTERN_ORDER);
 
         if (!empty($matches[1])) {
-            return (array)$matches[1];
+            return ArrayMethods::wrap($matches[1]);
         }
 
         if (!empty($matches[0])) {
-            return (array)$matches[0];
+            return ArrayMethods::wrap($matches[0]);
         }
 
-        return (array)null;
+        return [];
     }
 
     /**
@@ -780,7 +780,7 @@ class StringMethods
      */
     public static function startsWith(string $haystack, $needles): bool
     {
-        foreach ((array) $needles as $needle) {
+        foreach (ArrayMethods::wrap($needles) as $needle) {
             if ((string) $needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0) {
                 return true;
             }

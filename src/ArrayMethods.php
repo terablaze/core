@@ -114,7 +114,7 @@ class ArrayMethods
     {
         $original = &$array;
 
-        $keys = (array)$keys;
+        $keys = ArrayMethods::wrap($keys);
 
         if (count($keys) === 0) {
             return;
@@ -223,7 +223,7 @@ class ArrayMethods
      */
     public static function has($array, $keys)
     {
-        $keys = (array)$keys;
+        $keys = ArrayMethods::wrap($keys);
 
         if (!$array || $keys === []) {
             return false;
@@ -261,7 +261,7 @@ class ArrayMethods
             return false;
         }
 
-        $keys = (array)$keys;
+        $keys = ArrayMethods::wrap($keys);
 
         if (!$array) {
             return false;
@@ -321,7 +321,7 @@ class ArrayMethods
      */
     public static function only($array, $keys)
     {
-        return array_intersect_key($array, array_flip((array)$keys));
+        return array_intersect_key($array, array_flip(ArrayMethods::wrap($keys)));
     }
 
     /**
@@ -431,11 +431,11 @@ class ArrayMethods
         $results = [];
 
         if ($preserveKeys) {
-            foreach ((array)$keys as $key) {
+            foreach (ArrayMethods::wrap($keys) as $key) {
                 $results[$key] = $array[$key];
             }
         } else {
-            foreach ((array)$keys as $key) {
+            foreach (ArrayMethods::wrap($keys) as $key) {
                 $results[] = $array[$key];
             }
         }

@@ -7,6 +7,7 @@ use DirectoryIterator;
 use IteratorAggregate;
 use RuntimeException;
 use SplFileInfo;
+use TeraBlaze\ArrayMethods;
 use TeraBlaze\Config\Exception\InvalidContextException;
 
 class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
@@ -173,7 +174,7 @@ class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
             throw new RuntimeException("Config item '{$key}' is not an array");
         }
 
-        $config = array_merge($config, (array)$value);
+        $config = array_merge($config, ArrayMethods::wrap($value));
 
         return true;
     }
@@ -200,7 +201,7 @@ class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
             throw new RuntimeException("Config item '{$key}' is not an array");
         }
 
-        $config = array_merge((array)$value, $config);
+        $config = array_merge(ArrayMethods::wrap($value), $config);
 
         return true;
     }
@@ -243,7 +244,7 @@ class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
         $configArray = $loader->getArray();
 
         if (array_key_exists('@import', $configArray)) {
-            $importFiles = (array)$configArray['@import'];
+            $importFiles = ArrayMethods::wrap($configArray['@import']);
             $imports = [];
             foreach ($importFiles as $importFile) {
                 $importedConfig = (new self($importFile, null, $this->paths, $this->fileLocator))->toArray();

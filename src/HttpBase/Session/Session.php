@@ -9,6 +9,7 @@
 
 namespace TeraBlaze\HttpBase\Session;
 
+use TeraBlaze\ArrayMethods;
 use TeraBlaze\Base as Base;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\HttpBase\Session\Exception as Exception;
@@ -41,7 +42,7 @@ class Session extends Base
             if (!empty($parsed[$session_conf]) && !empty($parsed[$session_conf]['type'])) {
                 $this->type = $parsed[$session_conf]['type'];
                 //unset($parsed->session->{$session_conf}->type);
-                $this->options = (array)$parsed[$session_conf];
+                $this->options = ArrayMethods::wrap($parsed[$session_conf]);
             }
         }
 

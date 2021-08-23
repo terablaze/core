@@ -50,7 +50,7 @@ class Route
         unset($route['controller']);
         $this->action = $route['action'] ?? null;
         unset($route['action']);
-        $this->method = (array) ($route['method'] ?? []);
+        $this->method = ArrayMethods::wrap($route['method'] ?? '');
         unset($route['method']);
         $this->expectsJson = $route['expects_json'] ?? false;
         unset($route['expects_json']);
