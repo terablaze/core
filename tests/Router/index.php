@@ -84,7 +84,7 @@ dump($router->getRoutes());
 dump($router->getRoutes()['brigade']->matches('brigade/1/book/author/1'));
 dump($router->getRoutes());
 
-$urlGenerator = new UrlGenerator($router->getRoutes());
+$urlGenerator = new UrlGenerator($router);
 dump($urlGenerator->generate('brigade', [
     "userId" => 1,
     "babayaga" => "jognny",

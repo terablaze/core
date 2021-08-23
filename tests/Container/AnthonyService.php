@@ -5,6 +5,7 @@ namespace Tests\TeraBlaze\Container;
 class AnthonyService
 {
     public $chaftani;
+    public string $chaftani2;
 
     public function sayAnthony()
     {
@@ -19,5 +20,10 @@ class AnthonyService
     public function setChaftani(ChaftaniService $chaftaniService)
     {
         $this->chaftani = $chaftaniService;
+    }
+
+    public function setChaftani2(string $cheff)
+    {
+        $this->chaftani2 = $cheff;
     }
 }

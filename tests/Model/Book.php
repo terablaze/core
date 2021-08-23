@@ -18,7 +18,7 @@ class Book extends Model
     protected $name;
 
     /**
-     * @column/ManyToOne(name="author", type="text", length="100", default="Ibi`woye")
+     * @column/ManyToOne(name="author", type="\Tests\TeraBlaze\Model\User", length="100", default="Ibi`woye")
      */
     protected $author;
 }

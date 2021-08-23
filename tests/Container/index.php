@@ -18,6 +18,10 @@ $services = [
                 'method' => 'setChaftani',
                 'arguments' => ['@service.chaftani'],
             ],
+            [
+                'method' => 'setChaftani2',
+                'arguments' => ["tomtom"],
+            ],
         ],
     ],
     'service.bhutani' => [
@@ -65,24 +69,24 @@ $date = new DateTime();
 
 $container = Container::getContainer($services, $parameters);
 
-//$as = $container->get('service.anthony');
-//dump($as);
-//
-//$bs = $container->get('service.bhutani');
-//dump($bs);
-//
-//$cs = $container->get('service.chaftani');
-//dump($cs);
-//
-//$pr = $container->getParameter('refff.l2.l3.l4');
-//dump($pr);
-//
-//$pr = $container->getParameter('buthan.a1.a2.a3');
-//dump($pr);
-//
-//$container->registerServiceInstance($date);
-//
-//dump($container);
+$as = $container->get('service.anthony');
+dump($as);
+
+$bs = $container->get('service.bhutani');
+dump($bs);
+
+$cs = $container->get('service.chaftani');
+dump($cs);
+
+$pr = $container->getParameter('refff.l2.l3.l4');
+dump($pr);
+
+$pr = $container->getParameter('buthan.a1.a2.a3');
+dump($pr);
+
+$container->registerServiceInstance($date);
+
+dump($container);
 
 $container->registerService(AutowireService::class, ['class' => AutowireService::class]);
 $as = $container->get(AutowireService::class);
