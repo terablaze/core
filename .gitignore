@@ -1,6 +1,9 @@
 /.idea
+/.vscode
 *.log
 /var
+/storage
+/database
 /vendor
 composer.lock
 /config
