@@ -10,25 +10,21 @@ use DebugBar\DataCollector\MessagesCollector;
 use DebugBar\DebugBarException;
 use ErrorException;
 use Exception;
-use Middlewares\Utils\Factory;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
-use DebugBar\DataCollector\TimeDataCollector;
 use DebugBar\DebugBar;
-use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\EventDispatcher\ListenerProvider;
+use TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Profiler\DebugBar\DataCollectors\MySqliCollector;
+use TeraBlaze\Profiler\DebugBar\DataCollectors\Ripana\QueryCollector;
 use TeraBlaze\Profiler\Debugbar\DataCollectors\PhpInfoCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RequestCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RouteCollector;
@@ -69,16 +65,6 @@ class TeraBlazeDebugbar extends DebugBar
     private $kernel;
 
     /**
-     * @var ResponseFactoryInterface
-     */
-    private $responseFactory;
-
-    /**
-     * @var StreamFactoryInterface
-     */
-    private $streamFactory;
-
-    /**
      * @var ?bool
      */
     protected ?bool $enabled = null;
@@ -91,15 +77,9 @@ class TeraBlazeDebugbar extends DebugBar
     ];
 
 
-    public function __construct(
-        ?ContainerInterface $container = null,
-        ?ResponseFactoryInterface $responseFactory = null,
-        ?StreamFactoryInterface $streamFactory = null
-    )
+    public function __construct(?ContainerInterface $container = null)
     {
         $this->container = $container ?: Container::getContainer();
-        $this->responseFactory = $responseFactory ?: Factory::getResponseFactory();
-        $this->streamFactory = $streamFactory ?: Factory::getStreamFactory();
         $this->dispatcher = $this->container->get(EventDispatcherInterface::class);
         $this->listenerProvider = $this->container->get(ListenerProviderInterface::class);
 //        $this->logger = $logger;
@@ -559,7 +539,6 @@ class TeraBlazeDebugbar extends DebugBar
             $file = $renderer->getBasePath() . substr($path, strlen($baseUrl));
 
             if (file_exists($file)) {
-                $response = $this->responseFactory->createResponse();
                 $response->getBody()->write((string)file_get_contents($file));
                 $extension = pathinfo($file, PATHINFO_EXTENSION);
 
@@ -578,11 +557,19 @@ class TeraBlazeDebugbar extends DebugBar
         }
 
         if ($this->shouldCollect('ripana.query', true)) {
-            if ($this->container->has('ripana.database.connector')) {
-                $mysqliCollector = new MySqliCollector(
-                    $this->container->get('ripana.database.connector')->getQueryLogger()
-                );
-                $mysqliCollector->setDataFormatter(new QueryFormatter());
+            if ($this->container->has('ripana.database.connection')) {
+                $mysqliCollector = new QueryCollector(null, $this->getCollector('time'));
+                $connectionNames = array_keys(getConfig('ripana.connections'));
+                foreach ($connectionNames as $connectionName) {
+                    $mysqliCollector->addLogger(
+                        $this->container
+                            ->get(sprintf('ripana.database.connection.%s', $connectionName))
+                            ->getQueryLogger(),
+                        (string)$connectionName
+                    );
+                    $mysqliCollector->setDataFormatter(new QueryFormatter());
+                }
+
                 $this->addCollector($mysqliCollector);
             }
         }
@@ -668,7 +655,7 @@ class TeraBlazeDebugbar extends DebugBar
 
         $renderer = $this->getJavascriptRenderer();
         if ($this->getStorage()) {
-            $openHandlerUrl = path('profiler.debugbar.openhandler');
+            $openHandlerUrl = route('profiler.debugbar.openhandler');
             $renderer->setOpenHandlerUrl($openHandlerUrl);
         }
 
@@ -681,7 +668,7 @@ class TeraBlazeDebugbar extends DebugBar
             $content = $content . $renderedContent;
         }
 
-        $body = $this->streamFactory->createStream();
+        $body = (new Psr17Factory())->createStream();
         $body->write($content);
 
         return $response

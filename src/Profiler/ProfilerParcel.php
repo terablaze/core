@@ -12,6 +12,8 @@ use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\EventDispatcher\ListenerProvider;
 use TeraBlaze\Profiler\DebugBar\DebugbarMiddleware;
 use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
+use function in_array;
+use function ini_set;
 
 class ProfilerParcel extends Parcel implements ParcelInterface
 {
@@ -29,6 +31,9 @@ class ProfilerParcel extends Parcel implements ParcelInterface
 
     protected function startDebugbar(ConfigInterface $config): void
     {
+        if ($this->getKernel()->inConsole()) {
+            return;
+        }
         if (!$this->container->has(DebugbarMiddleware::class)) {
             /** @var DebugbarMiddleware $debugBarMiddleware */
             $this->container->registerService(
