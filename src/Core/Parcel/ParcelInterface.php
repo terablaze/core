@@ -3,10 +3,9 @@
 namespace TeraBlaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerAwareInterface;
-use TeraBlaze\Container\ContainerAwareTrait;
 use TeraBlaze\Container\ContainerInterface;
+use TeraBlaze\Core\Console\Application;
+use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 
 interface ParcelInterface
@@ -23,6 +22,8 @@ interface ParcelInterface
      * @return $this;
      */
     public function setEventDispatcher(?EventDispatcherInterface $dispatcher = null): self;
+
+    public function getKernel(): KernelInterface;
 
     /**
      * Boots the Parcel.
@@ -70,4 +71,6 @@ interface ParcelInterface
      * @param array<string|int, array> $routes
      */
     public function registerRoutes(array $routes): void;
+
+    public function registerCommands(Application $application);
 }

@@ -53,6 +53,13 @@ interface KernelInterface extends HttpKernelInterface
     public function getContainer(): ContainerInterface;
 
     /**
+     * Determine if the application is running in the console.
+     *
+     * @return bool
+     */
+    public function inConsole(): bool;
+
+    /**
      * Gets the project dir (path of the project's composer file).
      *
      * @return string
@@ -67,7 +74,7 @@ interface KernelInterface extends HttpKernelInterface
 
     public function getEnvConfigDir(): string;
 
-    public function getVarDir(): string;
+    public function getStorageDir(): string;
 
     public function getCacheDir(): string;
 

@@ -11,13 +11,23 @@ use TeraBlaze\Routing\RouterInterface;
 
 abstract class Parcel implements ParcelInterface
 {
-    protected $name;
-    protected $extension;
-    protected $path;
-    private $namespace;
+    /**
+     * @var string|null $name
+     */
+    protected ?string $name = null;
 
     /**
-     * @var ContainerInterface|Container $container
+     * @var string|null $path
+     */
+    protected ?string $path = null;
+
+    /**
+     * @var string|null $namespace
+     */
+    protected ?string $namespace = null;
+
+    /**
+     * @var Container|ContainerInterface $container
      */
     protected $container;
 
@@ -110,6 +120,10 @@ abstract class Parcel implements ParcelInterface
         }
 
         return $this->name;
+    }
+
+    public function registerCommands(\TeraBlaze\Core\Console\Application $application)
+    {
     }
 
     public function registerRoutes(array $routes): void

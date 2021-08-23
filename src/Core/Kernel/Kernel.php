@@ -63,7 +63,13 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     protected string $envConfigDir;
 
     protected ConfigInterface $config;
-    protected static ConfigInterface $configStatic;
+
+    /**
+     * Indicates if the application is running in the console.
+     *
+     * @var bool|null
+     */
+    protected $inConsole;
 
     public function __construct(string $environment, bool $debug)
     {
@@ -72,7 +78,6 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $this->configDir = "{$this->getProjectDir()}/config/";
         $this->envConfigDir = "{$this->getProjectDir()}/config/{$this->getEnvironment()}/";
         $this->config = new Config();
-        static::$configStatic = $this->config;
     }
 
     /**
@@ -168,11 +173,6 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     public function getConfig(): ConfigInterface
     {
         return $this->config;
-    }
-
-    public static function getConfigStatic(): ConfigInterface
-    {
-        return static::$configStatic;
     }
 
     /**
@@ -271,6 +271,15 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         return $this->debug;
     }
 
+    public function inConsole(): bool
+    {
+        if ($this->inConsole === null) {
+            $this->inConsole = in_array(\PHP_SAPI, ['cli', 'phpdbg'], true);
+        }
+
+        return $this->inConsole;
+    }
+
     public function getProjectDir(): string
     {
         if (null === $this->projectDir) {
@@ -331,9 +340,9 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         return $this->envConfigDir;
     }
 
-    public function getVarDir(): string
+    public function getStorageDir(): string
     {
-        $dir = $this->getProjectDir() . '/var/';
+        $dir = $this->getProjectDir() . '/storage/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
@@ -342,7 +351,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function getCacheDir(): string
     {
-        $dir = $this->getProjectDir() . '/var/cache/' . $this->environment . '/';
+        $dir = $this->getProjectDir() . '/storage/cache/' . $this->environment . '/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
@@ -351,7 +360,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function getLogsDir(): string
     {
-        $dir = $this->getProjectDir() . '/var/logs/' . $this->environment . '/';
+        $dir = $this->getProjectDir() . '/storage/logs/' . $this->environment . '/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
@@ -360,7 +369,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function getSessionsDir(): string
     {
-        $dir = $this->getProjectDir() . '/var/sessions/' . $this->environment . '/';
+        $dir = $this->getProjectDir() . '/storage/sessions/' . $this->environment . '/';
         if (!is_dir($dir)) {
             makeDir($dir);
         }
