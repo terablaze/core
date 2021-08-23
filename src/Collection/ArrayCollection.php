@@ -307,6 +307,45 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
+     * Get and remove the last item from the collection.
+     *
+     * @return mixed
+     */
+    public function pop()
+    {
+        return array_pop($this->elements);
+    }
+
+    /**
+     * Push an item onto the beginning of the collection.
+     *
+     * @param  mixed  $value
+     * @param  mixed  $key
+     * @return $this
+     */
+    public function prepend($value, $key = null)
+    {
+        $this->elements = ArrayMethods::prepend($this->elements, ...func_get_args());
+
+        return $this;
+    }
+
+    /**
+     * Push one or more items onto the end of the collection.
+     *
+     * @param  mixed  $values [optional]
+     * @return $this
+     */
+    public function push(...$values)
+    {
+        foreach ($values as $value) {
+            $this->elements[] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function isEmpty()
@@ -404,6 +443,176 @@ class ArrayCollection implements CollectionInterface
         return new static(ArrayMethods::pluck($this->elements, $value, $key));
     }
 
+    /**
+     * Sort through each item with a callback.
+     *
+     * @param  callable|int|null  $callback
+     * @return static
+     */
+    public function sort($callback = null)
+    {
+        $items = $this->elements;
+
+        $callback && is_callable($callback)
+            ? uasort($items, $callback)
+            : asort($items, $callback ?? SORT_REGULAR);
+
+        return new static($items);
+    }
+
+    /**
+     * Sort items in descending order.
+     *
+     * @param  int  $options
+     * @return static
+     */
+    public function sortDesc($options = SORT_REGULAR)
+    {
+        $items = $this->elements;
+
+        arsort($items, $options);
+
+        return new static($items);
+    }
+
+    /**
+     * Sort the collection using the given callback.
+     *
+     * @param  callable|array|string  $callback
+     * @param  int  $options
+     * @param  bool  $descending
+     * @return static
+     */
+    public function sortBy($callback, $options = SORT_REGULAR, $descending = false)
+    {
+        if (is_array($callback) && ! is_callable($callback)) {
+            return $this->sortByMany($callback);
+        }
+
+        $results = [];
+
+        $callback = $this->valueRetriever($callback);
+
+        // First we will loop through the items and get the comparator from a callback
+        // function which we were given. Then, we will sort the returned values and
+        // and grab the corresponding values for the sorted keys from this array.
+        foreach ($this->elements as $key => $value) {
+            $results[$key] = $callback($value, $key);
+        }
+
+        $descending ? arsort($results, $options)
+            : asort($results, $options);
+
+        // Once we have sorted all of the keys in the array, we will loop through them
+        // and grab the corresponding model so we can set the underlying items list
+        // to the sorted version. Then we'll just return the collection instance.
+        foreach (array_keys($results) as $key) {
+            $results[$key] = $this->elements[$key];
+        }
+
+        return new static($results);
+    }
+
+    /**
+     * Sort the collection using multiple comparisons.
+     *
+     * @param  array  $comparisons
+     * @return static
+     */
+    protected function sortByMany(array $comparisons = [])
+    {
+        $items = $this->elements;
+
+        usort($items, function ($a, $b) use ($comparisons) {
+            foreach ($comparisons as $comparison) {
+                $comparison = ArrayMethods::wrap($comparison);
+
+                $prop = $comparison[0];
+
+                $ascending = ArrayMethods::get($comparison, 1, true) === true ||
+                    ArrayMethods::get($comparison, 1, true) === 'asc';
+
+                $result = 0;
+
+                if (is_callable($prop)) {
+                    $result = $prop($a, $b);
+                } else {
+                    $values = [dataGet($a, $prop), dataGet($b, $prop)];
+
+                    if (! $ascending) {
+                        $values = array_reverse($values);
+                    }
+
+                    $result = $values[0] <=> $values[1];
+                }
+
+                if ($result === 0) {
+                    continue;
+                }
+
+                return $result;
+            }
+        });
+
+        return new static($items);
+    }
+
+    /**
+     * Sort the collection in descending order using the given callback.
+     *
+     * @param  callable|string  $callback
+     * @param  int  $options
+     * @return static
+     */
+    public function sortByDesc($callback, $options = SORT_REGULAR)
+    {
+        return $this->sortBy($callback, $options, true);
+    }
+
+    /**
+     * Sort the collection keys.
+     *
+     * @param  int  $options
+     * @param  bool  $descending
+     * @return static
+     */
+    public function sortKeys($options = SORT_REGULAR, $descending = false)
+    {
+        $items = $this->elements;
+
+        $descending ? krsort($items, $options) : ksort($items, $options);
+
+        return new static($items);
+    }
+
+    /**
+     * Sort the collection keys in descending order.
+     *
+     * @param  int  $options
+     * @return static
+     */
+    public function sortKeysDesc($options = SORT_REGULAR)
+    {
+        return $this->sortKeys($options, true);
+    }
+
+    /**
+     * Splice a portion of the underlying collection array.
+     *
+     * @param  int  $offset
+     * @param  int|null  $length
+     * @param  mixed  $replacement
+     * @return static
+     */
+    public function splice($offset, $length = null, $replacement = [])
+    {
+        if (func_num_args() === 1) {
+            return new static(array_splice($this->elements, $offset));
+        }
+
+        return new static(array_splice($this->elements, $offset, $length, $replacement));
+    }
+
     public function dump()
     {
         dump($this->elements);
@@ -444,5 +653,33 @@ class ArrayCollection implements CollectionInterface
                 throw new TypeException($message);
             }
         }
+    }
+
+    /**
+     * Determine if the given value is callable, but not a string.
+     *
+     * @param  mixed  $value
+     * @return bool
+     */
+    protected function useAsCallable($value)
+    {
+        return ! is_string($value) && is_callable($value);
+    }
+
+    /**
+     * Get a value retrieving callback.
+     *
+     * @param  callable|string|null  $value
+     * @return callable
+     */
+    protected function valueRetriever($value)
+    {
+        if ($this->useAsCallable($value)) {
+            return $value;
+        }
+
+        return function ($item) use ($value) {
+            return dataGet($item, $value);
+        };
     }
 }
