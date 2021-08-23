@@ -3,29 +3,34 @@
 namespace TeraBlaze\Ripana\Events;
 
 use TeraBlaze\EventDispatcher\Event;
+use TeraBlaze\Ripana\Database\Connection\ConnectionInterface;
 use TeraBlaze\Ripana\Database\Connectors\ConnectorInterface;
 
 class InitializeEvent extends Event
 {
-    private ConnectorInterface $connection;
+    /** @var ConnectionInterface|ConnectorInterface  */
+    private $connection;
 
     /**
      * InitializeEvent constructor.
-     * @param ConnectorInterface $connection
+     * @param ConnectorInterface|ConnectionInterface $connection
      */
-    public function __construct(ConnectorInterface $connection)
+    public function __construct($connection)
     {
         $this->connection = $connection;
     }
 
-    public function setConnection(ConnectorInterface $connection): self
+    public function setConnection($connection): self
     {
         $this->connection = $connection;
 
         return $this;
     }
 
-    public function getConnection(): ConnectorInterface
+    /**
+     * @return ConnectionInterface|ConnectorInterface
+     */
+    public function getConnection()
     {
         return $this->connection;
     }

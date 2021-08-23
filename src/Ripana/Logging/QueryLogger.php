@@ -2,66 +2,70 @@
 
 namespace TeraBlaze\Ripana\Logging;
 
+use Exception;
 use function microtime;
 
 /**
- * Includes executed SQLs in a MysqliQuery Logger.
+ * Includes executed SQLs in a Query Logger.
  */
 class QueryLogger
 {
     /**
      * Executed SQL queries.
      *
-     * @var array<int, array<string, mixed>>
+     * @var LoggedQuery[]
      */
-    public $queries = [];
+    public array $queries = [];
 
     /**
      * If Debug Stack is enabled (log queries) or not.
      *
      * @var bool
      */
-    public $enabled = true;
-
-    /** @var float|null */
-    public $start = null;
+    public bool $enabled = true;
 
     /** @var int */
-    public $currentQuery = 0;
+    public int $currentQuery = 0;
 
     /**
      * Logs a SQL statement somewhere.
-     *
-     * @param string $sql SQL statement
-     * @return void
+     * @param string $sql SQL Statement
+     * @param array<string, mixed> $params
      */
-    public function startLog(string $sql)
+    public function startLog(string $sql, array $params = [], $startTime = null, $startMemory = null): void
     {
         if (!$this->enabled) {
             return;
         }
 
-        $this->start = microtime(true);
-
-        $this->queries[++$this->currentQuery] = [
-            'sql' => $sql,
-            'executionTime' => 0,
-        ];
+        $loggedQuery = new LoggedQuery($sql, $params);
+        $loggedQuery->start($startTime, $startMemory);
+        $this->queries[++$this->currentQuery] = $loggedQuery;
     }
 
     /**
      * Marks the last started query as stopped. This can be used for timing of queries.
      *
+     * @param Exception|null $exception
      * @param int $affectedRows
+     * @param mixed $memoryEnd
      * @return void
      */
-    public function stopLog(int $affectedRows)
+    public function stopLog(int $affectedRows, $memoryEnd = null): void
     {
-        if (!$this->enabled) {
-            return;
-        }
+        $this->queries[$this->currentQuery]->end(null, $affectedRows, $memoryEnd);
+    }
 
-        $this->queries[$this->currentQuery]['affectedRows'] = $affectedRows;
-        $this->queries[$this->currentQuery]['executionTime'] = microtime(true) - $this->start;
+    /**
+     * Marks the last started query as stopped. This can be used for timing of queries.
+     *
+     * @param Exception|null $exception
+     * @param int $affectedRows
+     * @param mixed $memoryEnd
+     * @return void
+     */
+    public function stopLogForFailed(Exception $exception, $memoryEnd = null): void
+    {
+        $this->queries[$this->currentQuery]->end($exception, $memoryEnd);
     }
 }

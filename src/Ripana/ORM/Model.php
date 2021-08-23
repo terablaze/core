@@ -353,12 +353,12 @@ abstract class Model
 
     public function _getConnector(): ConnectorInterface
     {
-        $connectorString = 'ripana.database.connector.' . $this->_getDbConf();
+        $connectorString = 'ripana.database.connection.' . $this->_getDbConf();
         if (empty($this->__connector)) {
             if ($this->_getContainer()->has($connectorString)) {
                 $database = $this->_getContainer()->get($connectorString);
             } else {
-                throw new ConnectorException("MysqliConnector: {$connectorString} not found");
+                throw new ConnectorException("MysqliConnection: {$connectorString} not found");
             }
             $this->__connector = $database;
         }
