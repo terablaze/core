@@ -77,7 +77,6 @@ class PhaEngine implements EngineInterface
     public function compileBlock($code)
     {
         preg_match_all('#{% ?block ?(.*?) ?%}(.*?){% ?endblock ?%}#is', $code, $matches, PREG_SET_ORDER);
-        dump($code, $matches);
         foreach ($matches as $value) {
             if (!array_key_exists($value[1], $this->blocks)) $this->blocks[$value[1]] = '';
             if (strpos($value[2], '@parent') === false) {

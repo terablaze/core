@@ -20,7 +20,7 @@ class ViewParcel extends Parcel implements ParcelInterface
 
         /** @var View $manager */
         $manager = $this->container->make(View::class);
-        $manager->setCachePath($config['cache_path']);
+        $manager->setCachePath($config['cache_path'] ?? '');
 
         $this->bindPaths($manager, $config['paths'] ?? []);
         $this->bindEngines($manager, $config['engines'] ?? []);

@@ -112,7 +112,9 @@ class View
 
     public function setCachePath(string $cachePath): self
     {
-        $this->cachePath = $cachePath;
+        if (!empty($cachePath)) {
+            $this->cachePath = $cachePath;
+        }
         makeDir($this->cachePath);
         return $this;
     }

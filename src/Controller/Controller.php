@@ -11,6 +11,7 @@ use TeraBlaze\Events\Events;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\RouterInterface;
 use TeraBlaze\View\Exception\Argument as ViewArgumentException;
+use TeraBlaze\View\View;
 
 /**
  * Class Controller
@@ -79,7 +80,7 @@ abstract class Controller implements ControllerInterface
         include $filename;
     }
 
-    protected function render(
+    protected function xrender(
         string $viewFile,
         array $viewVars = [],
         int $responseCode = 200,
@@ -87,6 +88,34 @@ abstract class Controller implements ControllerInterface
     ): Response {
         $content = $this->loadView($viewFile, $viewVars);
 
+        return new Response($content, $responseCode, $headers);
+    }
+
+    /**
+     * Returns a rendered view.
+     */
+    protected function renderView(string $view, array $parameters = []): string
+    {
+        if (!$this->container->has(View::class)) {
+            throw new \LogicException(
+                'You can not use the "renderView" method if the ViewParcel is not in use.
+                Try loading the ViewParcel in the parcels configuration file.'
+            );
+        }
+
+        return $this->container->get(View::class)->render($view, $parameters);
+    }
+
+    /**
+     * Renders a view.
+     */
+    protected function render(
+        string $view,
+        array $parameters = [],
+        int $responseCode = 200,
+        array $headers = ['Content-Type' => 'text/html']
+    ): Response {
+        $content = $this->renderView($view, $parameters);
         return new Response($content, $responseCode, $headers);
     }
 
