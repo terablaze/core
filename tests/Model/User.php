@@ -3,8 +3,14 @@
 namespace Tests\TeraBlaze\Model;
 
 use TeraBlaze\Ripana\ORM\Model;
+use TeraBlaze\Ripana\ORM\NewModel;
 
-class User extends Model
+/**
+ * Class User
+ * @package Tests\TeraBlaze\Model
+ * @dbConf mysql
+ */
+class User extends NewModel
 {
     /**
      * @column(type="autonumber", name="id")

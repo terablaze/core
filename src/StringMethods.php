@@ -570,14 +570,6 @@ class StringMethods
             return $string;
         }
 
-//        foreach ($parts as $part) {
-//            $normalized = self::normalize("\\{$part}");
-//            $string = preg_replace(
-//                "{$normalized}m",
-//                "\\{$part}",
-//                $string
-//            );
-//        }
         foreach ($parts as $part) {
             $normalized = self::normalize("\\$part");
             $string = preg_replace(

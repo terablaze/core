@@ -3,8 +3,9 @@
 namespace Tests\TeraBlaze\Model;
 
 use TeraBlaze\Ripana\ORM\Model;
+use TeraBlaze\Ripana\ORM\NewModel;
 
-class Book extends Model
+class Book extends NewModel
 {
     /**
      * @column(type="autonumber", name="id")
