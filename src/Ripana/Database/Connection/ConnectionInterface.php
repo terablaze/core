@@ -6,7 +6,7 @@ use PDO;
 use PDOStatement;
 use TeraBlaze\Ripana\Database\Migration\Migration;
 use TeraBlaze\Ripana\Database\QueryBuilder\Expression\ExpressionBuilder;
-use TeraBlaze\Ripana\Database\QueryBuilder\QueryBuilder;
+use TeraBlaze\Ripana\Database\QueryBuilder\QueryBuilderInterface;
 use TeraBlaze\Ripana\Logging\QueryLogger;
 
 interface ConnectionInterface
@@ -36,6 +36,11 @@ interface ConnectionInterface
      */
     public function pdo(): PDO;
 
+    /**
+     * Get the ID of the last row that was inserted
+     */
+    public function getLastInsertId(): string;
+
     public function execute($sql, array $params = []);
 
     public function getExpressionBuilder(): ExpressionBuilder;
@@ -43,12 +48,12 @@ interface ConnectionInterface
     /**
      * Start a new query on this connection
      */
-    public function query(): QueryBuilder;
+    public function query(): QueryBuilderInterface;
 
     /**
      * Start a new query on this connection
      */
-    public function getQueryBuilder();
+    public function getQueryBuilder(): QueryBuilderInterface;
 
     /**
      * Start a new migration to add a table on this connection

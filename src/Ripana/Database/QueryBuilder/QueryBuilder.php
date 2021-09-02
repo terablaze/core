@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Ripana\Database\QueryBuilder;
 
+use TeraBlaze\ArrayMethods as ArrayMethods;
 use TeraBlaze\Ripana\Database\Connection\ConnectionInterface;
 use TeraBlaze\Ripana\Database\Exception\QueryException;
 use TeraBlaze\Ripana\Database\QueryBuilder\Expression\CompositeExpression;
@@ -10,16 +11,6 @@ use TeraBlaze\Ripana\Database\QueryBuilder\Expression\ExpressionBuilder;
 
 abstract class QueryBuilder implements QueryBuilderInterface
 {
-    /*
-     * The query types.
-     */
-    public const INSERT = 0;
-    public const SELECT = 1;
-    public const UPDATE = 2;
-    public const DELETE = 3;
-
-    protected ConnectionInterface $connection;
-
     /*
      * The default values of SQL parts collection
      */
@@ -35,6 +26,10 @@ abstract class QueryBuilder implements QueryBuilderInterface
         'orderBy' => [],
         'values' => [],
     ];
+
+    protected ConnectionInterface $connection;
+
+    protected $saveCall = null;
 
     /**
      * The array of SQL parts collected.
@@ -153,6 +148,31 @@ abstract class QueryBuilder implements QueryBuilderInterface
      */
     public function getSQL(): string
     {
+        if (!is_null($this->saveCall)) {
+            $isInsert = empty($this->sqlParts['where']);
+
+            $table = $this->sqlParts['from'][0]['table'];
+            $this->resetQueryPart('from');
+
+            if ($isInsert) {
+                $this->insert($table);
+                $this->values($this->saveCall['values']);
+            } else {
+                $this->update($table);
+                foreach ($this->saveCall['values'] as $key => $value) {
+                    $this->set($key, $value);
+                }
+            }
+            $this->setParameters($this->saveCall['parameters']);
+
+            $this->saveCall = null;
+            return $this->getSQL();
+        }
+
+        if (!isset($this->type)) {
+            $this->type = self::SELECT;
+        }
+
         switch ($this->type) {
             case self::INSERT:
                 $sql = $this->getSQLForInsert();
@@ -181,7 +201,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Sets a query parameter for the query being constructed.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u')
      *         ->from('users', 'u')
      *         ->where('u.id = :user_id')
@@ -193,7 +213,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setParameter($key, $value)
+    public function setParameter($key, $value): self
     {
         $this->params[$key] = $value;
 
@@ -204,7 +224,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Sets a collection of query parameters for the query being constructed.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u')
      *         ->from('users', 'u')
      *         ->where('u.id = :user_id1 OR u.id = :user_id2')
@@ -218,7 +238,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setParameters(array $params)
+    public function setParameters(array $params): self
     {
         $this->params = $params + $this->params;
 
@@ -230,7 +250,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return array<int|string, mixed> The currently defined query parameters
      */
-    public function getParameters()
+    public function getParameters(): array
     {
         return $this->params;
     }
@@ -259,7 +279,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function add($sqlPartName, $sqlPart, bool $append = false)
+    public function add($sqlPartName, $sqlPart, bool $append = false): self
     {
         $isArray = is_array($sqlPart);
         $isMultiple = is_array($this->sqlParts[$sqlPartName]);
@@ -294,7 +314,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Specifies an item that is to be returned in the query result.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.id', 'p.id')
      *         ->from('users', 'u')
      *         ->leftJoin('u', 'phonenumbers', 'p', 'u.id = p.user_id');
@@ -317,7 +337,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Adds DISTINCT to the query.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.id')
      *         ->distinct()
      *         ->from('users', 'u')
@@ -337,7 +357,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Appends to any previously specified selections, if any.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.id')
      *         ->addSelect('p.id')
      *         ->from('users', 'u')
@@ -362,7 +382,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * a certain table.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->delete('users', 'u')
      *         ->where('u.id = :user_id')
      *         ->setParameter(':user_id', 1);
@@ -373,7 +393,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function delete($delete = null, $alias = null)
+    public function delete($delete = null, $alias = null): self
     {
         $this->type = self::DELETE;
 
@@ -392,7 +412,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * a certain table
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->update('counters', 'c')
      *         ->set('c.value', 'c.value + 1')
      *         ->where('c.id = ?');
@@ -403,7 +423,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function update($update = null, $alias = null)
+    public function update($update = null, $alias = null): self
     {
         $this->type = self::UPDATE;
 
@@ -422,7 +442,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * a certain table
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->insert('users')
      *         ->values(
      *             array(
@@ -436,7 +456,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function insert($insert = null)
+    public function insert($insert = null): self
     {
         $this->type = self::INSERT;
 
@@ -447,36 +467,21 @@ abstract class QueryBuilder implements QueryBuilderInterface
         return $this->add('from', ['table' => $insert]);
     }
 
-//    public function save($data)
-//    {
-//        $isInsert = sizeof($this->where) == 0;
-//
-//        if ($isInsert) {
-//            $sql = $this->_buildInsert($data);
-//        } else {
-//            $sql = $this->_buildUpdate($data);
-//        }
-//
-//        $result = $this->connector->execute($sql, $this->dumpSql);
-//
-//        if ($result === false) {
-//            $error = $this->connector->getLastError();
-//            throw new Exception\SqlException("An error occured while executing your query: {$error} \n" . $sql);
-//        }
-//
-//        if ($isInsert) {
-//            return $this->connector->getLastInsertId();
-//        }
-//
-//        return true;
-//    }
+    public function save($values, $parameters = []): self
+    {
+        $this->saveCall = [
+            'values' => $values,
+            'parameters' => $parameters
+        ];
+        return $this;
+    }
 
     /**
      * Creates and adds a query root corresponding to the table identified by the
      * given alias, forming a cartesian product with any existing query roots.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.id')
      *         ->from('users', 'u')
      * </code>
@@ -501,7 +506,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Alias for from()
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.id')
      *         ->from('users', 'u')
      * </code>
@@ -520,7 +525,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Creates and adds a join to the query.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.name')
      *         ->from('users', 'u')
      *         ->join('u', 'phonenumbers', 'p', 'p.is_primary = 1');
@@ -533,7 +538,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function join($fromAlias, $join, $alias, $condition = null)
+    public function join($fromAlias, $join, $alias, $condition = null): self
     {
         return $this->innerJoin($fromAlias, $join, $alias, $condition);
     }
@@ -542,7 +547,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Creates and adds a join to the query.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.name')
      *         ->from('users', 'u')
      *         ->innerJoin('u', 'phonenumbers', 'p', 'p.is_primary = 1');
@@ -555,7 +560,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function innerJoin($fromAlias, $join, $alias, $condition = null)
+    public function innerJoin($fromAlias, $join, $alias, $condition = null): self
     {
         return $this->add('join', [
             $fromAlias => [
@@ -571,7 +576,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Creates and adds a left join to the query.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.name')
      *         ->from('users', 'u')
      *         ->leftJoin('u', 'phonenumbers', 'p', 'p.is_primary = 1');
@@ -584,7 +589,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function leftJoin($fromAlias, $join, $alias, $condition = null)
+    public function leftJoin($fromAlias, $join, $alias, $condition = null): self
     {
         return $this->add('join', [
             $fromAlias => [
@@ -600,7 +605,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Creates and adds a right join to the query.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.name')
      *         ->from('users', 'u')
      *         ->rightJoin('u', 'phonenumbers', 'p', 'p.is_primary = 1');
@@ -613,7 +618,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function rightJoin($fromAlias, $join, $alias, $condition = null)
+    public function rightJoin($fromAlias, $join, $alias, $condition = null): self
     {
         return $this->add('join', [
             $fromAlias => [
@@ -629,7 +634,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Sets a new value for a column in a bulk update query.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->update('counters', 'c')
      *         ->set('c.value', 'c.value + 1')
      *         ->where('c.id = ?');
@@ -640,7 +645,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function set($key, $value)
+    public function set($key, $value): self
     {
         return $this->add('set', $key . ' = ' . $value, true);
     }
@@ -650,13 +655,13 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Replaces any previously specified restrictions, if any.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('c.value')
      *         ->from('counters', 'c')
      *         ->where('c.id = ?');
      *
      *     // You can optionally programatically build and/or expressions
-     *     $qb = $conn->createQueryBuilder();
+     *     $qb = $connection->getQueryBuilder();
      *
      *     $or = $qb->expr()->orx();
      *     $or->add($qb->expr()->eq('c.id', 1));
@@ -671,7 +676,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function where($predicates)
+    public function where($predicates): self
     {
         if (! (func_num_args() === 1 && $predicates instanceof CompositeExpression)) {
             $predicates = CompositeExpression::and(...func_get_args());
@@ -685,7 +690,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * conjunction with any previously specified restrictions.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u')
      *         ->from('users', 'u')
      *         ->where('u.username LIKE ?')
@@ -698,7 +703,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function andWhere($where)
+    public function andWhere($where): self
     {
         $args  = func_get_args();
         $args  = array_filter($args); // https://github.com/doctrine/dbal/issues/4282
@@ -734,7 +739,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function orWhere($where)
+    public function orWhere($where): self
     {
         $args  = func_get_args();
         $args  = array_filter($args); // https://github.com/doctrine/dbal/issues/4282
@@ -759,7 +764,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * USING AN ARRAY ARGUMENT IS DEPRECATED. Pass each value as an individual argument.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.name')
      *         ->from('users', 'u')
      *         ->groupBy('u.id');
@@ -770,7 +775,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function groupBy($groupBy/*, string ...$groupBys*/)
+    public function groupBy($groupBy/*, string ...$groupBys*/): self
     {
         if (empty($groupBy)) {
             return $this;
@@ -787,7 +792,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * USING AN ARRAY ARGUMENT IS DEPRECATED. Pass each value as an individual argument.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u.name')
      *         ->from('users', 'u')
      *         ->groupBy('u.lastLogin')
@@ -799,7 +804,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function addGroupBy($groupBy/*, string ...$groupBys*/)
+    public function addGroupBy($groupBy/*, string ...$groupBys*/): self
     {
         if (empty($groupBy)) {
             return $this;
@@ -814,7 +819,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Adds limit to the query
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->select('u')
      *         ->from('users')
      *         ->limit(10, 11);
@@ -833,10 +838,36 @@ abstract class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
+     * Adds limit to the query and offset by page number
+     *
+     * <code>
+     *     $qb = $connection->getQueryBuilder()
+     *         ->select('u')
+     *         ->from('users')
+     *         ->limitByPage(10, 4);
+     * </code>
+     *
+     * @param int $limit
+     * @param int $page
+     * @return $this
+     */
+    public function limitByPage(int $limit, int $page = 1): self
+    {
+        if (empty($page) || $page < 1) {
+            $page = 1;
+        }
+
+        $this->limit = $limit;
+        $this->offset = $limit * ($page - 1);
+
+        return $this;
+    }
+
+    /**
      * Sets a value for a column in an insert query.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->insert('users')
      *         ->values(
      *             array(
@@ -851,7 +882,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setValue($column, $value)
+    public function setValue($column, $value): self
     {
         $this->sqlParts['values'][$column] = $value;
 
@@ -863,7 +894,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      * Replaces any previous values, if any.
      *
      * <code>
-     *     $qb = $conn->createQueryBuilder()
+     *     $qb = $connection->getQueryBuilder()
      *         ->insert('users')
      *         ->values(
      *             array(
@@ -877,7 +908,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function values(array $values)
+    public function values(array $values): self
     {
         return $this->add('values', $values);
     }
@@ -890,7 +921,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function having($having)
+    public function having($having): self
     {
         if (! (func_num_args() === 1 && $having instanceof CompositeExpression)) {
             $having = CompositeExpression::and(...func_get_args());
@@ -907,7 +938,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function andHaving($having)
+    public function andHaving($having): self
     {
         $args   = func_get_args();
         $args   = array_filter($args); // https://github.com/doctrine/dbal/issues/4282
@@ -931,7 +962,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function orHaving($having)
+    public function orHaving($having): self
     {
         $args   = func_get_args();
         $args   = array_filter($args); // https://github.com/doctrine/dbal/issues/4282
@@ -956,7 +987,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function orderBy($sort, $order = null)
+    public function orderBy($sort, $order = null): self
     {
         return $this->add('orderBy', $sort . ' ' . (! $order ? 'ASC' : $order), false);
     }
@@ -969,7 +1000,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function addOrderBy($sort, $order = null)
+    public function addOrderBy($sort, $order = null): self
     {
         return $this->add('orderBy', $sort . ' ' . (! $order ? 'ASC' : $order), true);
     }
@@ -1003,7 +1034,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function resetQueryParts($queryPartNames = null)
+    public function resetQueryParts($queryPartNames = null): self
     {
         if ($queryPartNames === null) {
             $queryPartNames = array_keys($this->sqlParts);
@@ -1023,7 +1054,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
      *
      * @return $this This QueryBuilder instance.
      */
-    public function resetQueryPart($queryPartName)
+    public function resetQueryPart($queryPartName): self
     {
         $this->sqlParts[$queryPartName] = self::SQL_PARTS_DEFAULTS[$queryPartName];
 
@@ -1187,7 +1218,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
     public function all(): array
     {
         if (!isset($this->type)) {
-            $this->select();
+            $this->select('*');
         }
 
         return $this->execute()->fetchAll();
@@ -1205,10 +1236,33 @@ abstract class QueryBuilder implements QueryBuilderInterface
         $result = $this->limit(1)->execute()->fetchAll();
 
         if (count($result) === 1) {
-            return $result[0];
+            return ArrayMethods::first($result);
         }
 
         return null;
+    }
+
+    /**
+     * @return int
+     */
+    public function count(): int
+    {
+        $this->select('COUNT(*)');
+
+        return (int) $this->execute()->fetchColumn();
+    }
+
+    /**
+     * Get the ID of the last row that was inserted
+     */
+    public function getLastInsertId(): string
+    {
+        return $this->connection->getLastInsertId();
+    }
+
+    public function getType(): int
+    {
+        return $this->type;
     }
 
     /**

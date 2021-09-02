@@ -8,6 +8,7 @@ use PDOStatement;
 use TeraBlaze\Ripana\Database\Exception\ConnectionLost;
 use TeraBlaze\Ripana\Database\Exception\QueryException;
 use TeraBlaze\Ripana\Database\QueryBuilder\Expression\ExpressionBuilder;
+use TeraBlaze\Ripana\Database\QueryBuilder\QueryBuilderInterface;
 use TeraBlaze\Ripana\Database\SQLParserUtils;
 use TeraBlaze\Ripana\Logging\QueryLogger;
 use Throwable;
@@ -82,7 +83,7 @@ abstract class Connection implements ConnectionInterface
         return false;
     }
 
-    public function getQueryBuilder()
+    public function getQueryBuilder(): QueryBuilderInterface
     {
         return $this->query();
     }
@@ -123,6 +124,14 @@ abstract class Connection implements ConnectionInterface
     public function pdo(): PDO
     {
         return $this->pdo;
+    }
+
+    /**
+     * Get the ID of the last row that was inserted
+     */
+    public function getLastInsertId(): string
+    {
+        return $this->pdo()->lastInsertId();
     }
 
     /**

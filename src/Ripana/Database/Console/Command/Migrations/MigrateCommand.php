@@ -77,7 +77,7 @@ class MigrateCommand extends BaseCommand
             $obj->migrate($connection);
 
             $connection
-                ->query()
+                ->getQueryBuilder()
                 ->insert('migrations')
                 ->values(['name' => ":migrationId"])
                 ->setParameter('migrationId', $path)

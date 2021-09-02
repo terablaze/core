@@ -13,7 +13,7 @@ class ManyToOne extends Column
         /** @var Model $referenceModel */
         $referenceModel = new $referenceType();
 
-        $referenceProperty = $referenceModel->getPrimaryColumn();
+        $referenceProperty = $referenceModel->_getPrimaryColumn();
 
         $name = $column['name'] ?? $this->getFirst($this->propertyMeta, '@name') ?? $property;
         $type = $referenceProperty['type'];
@@ -34,7 +34,7 @@ class ManyToOne extends Column
             'default' => $default,
             'nullable' => $nullable,
             'foreignKey' => true,
-            'table' => $referenceModel->getTable(),
+            'table' => $referenceModel->_getTable(),
             'foreignKeyName' => $referenceProperty['name'],
             'foreignClass' => $column['type'],
         ];
