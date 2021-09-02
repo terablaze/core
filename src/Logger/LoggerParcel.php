@@ -6,7 +6,6 @@ use Monolog\Handler\SlackWebhookHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
-use TeraBlaze\Config\Driver\DriverInterface;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Logger\HandlerFactories\SlackWebhookHandlerFactory;
@@ -16,13 +15,7 @@ class LoggerParcel extends Parcel implements ParcelInterface
 {
     public function boot(): void
     {
-        if (!$this->container->has('configuration')) {
-            return;
-        }
-        /** @var DriverInterface $configuration */
-        $configuration = $this->container->get('configuration');
-
-        $parsed = $configuration->parseArray("logging");
+        $parsed = loadConfigArray("logging");
 
         foreach ($parsed as $channel => $conf) {
             if (!empty($conf)) {

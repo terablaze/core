@@ -3,9 +3,12 @@
 namespace TeraBlaze\Profiler;
 
 use DebugBar\DataCollector\TimeDataCollector;
+use DebugBar\DebugBarException;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
+use ReflectionException;
 use TeraBlaze\Config\ConfigInterface;
+use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
@@ -29,20 +32,20 @@ class ProfilerParcel extends Parcel implements ParcelInterface
         }
     }
 
+    /**
+     * @param ConfigInterface $config
+     * @throws DebugBarException
+     * @throws ReflectionException
+     * @throws InvalidContextException
+     */
     protected function startDebugbar(ConfigInterface $config): void
     {
         if ($this->getKernel()->inConsole()) {
             return;
         }
-        if (!$this->container->has(DebugbarMiddleware::class)) {
-            /** @var DebugbarMiddleware $debugBarMiddleware */
-            $this->container->registerService(
-                DebugbarMiddleware::class,
-                ['class' => DebugbarMiddleware::class]
-            );
-        }
+
         /** @var DebugbarMiddleware $debugBarMiddleware */
-        $debugBarMiddleware = $this->container->get(DebugbarMiddleware::class);
+        $debugBarMiddleware = $this->container->make(DebugbarMiddleware::class);
         $this->getKernel()->registerMiddleWare(DebugbarMiddleware::class);
         $this->debugbar = $debugBarMiddleware->getDebugBar();
 

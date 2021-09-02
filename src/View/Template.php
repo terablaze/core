@@ -4,7 +4,7 @@ namespace TeraBlaze\View;
 
 use TeraBlaze\View\Engine\EngineInterface ;
 
-class View
+class Template
 {
     public string $path;
 
@@ -25,9 +25,9 @@ class View
 
     /**
      * @param string $path
-     * @return View
+     * @return Template
      */
-    public function setPath(string $path): View
+    public function setPath(string $path): Template
     {
         $this->path = $path;
         return $this;
@@ -43,9 +43,9 @@ class View
 
     /**
      * @param array $data
-     * @return View
+     * @return Template
      */
-    public function setData(array $data): View
+    public function setData(array $data): Template
     {
         $this->data = $data;
         return $this;
@@ -61,9 +61,9 @@ class View
 
     /**
      * @param EngineInterface $engine
-     * @return View
+     * @return Template
      */
-    public function setEngine(EngineInterface $engine): View
+    public function setEngine(EngineInterface $engine): Template
     {
         $this->engine = $engine;
         return $this;
