@@ -27,8 +27,6 @@ class ProfilerParcel extends Parcel implements ParcelInterface
     {
         $config = $this->loadConfig("profiler");
 
-        $this->loadViewFrom('./views', 'Purofila');
-
         if ($config->get('profiler.debugbar.enabled', false)) {
             $this->startDebugbar($config);
         }
