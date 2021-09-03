@@ -8,6 +8,7 @@ use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\StringMethods;
 use TeraBlaze\View\Engine\EngineInterface;
+use TeraBlaze\View\Exception\NamespaceNotRegisteredException;
 use TeraBlaze\View\Exception\TemplateNotFoundException;
 
 class View
@@ -18,6 +19,9 @@ class View
 
     /** @var string[] $paths */
     protected array $paths = [];
+
+    /** @var array<string, mixed> $namespacedPaths */
+    protected static array $namespacedPaths = [];
 
     /** @var array<string, EngineInterface> $engines */
     protected array $engines = [];
@@ -38,6 +42,27 @@ class View
         return $this;
     }
 
+    /**
+     * @param string $namespace
+     * @param string[] $path
+     */
+    public static function addNamespacedPaths(string $namespace, array $path): void
+    {
+        static::$namespacedPaths[$namespace] = $path;
+    }
+
+    /**
+     * @param string $namespace
+     * @return string[]
+     */
+    public static function getNamespacedPaths(string $namespace): array
+    {
+        if (array_key_exists($namespace, static::$namespacedPaths)) {
+            return static::$namespacedPaths[$namespace];
+        }
+        return [];
+    }
+
     public function addEngine(string $extension, EngineInterface $engine): self
     {
         $this->engines[$extension] = $engine;
@@ -47,8 +72,9 @@ class View
 
     public function render(string $template, array $data = []): Template
     {
+        ['paths' => $paths, 'template' => $template] = $this->resolvePathAndTemplate($template);
         foreach ($this->engines as $extension => $engine) {
-            foreach ($this->paths as $path) {
+            foreach ($paths as $path) {
                 $file = normalizeDir("$path" . DIRECTORY_SEPARATOR . "$template");
                 if (is_file($file) && StringMethods::endsWith($template, $extension)) {
                     return new Template($engine, $file, $data);
@@ -66,8 +92,9 @@ class View
 
     public function includeFile(string $template): string
     {
+        ['paths' => $paths, 'template' => $template] = $this->resolvePathAndTemplate($template);
         foreach ($this->engines as $extension => $engine) {
-            foreach ($this->paths as $path) {
+            foreach ($paths as $path) {
                 $file = normalizeDir("$path" . DIRECTORY_SEPARATOR . "$template");
                 if (is_file($file) && StringMethods::endsWith($template, $extension)) {
                     return file_get_contents($file);
@@ -117,5 +144,30 @@ class View
         }
         makeDir($this->cachePath);
         return $this;
+    }
+
+    /**
+     * @param string $template
+     * @return array<string, string[]|string>;
+     * @throws NamespaceNotRegisteredException
+     */
+    private function resolvePathAndTemplate(string $template): array
+    {
+        if (StringMethods::contains($template, "::")) {
+            $namespace = StringMethods::before($template, "::");
+            if (!array_key_exists($namespace, static::$namespacedPaths)) {
+                throw new NamespaceNotRegisteredException(
+                    sprintf('The view namespace: "%s" you are trying to use in "%s" has not been registered', $namespace, $template)
+                );
+            }
+
+            $template = StringMethods::after($template, "::");
+
+            $paths = static::$namespacedPaths[$namespace];
+        } else {
+            $paths = $this->paths;
+        }
+
+        return compact('paths', 'template');
     }
 }

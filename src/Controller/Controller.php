@@ -93,8 +93,14 @@ abstract class Controller implements ControllerInterface
 
     /**
      * Returns a rendered view.
+     *
+     * @param string $view
+     * @param array $parameters
+     * @param bool $asString
+     * @return mixed
+     * @throws ReflectionException
      */
-    protected function renderView(string $view, array $parameters = []): string
+    protected function renderView(string $view, array $parameters = [], bool $asString = true)
     {
         if (!$this->container->has(View::class)) {
             throw new \LogicException(
@@ -103,7 +109,13 @@ abstract class Controller implements ControllerInterface
             );
         }
 
-        return $this->container->get(View::class)->render($view, $parameters);
+        $view = $this->container->get(View::class)->render($view, $parameters);
+
+        if ($asString) {
+            return $view->render();
+        }
+
+        return $view;
     }
 
     /**

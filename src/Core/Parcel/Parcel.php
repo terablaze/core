@@ -3,11 +3,15 @@
 namespace TeraBlaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use TeraBlaze\ArrayMethods;
+use TeraBlaze\Config\Config;
+use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\Routing\RouterInterface;
+use TeraBlaze\View\View;
 
 abstract class Parcel implements ParcelInterface
 {
@@ -130,6 +134,49 @@ abstract class Parcel implements ParcelInterface
     {
         if (!empty($routes) && is_array($routes)) {
             $this->container->get(RouterInterface::class)->addRoutes($routes);
+        }
+    }
+
+    /**
+     * @param string $context
+     * @param string|null $prefix
+     * @param string[] $paths
+     * @return Config
+     * @throws InvalidContextException
+     */
+    public function loadConfig(string $context, ?string $prefix = null, array $paths = []): Config
+    {
+        if (empty($paths)) {
+            $paths = [$this->getKernel()->getEnvConfigDir(), $this->getKernel()->getConfigDir()];
+        }
+        $config = new Config(
+            $context,
+            $prefix ?? $context,
+            $paths
+        );
+        $this->getKernel()->getConfig()->merge($config);
+        return $config;
+    }
+
+    /**
+     * @param string|string[] $path
+     * @param string|null $namespace
+     */
+    public function loadViewFrom($path, ?string $namespace = null): void
+    {
+        if (null == $namespace) {
+            $namespace = $this->getName();
+        }
+        $path = ArrayMethods::wrap($path);
+
+        foreach ($path as $key => $viewPath) {
+            $path[$key] = normalizeDir($this->getPath() . DIRECTORY_SEPARATOR . $viewPath);
+        }
+
+        View::addNamespacedPaths($namespace, $path);
+
+        if ($this->getName() !== $namespace) {
+            View::addNamespacedPaths($this->getName(), $path);
         }
     }
 
