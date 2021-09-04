@@ -51,7 +51,8 @@
       "TeraBlaze\\": "src/"
     },
     "files": [
-      "src/Support/functions.php"
+      "src/Support/functions.php",
+      "src/Profiler/functions.php"
     ]
   },
   "autoload-dev": {
