@@ -3,7 +3,7 @@
 namespace TeraBlaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Container;

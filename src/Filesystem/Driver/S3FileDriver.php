@@ -5,7 +5,7 @@ namespace TeraBlaze\Filesystem\Driver;
 use Aws\S3\S3Client;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use League\Flysystem\Filesystem;
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 
 /**
  * Class S3Driver

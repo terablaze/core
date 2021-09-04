@@ -3,7 +3,7 @@
 namespace TeraBlaze\Ripana\ORM;
 
 use DateTime;
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\PolymorphismTrait;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;

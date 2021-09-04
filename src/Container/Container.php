@@ -12,7 +12,7 @@ use ReflectionParameter;
 use ReflectionType;
 use ReflectionUnionType;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\DependencyIsNotInstantiableException;
 use TeraBlaze\Container\Exception\InvalidArgumentException;

@@ -6,7 +6,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;

@@ -2,8 +2,8 @@
 
 namespace TeraBlaze;
 
-use TeraBlaze\ArrayMethods as ArrayMethods;
-use TeraBlaze\StringMethods as StringMethods;
+use TeraBlaze\Support\ArrayMethods;
+use TeraBlaze\Support\StringMethods;
 
 /**
  * Class Inspector

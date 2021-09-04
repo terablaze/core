@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Routing;
 
-use TeraBlaze\ArrayMethods as ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 
 /**
  * Class Route

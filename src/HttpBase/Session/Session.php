@@ -9,7 +9,7 @@
 
 namespace TeraBlaze\HttpBase\Session;
 
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Base as Base;
 use TeraBlaze\Events\Events as Events;
 use TeraBlaze\HttpBase\Session\Exception as Exception;

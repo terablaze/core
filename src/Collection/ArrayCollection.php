@@ -4,7 +4,7 @@ namespace TeraBlaze\Collection;
 
 use ArrayIterator;
 use Closure;
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 
 use const ARRAY_FILTER_USE_BOTH;

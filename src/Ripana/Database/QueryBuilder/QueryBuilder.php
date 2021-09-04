@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Ripana\Database\QueryBuilder;
 
-use TeraBlaze\ArrayMethods as ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Ripana\Database\Connection\ConnectionInterface;
 use TeraBlaze\Ripana\Database\Exception\QueryException;
 use TeraBlaze\Ripana\Database\QueryBuilder\Expression\CompositeExpression;

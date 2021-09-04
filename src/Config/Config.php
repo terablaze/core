@@ -7,7 +7,7 @@ use DirectoryIterator;
 use IteratorAggregate;
 use RuntimeException;
 use SplFileInfo;
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Exception\InvalidContextException;
 
 class Config implements ConfigInterface, ArrayAccess, IteratorAggregate

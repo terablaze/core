@@ -5,7 +5,7 @@ namespace TeraBlaze;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception as Exception;
 use TeraBlaze\Inspector as Inspector;
-use TeraBlaze\StringMethods as StringMethods;
+use TeraBlaze\Support\StringMethods;
 
 /**
  * Class Base

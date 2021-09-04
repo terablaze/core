@@ -1,6 +1,6 @@
 <?php
 
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
 use TeraBlaze\Config\Exception\InvalidContextException;
@@ -8,7 +8,7 @@ use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception\JsonDecodeException;
 use TeraBlaze\Core\Exception\JsonEncodeException;
 use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\HigherOrderTapProxy;
+use TeraBlaze\Support\HigherOrderTapProxy;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Routing\RouterInterface;

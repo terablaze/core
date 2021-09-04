@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze;
+namespace TeraBlaze\Support;
 
 use ArrayAccess;
 use InvalidArgumentException;

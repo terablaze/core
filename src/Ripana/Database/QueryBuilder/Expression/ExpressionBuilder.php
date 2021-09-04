@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Ripana\Database\QueryBuilder\Expression;
 
-use TeraBlaze\ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Ripana\Database\Connection\ConnectionInterface;
 
 use function func_get_arg;

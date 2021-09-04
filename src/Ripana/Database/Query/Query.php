@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Ripana\Database\Query;
 
-use TeraBlaze\ArrayMethods as ArrayMethods;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Ripana\Database\Connectors\ConnectorInterface;
 use TeraBlaze\Ripana\Database\Exception as Exception;
 use TeraBlaze\Ripana\Database\Exception\ServiceException;

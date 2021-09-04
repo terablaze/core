@@ -6,7 +6,7 @@ use Closure;
 use Exception;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\StringMethods;
+use TeraBlaze\Support\StringMethods;
 use TeraBlaze\View\Engine\EngineInterface;
 use TeraBlaze\View\Exception\NamespaceNotRegisteredException;
 use TeraBlaze\View\Exception\TemplateNotFoundException;

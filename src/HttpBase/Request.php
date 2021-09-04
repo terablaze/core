@@ -12,7 +12,7 @@ use TeraBlaze\HttpBase\Utils\HeaderUtils;
 use TeraBlaze\HttpBase\Utils\IpUtils;
 use TeraBlaze\Psr7\ServerRequest as Psr7ServerRequest;
 use TeraBlaze\Psr7Server\ServerRequestCreator;
-use TeraBlaze\StringMethods;
+use TeraBlaze\Support\StringMethods;
 
 use function dirname;
 

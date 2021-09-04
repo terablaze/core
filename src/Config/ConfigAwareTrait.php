@@ -3,7 +3,7 @@
 namespace TeraBlaze\Config;
 
 use TeraBlaze\Inspector;
-use TeraBlaze\StringMethods;
+use TeraBlaze\Support\StringMethods;
 
 trait ConfigAwareTrait
 {
