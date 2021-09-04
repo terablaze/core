@@ -82,4 +82,26 @@ class ProfilerParcel extends Parcel implements ParcelInterface
         }
         $this->container->registerServiceInstance('debugbar', $this->debugbar);
     }
+
+    public function fullCopy( $source, $target ) {
+        if ( is_dir( $source ) ) {
+            @mkdir( $target );
+            $d = dir( $source );
+            while ( FALSE !== ( $entry = $d->read() ) ) {
+                if ( $entry == '.' || $entry == '..' ) {
+                    continue;
+                }
+                $Entry = $source . '/' . $entry;
+                if ( is_dir( $Entry ) ) {
+                    $this->fullCopy( $Entry, $target . '/' . $entry );
+                    continue;
+                }
+                copy( $Entry, $target . '/' . $entry );
+            }
+
+            $d->close();
+        }else {
+            copy( $source, $target );
+        }
+    }
 }

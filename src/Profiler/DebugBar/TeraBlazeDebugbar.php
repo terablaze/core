@@ -519,6 +519,21 @@ class TeraBlazeDebugbar extends DebugBar
     }
 
     /**
+     * Returns a JavascriptRenderer for this instance
+     *
+     * @param string $baseUrl
+     * @param string $basePathng
+     * @return JavascriptRenderer
+     */
+    public function getJavascriptRenderer($baseUrl = null, $basePath = null)
+    {
+        if ($this->jsRenderer === null) {
+            $this->jsRenderer = new JavascriptRenderer($this, $baseUrl, $basePath);
+        }
+        return $this->jsRenderer;
+    }
+
+    /**
      * Modify the response and inject the debugbar (or data in headers)
      *
      * @param ServerRequestInterface|Request $request
