@@ -20,8 +20,14 @@ class FatalError extends \Error
      *
      * @param array $error An array as returned by error_get_last()
      */
-    public function __construct(string $message, int $code, array $error, int $traceOffset = null, bool $traceArgs = true, array $trace = null)
-    {
+    public function __construct(
+        string $message,
+        int $code,
+        array $error,
+        int $traceOffset = null,
+        bool $traceArgs = true,
+        array $trace = null
+    ) {
         parent::__construct($message, $code);
 
         $this->error = $error;
@@ -41,7 +47,8 @@ class FatalError extends \Error
 
                 foreach ($trace as &$frame) {
                     if (!isset($frame['type'])) {
-                        // XDebug pre 2.1.1 doesn't currently set the call type key http://bugs.xdebug.org/view.php?id=695
+                        // XDebug pre 2.1.1 doesn't currently set the call
+                        // type key http://bugs.xdebug.org/view.php?id=695
                         if (isset($frame['class'])) {
                             $frame['type'] = '::';
                         }

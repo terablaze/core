@@ -74,8 +74,7 @@ class Router implements RouterInterface
     public function __construct(
         Container $container,
         EventDispatcherInterface $dispatcher
-    )
-    {
+    ) {
         $this->container = $container;
         $this->dispatcher = $dispatcher;
     }
@@ -399,8 +398,7 @@ class Router implements RouterInterface
         string $name,
         array $parameters = [],
         int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
-    ): string
-    {
+    ): string {
         return $this->getGenerator()->generate($name, $parameters, $referenceType);
     }
 

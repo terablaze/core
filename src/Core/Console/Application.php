@@ -33,15 +33,19 @@ class Application extends BaseApplication
 
         foreach ($commands as $command => $envs) {
             if ($envs[$this->getKernel()->getEnvironment()] ?? $envs['all'] ?? false) {
-                $this->add(new $command);
+                $this->add(new $command());
             }
         }
 
         parent::__construct('TeraBlaze', Kernel::TERABLAZE_VERSION);
 
         $inputDefinition = $this->getDefinition();
-        $inputDefinition->addOption(new InputOption('--env', '-e', InputOption::VALUE_REQUIRED, 'The Environment name.', $kernel->getEnvironment()));
-        $inputDefinition->addOption(new InputOption('--no-debug', null, InputOption::VALUE_NONE, 'Switches off debug mode.'));
+        $inputDefinition->addOption(new InputOption(
+            '--env', '-e', InputOption::VALUE_REQUIRED, 'The Environment name.', $kernel->getEnvironment()
+        ));
+        $inputDefinition->addOption(new InputOption(
+            '--no-debug', null, InputOption::VALUE_NONE, 'Switches off debug mode.'
+        ));
     }
 
     /**
@@ -145,7 +149,12 @@ class Application extends BaseApplication
      */
     public function getLongVersion()
     {
-        return parent::getLongVersion().sprintf(' (env: <comment>%s</>, debug: <comment>%s</>)', $this->kernel->getEnvironment(), $this->kernel->isDebug() ? 'true' : 'false');
+        return parent::getLongVersion() .
+            sprintf(
+                ' (env: <comment>%s</>, debug: <comment>%s</>)',
+                $this->kernel->getEnvironment(),
+                $this->kernel->isDebug() ? 'true' : 'false'
+            );
     }
 
     public function add(Command $command)
@@ -180,7 +189,9 @@ class Application extends BaseApplication
         }
 
         if ($container->hasParameter('console.command.ids')) {
-            $lazyCommandIds = $container->hasParameter('console.lazy_command.ids') ? $container->getParameter('console.lazy_command.ids') : [];
+            $lazyCommandIds = $container->hasParameter('console.lazy_command.ids') ?
+                $container->getParameter('console.lazy_command.ids') :
+                [];
             foreach ($container->getParameter('console.command.ids') as $id) {
                 if (!isset($lazyCommandIds[$id])) {
                     try {

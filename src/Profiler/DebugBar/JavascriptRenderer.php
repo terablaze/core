@@ -1,4 +1,5 @@
 <?php
+
 namespace TeraBlaze\Profiler\DebugBar;
 
 use DebugBar\DebugBar;

@@ -19,7 +19,8 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
 {
     private KernelInterface $kernel;
 
-    public function __construct(KernelInterface $kernel) {
+    public function __construct(KernelInterface $kernel)
+    {
         $this->kernel = $kernel;
     }
 

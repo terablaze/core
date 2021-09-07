@@ -64,6 +64,7 @@ class CacheParcel extends Parcel implements ParcelInterface
         }
         $this->container->registerServiceInstance($driverName, $cacheDriver);
         $this->container->setAlias("cache.store.{$confKey}", $driverName);
+        $this->container->setAlias("cache.{$confKey}", $driverName);
 
         if (getConfig('cache.default') === $confKey) {
             $this->container->setAlias('cache', $driverName);

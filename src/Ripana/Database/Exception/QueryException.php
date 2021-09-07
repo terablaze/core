@@ -70,18 +70,18 @@ class QueryException extends PDOException
     private static function formatParameters(array $params)
     {
         return '[' . implode(', ', array_map(static function ($param) {
-                if (is_resource($param)) {
-                    return (string) $param;
-                }
+            if (is_resource($param)) {
+                return (string) $param;
+            }
 
                 $json = @json_encode($param);
 
-                if (! is_string($json) || $json === 'null' && is_string($param)) {
-                    // JSON encoding failed, this is not a UTF-8 string.
-                    return sprintf('"%s"', preg_replace('/.{2}/', '\\x$0', bin2hex($param)));
-                }
+            if (! is_string($json) || $json === 'null' && is_string($param)) {
+                // JSON encoding failed, this is not a UTF-8 string.
+                return sprintf('"%s"', preg_replace('/.{2}/', '\\x$0', bin2hex($param)));
+            }
 
                 return $json;
-            }, $params)) . ']';
+        }, $params)) . ']';
     }
 }

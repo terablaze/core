@@ -6,9 +6,9 @@ abstract class Rule implements RuleInterface
 {
     protected string $message;
 
-    public abstract function validate(array $data, string $field, array $params);
+    abstract public function validate(array $data, string $field, array $params);
 
-    public abstract function getMessage(array $data, string $field, array $params);
+    abstract public function getMessage(array $data, string $field, array $params);
 
     public function setMessage(string $message): self
     {

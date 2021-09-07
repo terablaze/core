@@ -12,6 +12,8 @@ use TeraBlaze\HttpBase\Utils\HeaderUtils;
 use TeraBlaze\HttpBase\Utils\IpUtils;
 use TeraBlaze\Psr7\ServerRequest as Psr7ServerRequest;
 use TeraBlaze\Psr7Server\ServerRequestCreator;
+use TeraBlaze\Session\SessionInterface;
+use TeraBlaze\Session\SessionMiddleware;
 use TeraBlaze\Support\StringMethods;
 
 use function dirname;
@@ -112,6 +114,12 @@ class Request extends Psr7ServerRequest
         $this->expectsJson = $expectsJson;
 
         return $this;
+    }
+
+    public function getSession(): ?SessionInterface
+    {
+        return $this->getAttribute(SessionMiddleware::SESSION_ATTRIBUTE)
+            ?? $this->getAttribute(SessionInterface::class);
     }
 
 

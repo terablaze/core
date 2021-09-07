@@ -52,42 +52,42 @@ class AdvancedEngine implements EngineInterface
         $template = (string)file_get_contents($templateFile);
 
         // replace `@extends` with `$this->extends`
-        $template = preg_replace_callback('#@extends\(((?<=\().*(?=\)))\)#', function($matches) {
+        $template = preg_replace_callback('#@extends\(((?<=\().*(?=\)))\)#', function ($matches) {
             return '<?php $this->extends(' . $matches[1] . '); ?>';
         }, $template);
 
         // replace `@if` with `if(...):`
-        $template = preg_replace_callback('#@if\(((?<=\().*(?=\)))\)#', function($matches) {
+        $template = preg_replace_callback('#@if\(((?<=\().*(?=\)))\)#', function ($matches) {
             return '<?php if(' . $matches[1] . '): ?>';
         }, $template);
 
         // replace `@endif` with `endif;`
-        $template = preg_replace_callback('#@endif#', function($matches) {
+        $template = preg_replace_callback('#@endif#', function ($matches) {
             return '<?php endif; ?>';
         }, $template);
 
         // replace `@foreach` with `foreach(...):`
-        $template = preg_replace_callback('#@foreach\(((?<=\().*(?=\)))\)#', function($matches) {
+        $template = preg_replace_callback('#@foreach\(((?<=\().*(?=\)))\)#', function ($matches) {
             return '<?php foreach(' . $matches[1] . '): ?>';
         }, $template);
 
         // replace `@endforeach` with `endforeach;`
-        $template = preg_replace_callback('#@endforeach#', function($matches) {
+        $template = preg_replace_callback('#@endforeach#', function ($matches) {
             return '<?php endforeach; ?>';
         }, $template);
 
         // replace `@[anything](...)` with `$this->[anything](...)`
-        $template = preg_replace_callback('#\s+@([^(]+)\(((?<=\().*(?=\)))\)#', function($matches) {
+        $template = preg_replace_callback('#\s+@([^(]+)\(((?<=\().*(?=\)))\)#', function ($matches) {
             return '<?php $this->' . $matches[1] . '(' . $matches[2] . '); ?>';
         }, $template);
 
         // replace `{{ ... }}` with `print $this->escape(...)`
-        $template = preg_replace_callback('#\{\{([^}]*)\}\}#', function($matches) {
+        $template = preg_replace_callback('#\{\{([^}]*)\}\}#', function ($matches) {
             return '<?php print $this->escape(' . $matches[1] . '); ?>';
         }, $template);
 
         // replace `{!! ... !!}` with `print ...`
-        $template = preg_replace_callback('#\{!!([^}]+)!!\}#', function($matches) {
+        $template = preg_replace_callback('#\{!!([^}]+)!!\}#', function ($matches) {
             return '<?php print ' . $matches[1] . '; ?>';
         }, $template);
 

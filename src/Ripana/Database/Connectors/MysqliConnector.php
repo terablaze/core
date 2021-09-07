@@ -209,7 +209,10 @@ class MysqliConnector extends Connector implements ConnectorInterface
                 if (isset($tempDefault)) {
                     if (
                         !in_array(mb_strtolower($tempDefault), ['now()'], true) &&
-                        (!in_array(mb_strtolower($type), ["boolean", "bool", "date", "time", "datetime"], true) && !is_numeric($tempDefault))
+                        (
+                            !in_array(mb_strtolower($type), ["boolean", "bool", "date", "time", "datetime"], true) &&
+                            !is_numeric($tempDefault)
+                        )
                     ) {
                         $tempDefault = "'{$tempDefault}'";
                     }
@@ -242,7 +245,9 @@ class MysqliConnector extends Connector implements ConnectorInterface
                 }
                 if ($isForeignKey) {
                     $queries = array_merge($queries, $this->buildSyncSQL($column['foreignClass']));
-                    $indices[] = "CONSTRAINT fk_{$name} FOREIGN KEY ({$name}) REFERENCES {$column['table']}({$column['foreignKeyName']})";
+                    $indices[] =
+                        "CONSTRAINT fk_{$name} FOREIGN KEY ({$name})" .
+                        " REFERENCES {$column['table']}({$column['foreignKeyName']})";
                 }
                 switch ($type) {
                     case Model::DATA_TYPES['autonumber']:

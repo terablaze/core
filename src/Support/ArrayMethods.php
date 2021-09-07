@@ -73,9 +73,9 @@ class ArrayMethods
 
         foreach ($array as $key => $value) {
             if (is_array($value) && ! empty($value)) {
-                $results = array_merge($results, static::dot($value, $prepend.$key.'.'));
+                $results = array_merge($results, static::dot($value, $prepend . $key . '.'));
             } else {
-                $results[$prepend.$key] = $value;
+                $results[$prepend . $key] = $value;
             }
         }
 
@@ -600,7 +600,10 @@ class ArrayMethods
         return http_build_query(
             self::clean(
                 $array
-            ), '', '&', PHP_QUERY_RFC3986
+            ),
+            '',
+            '&',
+            PHP_QUERY_RFC3986
         );
     }
 

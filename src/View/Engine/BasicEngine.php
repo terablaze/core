@@ -15,7 +15,9 @@ class BasicEngine implements EngineInterface
 
         foreach ($view->data as $key => $value) {
             $contents = str_replace(
-                '{'.$key.'}', '<?= $' . $key . '?>', $contents
+                '{' . $key . '}',
+                '<?= $' . $key . '?>',
+                $contents
             );
         }
 

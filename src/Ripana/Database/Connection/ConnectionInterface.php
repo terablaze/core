@@ -4,7 +4,7 @@ namespace TeraBlaze\Ripana\Database\Connection;
 
 use PDO;
 use PDOStatement;
-use TeraBlaze\Ripana\Database\Migration\Migration;
+use TeraBlaze\Ripana\Migration\Migration;
 use TeraBlaze\Ripana\Database\QueryBuilder\Expression\ExpressionBuilder;
 use TeraBlaze\Ripana\Database\QueryBuilder\QueryBuilderInterface;
 use TeraBlaze\Ripana\Logging\QueryLogger;

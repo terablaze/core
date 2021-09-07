@@ -7,7 +7,8 @@ namespace TeraBlaze\Logger\Formatter\Slack;
 /**
  * A Formatter that you can use in order to send to slack log message using the Attachment format.
  *
- * This Formatter will give the message of slack a Long format meaning that each key of the log context will be separate.
+ * This Formatter will give the message of slack a Long
+ * format meaning that each key of the log context will be separate.
  */
 final class SlackLongAttachmentFormatter extends AbstractSlackAttachmentFormatter
 {

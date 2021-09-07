@@ -9,7 +9,6 @@ use TeraBlaze\Ripana\Database\Exception\ConnectionLost;
 use TeraBlaze\Ripana\Database\Exception\QueryException;
 use TeraBlaze\Ripana\Database\QueryBuilder\Expression\ExpressionBuilder;
 use TeraBlaze\Ripana\Database\QueryBuilder\QueryBuilderInterface;
-use TeraBlaze\Ripana\Database\SQLParserUtils;
 use TeraBlaze\Ripana\Logging\QueryLogger;
 use Throwable;
 

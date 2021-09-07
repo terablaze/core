@@ -3,6 +3,7 @@
 namespace TeraBlaze\Ripana\Logging;
 
 use Exception;
+
 use function microtime;
 
 /**
@@ -119,7 +120,6 @@ class LoggedQuery
         $cleanBackRefCharMap = ['%' => '%%', '$' => '$%', '\\' => '\\%'];
 
         foreach ($this->parameters as $k => $v) {
-
             $backRefSafeV = strtr($v, $cleanBackRefCharMap);
 
             $v = "$quoteLeft$backRefSafeV$quoteRight";

@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Ripana\Database\Connection;
 
-use TeraBlaze\Ripana\Database\Migration\SqliteMigration;
+use TeraBlaze\Ripana\Migration\SqliteMigration;
 use TeraBlaze\Ripana\Database\QueryBuilder\SqliteQueryBuilder;
 use InvalidArgumentException;
 use PDO;
@@ -23,7 +23,7 @@ class SqliteConnection extends Connection implements ConnectionInterface
         $this->pdo = new PDO("sqlite:{$path}");
         $this->config = $config;
     }
-    
+
     public function query(): SqliteQueryBuilder
     {
         return new SqliteQueryBuilder($this);

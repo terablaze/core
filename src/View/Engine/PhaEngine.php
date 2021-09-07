@@ -78,7 +78,9 @@ class PhaEngine implements EngineInterface
     {
         preg_match_all('#{% ?block ?(.*?) ?%}(.*?){% ?endblock ?%}#is', $code, $matches, PREG_SET_ORDER);
         foreach ($matches as $value) {
-            if (!array_key_exists($value[1], $this->blocks)) $this->blocks[$value[1]] = '';
+            if (!array_key_exists($value[1], $this->blocks)) {
+                $this->blocks[$value[1]] = '';
+            }
             if (strpos($value[2], '@parent') === false) {
                 $this->blocks[$value[1]] = $value[2];
             } else {
@@ -91,7 +93,7 @@ class PhaEngine implements EngineInterface
 
     public function compileYield($code)
     {
-        foreach($this->blocks as $block => $value) {
+        foreach ($this->blocks as $block => $value) {
             $code = preg_replace('#{% ?yield ?' . $block . ' ?%}#', $value, $code);
         }
         $code = preg_replace('#{% ?yield ?(.*?) ?%}#i', '', $code);
@@ -111,22 +113,22 @@ class PhaEngine implements EngineInterface
     public function compileIfs($code)
     {
         // replace `{% if %}` with `if(...):`
-        $code = preg_replace_callback('#{% ?if\(((?<=\().*(?=\)))\) ?%}#', function($matches) {
+        $code = preg_replace_callback('#{% ?if\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
             return '<?php if(' . $matches[1] . '): ?>';
         }, $code);
 
         // replace `{% elseif %}` with `elseif(...):`
-        $code = preg_replace_callback('#{% ?elseif\(((?<=\().*(?=\)))\) ?%}#', function($matches) {
+        $code = preg_replace_callback('#{% ?elseif\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
             return '<?php elseif(' . $matches[1] . '): ?>';
         }, $code);
 
         // replace `{% else %}` with `else:`
-        $code = preg_replace_callback('#{% ?else ?%}#', function($matches) {
+        $code = preg_replace_callback('#{% ?else ?%}#', function ($matches) {
             return '<?php else: ?>';
         }, $code);
 
         // replace `{% endif %}` with `endif;`
-        $code = preg_replace_callback('#{% ?endif ?%}#', function($matches) {
+        $code = preg_replace_callback('#{% ?endif ?%}#', function ($matches) {
             return '<?php endif; ?>';
         }, $code);
 
@@ -136,19 +138,20 @@ class PhaEngine implements EngineInterface
     public function compileLoops($code)
     {
         // replace `{% foreach %}` with `foreach(...):`
-        $code = preg_replace_callback('#{% ?foreach\(((?<=\().*(?=\)))\) ?%}#', function($matches) {
+        $code = preg_replace_callback('#{% ?foreach\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
             return '<?php foreach(' . $matches[1] . '): ?>';
         }, $code);
 
         // replace `{% endforeach %}` with `endforeach;`
-        $code = preg_replace_callback('#{% ?endforeach ?%}#', function($matches) {
+        $code = preg_replace_callback('#{% ?endforeach ?%}#', function ($matches) {
             return '<?php endforeach; ?>';
         }, $code);
 
         return $code;
     }
 
-    public function compilePHP($code) {
+    public function compilePHP($code)
+    {
         return preg_replace('~\{%\s*(.+?)\s*\%}~is', '<?php $1 ?>', $code);
     }
 

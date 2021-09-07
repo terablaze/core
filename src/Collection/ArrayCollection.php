@@ -7,8 +7,6 @@ use Closure;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 
-use const ARRAY_FILTER_USE_BOTH;
-
 use function array_filter;
 use function array_key_exists;
 use function array_keys;
@@ -25,6 +23,8 @@ use function next;
 use function reset;
 use function spl_object_hash;
 use function dump;
+
+use const ARRAY_FILTER_USE_BOTH;
 
 /**
  * An ArrayCollection is a Collection implementation that wraps a regular PHP array.

@@ -1291,7 +1291,7 @@ abstract class QueryBuilder implements QueryBuilderInterface
     {
         return $this->getSQL();
     }
-    
+
     /**
      * Deep clone of all expression objects in the SQL parts.
      *

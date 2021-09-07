@@ -8,14 +8,14 @@ use Psr\Http\Message\ResponseInterface;
 
 class Cookie
 {
-    private $name;
-    private $value;
-    private $expiresAt;
-    private $path;
-    private $domain;
-    private $secure;
-    private $httpOnly;
-    private $sameSite;
+    private string $name;
+    private string $value;
+    private int $expiresAt;
+    private string $path;
+    private string $domain;
+    private bool $secure;
+    private bool $httpOnly;
+    private string $sameSite;
 
     /**
      * Cookie constructor.
@@ -61,22 +61,29 @@ class Cookie
         bool $httpOnly = false,
         string $sameSite = ''
     ): Cookie {
-        return new static($name, 'deleted', 1, $path, $domain, $secure, $httpOnly, $sameSite);
+        return new Cookie($name, 'deleted', 1, $path, $domain, $secure, $httpOnly, $sameSite);
     }
 
     public static function thatExpires(
         string $name,
         string $value,
-        DateTimeInterface $expiresAt,
+        $expiresAt,
         string $path = '',
         string $domain = '',
         bool $secure = false,
         bool $httpOnly = false,
         string $sameSite = ''
     ): Cookie {
-        $expiresAt = (int) $expiresAt->format('U');
+        if (!is_numeric($expiresAt) && !$expiresAt instanceof DateTimeInterface) {
+            throw new InvalidArgumentException(
+                'Cookie expiery time must either be a numeric value or an instance of DateTimeInterface'
+            );
+        }
+        if ($expiresAt instanceof DateTimeInterface) {
+            $expiresAt = (int)$expiresAt->format('U');
+        }
 
-        return new static($name, $value, $expiresAt, $path, $domain, $secure, $httpOnly, $sameSite);
+        return new Cookie($name, $value, (int)$expiresAt, $path, $domain, $secure, $httpOnly, $sameSite);
     }
 
     public static function forever(
@@ -90,10 +97,10 @@ class Cookie
     ): Cookie {
         $expiresInFiveYear = time() + 5 * 365 * 3600 * 24;
 
-        return new static($name, $value, $expiresInFiveYear, $path, $domain, $secure, $httpOnly, $sameSite);
+        return new Cookie($name, $value, $expiresInFiveYear, $path, $domain, $secure, $httpOnly, $sameSite);
     }
 
-    private function assertValidName(string $name)
+    private function assertValidName(string $name): void
     {
         if (preg_match("/[=,; \t\r\n\013\014]/", $name)) {
             throw new InvalidArgumentException(
@@ -106,7 +113,7 @@ class Cookie
         }
     }
 
-    private function assertValidSameSite(string $sameSite, bool $secure)
+    private function assertValidSameSite(string $sameSite, bool $secure): void
     {
         if (!in_array($sameSite, ['', 'lax', 'strict', 'none'])) {
             throw new InvalidArgumentException('The same site attribute must be "lax", "strict", "none" or ""');

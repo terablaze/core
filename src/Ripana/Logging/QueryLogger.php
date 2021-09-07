@@ -3,6 +3,7 @@
 namespace TeraBlaze\Ripana\Logging;
 
 use Exception;
+
 use function microtime;
 
 /**

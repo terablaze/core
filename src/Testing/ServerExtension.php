@@ -29,7 +29,7 @@ final class ServerExtension implements BeforeFirstTestHook, AfterLastTestHook
             "serve"
         ], $base);
 
-        $this->process->start(function($type, $buffer) {
+        $this->process->start(function ($type, $buffer) {
             print $buffer;
         });
     }
@@ -45,7 +45,7 @@ final class ServerExtension implements BeforeFirstTestHook, AfterLastTestHook
             fclose($connection);
             return true;
         }
-        
+
         return false;
     }
 

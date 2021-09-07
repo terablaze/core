@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Ripana\Database\Connection;
 
-use TeraBlaze\Ripana\Database\Migration\MysqlMigration;
+use TeraBlaze\Ripana\Migration\MysqlMigration;
 use TeraBlaze\Ripana\Database\QueryBuilder\MysqlQueryBuilder;
 use InvalidArgumentException;
 use PDO;
@@ -31,7 +31,7 @@ class MysqlConnection extends Connection implements ConnectionInterface
 
         $this->pdo = new PDO("mysql:host={$host};port={$port};dbname={$database}", $username, $password);
     }
-    
+
     public function query(): MysqlQueryBuilder
     {
         return new MysqlQueryBuilder($this);

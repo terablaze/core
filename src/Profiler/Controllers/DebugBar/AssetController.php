@@ -18,7 +18,9 @@ class AssetController extends BaseController
         $content = $renderer->dumpAssetsToString('js');
 
         $response = new Response(
-            $content, 200, [
+            $content,
+            200,
+            [
                 'Content-Type' => 'text/javascript',
             ]
         );
@@ -38,7 +40,9 @@ class AssetController extends BaseController
         $content = $renderer->dumpAssetsToString('css');
 
         $response = new Response(
-            $content, 200, [
+            $content,
+            200,
+            [
                 'Content-Type' => 'text/css',
             ]
         );
@@ -56,7 +60,9 @@ class AssetController extends BaseController
         $content = file_get_contents(kernel()->getProjectDir() . '/vendor/maximebf/debugbar/src/DebugBar/Resources/vendor/font-awesome/fonts/' . $font);
 
         $response = new Response(
-            $content, 200, [
+            $content,
+            200,
+            [
                 'Content-Type' => 'text/css',
             ]
         );

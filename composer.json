@@ -35,7 +35,8 @@
     "voku/portable-ascii": "dev-master",
     "league/commonmark": "2.1.x-dev",
     "ramsey/uuid": "4.x-dev",
-    "psr/simple-cache": "1.0.x-dev"
+    "psr/simple-cache": "1.0.x-dev",
+    "dflydev/fig-cookies": "3.0.x-dev"
   },
   "require-dev": {
     "filp/whoops": "^2.9",
