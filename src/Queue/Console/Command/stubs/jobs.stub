@@ -1,0 +1,33 @@
+<?php
+
+use TeraBlaze\Database\Database\Connection\ConnectionInterface;
+use TeraBlaze\Database\Migrations\Migration;
+
+class {{ class }} extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up(ConnectionInterface $connection)
+    {
+        $table = $connection->createTable('{{table}}');
+        $table->id('id');
+        $table->text('closure');
+        $table->text('params');
+        $table->int('attempts')->default(0);
+        $table->bool('is_complete')->default(false);
+        $table->execute();
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down(ConnectionInterface $connection)
+    {
+        $connection->dropTableIfExists('{{table}}');
+    }
+}

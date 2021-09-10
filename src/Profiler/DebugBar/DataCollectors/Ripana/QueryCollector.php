@@ -1,12 +1,12 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors\Ripana;
+namespace TeraBlaze\Profiler\DebugBar\DataCollectors\Database;
 
 use DebugBar\DataCollector\AssetProvider;
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\Renderable;
 use DebugBar\DataCollector\TimeDataCollector;
-use TeraBlaze\Ripana\Logging\QueryLogger;
+use TeraBlaze\Database\Logging\QueryLogger;
 
 class QueryCollector extends DataCollector implements Renderable, AssetProvider
 {
@@ -112,9 +112,9 @@ class QueryCollector extends DataCollector implements Renderable, AssetProvider
         $connectionName = null
     ) {
         if (empty($connectionName) || $connectionName == 'default') {
-            $connectionName = 'ripana';
+            $connectionName = 'database';
         } else {
-            $connectionName = 'ripana ' . $connectionName;
+            $connectionName = 'database ' . $connectionName;
         }
         $queries = [];
         $totalExecTime = 0;
@@ -171,7 +171,7 @@ class QueryCollector extends DataCollector implements Renderable, AssetProvider
 
     public function getName()
     {
-        return 'Ripana(database)';
+        return 'Database(database)';
     }
 
     public function getWidgets()

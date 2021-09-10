@@ -7,20 +7,30 @@ use TeraBlaze\View\Engine\EngineInterface ;
 class Template
 {
     public string $path;
+    public string $namespace;
 
     /** @var array<string, mixed> $data */
     public array $data;
 
     protected EngineInterface $engine;
 
+    /**
+     * Template constructor.
+     * @param EngineInterface $engine
+     * @param string $path
+     * @param array<string, mixed> $data
+     * @param string $namespace
+     */
     public function __construct(
         EngineInterface $engine,
         string $path,
-        array $data
+        array $data,
+        string $namespace = ''
     ) {
         $this->data = $data;
         $this->path = $path;
         $this->engine = $engine;
+        $this->namespace = $namespace;
     }
 
     /**
@@ -75,6 +85,24 @@ class Template
     public function getEngine(): EngineInterface
     {
         return $this->engine;
+    }
+
+    /**
+     * @param string $namespace
+     * @return Template
+     */
+    public function setNamespace(string $namespace): Template
+    {
+        $this->namespace = $namespace;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNamespace(): string
+    {
+        return $this->namespace;
     }
 
     public function render(): string

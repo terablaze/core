@@ -4,7 +4,6 @@ namespace TeraBlaze\Profiler;
 
 use DebugBar\DataCollector\TimeDataCollector;
 use DebugBar\DebugBarException;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use ReflectionException;
 use TeraBlaze\Config\ConfigInterface;

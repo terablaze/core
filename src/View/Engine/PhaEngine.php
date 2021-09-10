@@ -31,7 +31,13 @@ class PhaEngine implements EngineInterface
     public function cache(Template $template): string
     {
         $hash = md5($template->getPath());
-        $cachedFile = normalizeDir($this->getManager()->getCachePath() . DIRECTORY_SEPARATOR . "$hash.php");
+        $cachedDir = normalizeDir(
+            $this->getManager()->getCachePath() .
+            DIRECTORY_SEPARATOR .
+            $template->namespace
+        );
+        makeDir($cachedDir);
+        $cachedFile = normalizeDir($cachedDir . DIRECTORY_SEPARATOR . "$hash.php");
 
         if (
             !$this->getManager()->shouldCache() ||
@@ -39,7 +45,10 @@ class PhaEngine implements EngineInterface
             filemtime($template->getPath()) > filemtime($cachedFile)
         ) {
             $content = $this->compile($template->getPath());
-            file_put_contents($cachedFile, '<?php class_exists(\'' . __CLASS__ . '\') or exit; ?>' . PHP_EOL . $content);
+            file_put_contents(
+                $cachedFile,
+                '<?php class_exists(\'' . __CLASS__ . '\') or exit; ?>' . PHP_EOL . $content
+            );
         }
 
         return $cachedFile;
@@ -54,12 +63,11 @@ class PhaEngine implements EngineInterface
     protected function includeFiles(string $templateFile): string
     {
         $code = file_get_contents($templateFile);
-        preg_match_all('#{% ?(extends|include) ?\'?(.*?)\'? ?%}#i', $code, $matches, PREG_SET_ORDER);
+        preg_match_all('#{% ?(extends|include) ?\'?(.*?)\'? ?%}#i', (string)$code, $matches, PREG_SET_ORDER);
         foreach ($matches as $value) {
-            $code = str_replace($value[0], $this->getManager()->includeFile($value[2]), $code);
+            $code = str_replace($value[0], $this->getManager()->includeFile($value[2]), (string)$code);
         }
-        $code = preg_replace('#{% ?(extends|include) ?\'?(.*?)\'? ?%}#i', '', $code);
-        return $code;
+        return preg_replace('#{% ?(extends|include) ?\'?(.*?)\'? ?%}#i', '', (string)$code);
     }
 
     protected function compileCode(string $code): string

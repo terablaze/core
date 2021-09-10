@@ -24,7 +24,7 @@ use TeraBlaze\EventDispatcher\ListenerProvider;
 use TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Profiler\DebugBar\DataCollectors\Ripana\QueryCollector;
+use TeraBlaze\Profiler\DebugBar\DataCollectors\Database\QueryCollector;
 use TeraBlaze\Profiler\Debugbar\DataCollectors\PhpInfoCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RequestCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RouteCollector;
@@ -571,14 +571,14 @@ class TeraBlazeDebugbar extends DebugBar
             $this->addCollector(new RequestCollector($request, $response));
         }
 
-        if ($this->shouldCollect('ripana.query', true)) {
-            if ($this->container->has('ripana.database.connection')) {
+        if ($this->shouldCollect('database.query', true)) {
+            if ($this->container->has('database.connection')) {
                 $mysqliCollector = new QueryCollector(null, $this->getCollector('time'));
-                $connectionNames = array_keys(getConfig('ripana.connections'));
+                $connectionNames = array_keys(getConfig('database.connections'));
                 foreach ($connectionNames as $connectionName) {
                     $mysqliCollector->addLogger(
                         $this->container
-                            ->get(sprintf('ripana.database.connection.%s', $connectionName))
+                            ->get(sprintf('database.connection.%s', $connectionName))
                             ->getQueryLogger(),
                         (string)$connectionName
                     );

@@ -70,19 +70,30 @@ class View
         return $this;
     }
 
+    /**
+     * @param string $template
+     * @param array<string, mixed> $data
+     * @return Template
+     * @throws NamespaceNotRegisteredException
+     * @throws TemplateNotFoundException
+     */
     public function render(string $template, array $data = []): Template
     {
-        ['paths' => $paths, 'template' => $template] = $this->resolvePathAndTemplate($template);
+        [
+            'paths' => $paths,
+            'template' => $template,
+            'namespace' => $namespace
+        ] = $this->resolvePathAndTemplate($template);
         foreach ($this->engines as $extension => $engine) {
             foreach ($paths as $path) {
                 $file = normalizeDir("$path" . DIRECTORY_SEPARATOR . "$template");
                 if (is_file($file) && StringMethods::endsWith($template, $extension)) {
-                    return new Template($engine, $file, $data);
+                    return new Template($engine, $file, $data, $namespace);
                 }
 
                 $fileWithExtension = "$file.$extension";
                 if (is_file($fileWithExtension)) {
-                    return new Template($engine, $fileWithExtension, $data);
+                    return new Template($engine, $fileWithExtension, $data, $namespace);
                 }
             }
         }
@@ -153,11 +164,16 @@ class View
      */
     private function resolvePathAndTemplate(string $template): array
     {
+        $namespace = '';
         if (StringMethods::contains($template, "::")) {
             $namespace = StringMethods::before($template, "::");
             if (!array_key_exists($namespace, static::$namespacedPaths)) {
                 throw new NamespaceNotRegisteredException(
-                    sprintf('The view namespace: "%s" you are trying to use in "%s" has not been registered', $namespace, $template)
+                    sprintf(
+                        'The view namespace: "%s" you are trying to use in "%s" has not been registered',
+                        $namespace,
+                        $template
+                    )
                 );
             }
 
@@ -168,6 +184,6 @@ class View
             $paths = $this->paths;
         }
 
-        return compact('paths', 'template');
+        return compact('paths', 'template', 'namespace');
     }
 }

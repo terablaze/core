@@ -18,7 +18,7 @@ use TeraBlaze\Container\Exception\DependencyIsNotInstantiableException;
 use TeraBlaze\Container\Exception\InvalidArgumentException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
-use TeraBlaze\Ripana\ORM\ModelInterface;
+use TeraBlaze\Database\ORM\ModelInterface;
 
 /**
  * The container interface. This extends the interface defined by
