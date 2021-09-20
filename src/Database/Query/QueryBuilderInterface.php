@@ -238,7 +238,7 @@ interface QueryBuilderInterface
      */
     public function insert(string $insert = null): self;
 
-    public function save(array $values, array $parameters = []): self;
+    public function save(array $values, array $parameters = []);
 
     /**
      * Creates and adds a query root corresponding to the table identified by the

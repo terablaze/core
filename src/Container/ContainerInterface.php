@@ -95,10 +95,10 @@ interface ContainerInterface extends PsrContainerInterface
      * @param string $service
      * @param array<int|string, mixed> $definition
      * @param bool $replace
-     * @return object
+     * @return object|mixed
      * @throws ReflectionException
      */
-    public function make(string $service, array $definition = [], bool $replace = false): object;
+    public function make(string $service, array $definition = [], bool $replace = false);
 
     /**
      * @param string $name

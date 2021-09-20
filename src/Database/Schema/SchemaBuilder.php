@@ -4,13 +4,14 @@ namespace TeraBlaze\Database\Schema;
 
 use TeraBlaze\Database\Schema\Field\BoolField;
 use TeraBlaze\Database\Schema\Field\DateTimeField;
+use TeraBlaze\Database\Schema\Field\Field;
 use TeraBlaze\Database\Schema\Field\FloatField;
 use TeraBlaze\Database\Schema\Field\IdField;
 use TeraBlaze\Database\Schema\Field\IntField;
 use TeraBlaze\Database\Schema\Field\StringField;
 use TeraBlaze\Database\Schema\Field\TextField;
 
-abstract class SchemaBuilder
+abstract class SchemaBuilder implements SchemaBuilderInterface
 {
     protected array $fields = [];
 
@@ -32,7 +33,7 @@ abstract class SchemaBuilder
         return $field;
     }
 
-    public function id(string $name): IdField
+    public function id(string $name = 'id'): IdField
     {
         $field = $this->fields[] = new IdField($name);
         return $field;
@@ -42,6 +43,11 @@ abstract class SchemaBuilder
     {
         $field = $this->fields[] = new IntField($name);
         return $field;
+    }
+
+    public function bigInt(string $name): IntField
+    {
+        return $this->int($name)->type('bigint')->length(20);
     }
 
     public function string(string $name): StringField
@@ -58,4 +64,20 @@ abstract class SchemaBuilder
 
     abstract public function execute();
     abstract public function dropColumn(string $name): self;
+
+    public function buildBool(string $prefix, BoolField $field): string
+    {
+        $template = "{$prefix} `{$field->name}` tinyint(4)";
+
+        if ($field->nullable) {
+            $template .= " DEFAULT NULL";
+        }
+
+        if ($field->default !== null) {
+            $default = (int) $field->default;
+            $template .= " DEFAULT {$default}";
+        }
+
+        return $template;
+    }
 }

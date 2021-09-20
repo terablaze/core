@@ -2,96 +2,101 @@
 
 namespace TeraBlaze\Database\Console\Command\Migrations;
 
-use TeraBlaze\Collection\ArrayCollection;
+use ReflectionException;
 use TeraBlaze\Core\Console\Command;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use Symfony\Component\Console\Input\InputInterface;
+use TeraBlaze\Core\Console\ConfirmableTrait;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use TeraBlaze\Database\Migrations\Migration;
+use TeraBlaze\Database\Migrations\Migrator;
 
 class MigrateCommand extends BaseCommand
 {
+    use ConfirmableTrait;
+
     protected static $defaultName = 'migrate';
+
+    protected Migrator $migrator;
+
+    /**
+     * Create a new migration command instance.
+     *
+     * @return void
+     * @throws ReflectionException
+     */
+    public function __construct(Migrator $migrator)
+    {
+        $this->migrator = $migrator;
+
+        parent::__construct();
+    }
 
     protected function configure()
     {
+        parent::configure();
         $this
             ->setDescription('Migrates the database')
-            ->addOption('fresh', null, InputOption::VALUE_NONE, 'Delete all tables before running the migrations')
-            ->addOption('conn', 'c', InputOption::VALUE_OPTIONAL, 'Sets the connection to use for migration')
             ->setHelp('This command looks for all migration files and runs them');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function handle(): int
     {
-        $paths = $this->getMigrations();
-
-        if (count($paths) < 1) {
-            $output->writeln('No migrations found');
-            return Command::SUCCESS;
+        if (!$this->confirmToProceed()) {
+            return 1;
         }
 
-        $connection = $this->connection(
-            $input->getOption('conn') ?
-                "database.connection." . $input->getOption('conn') :
-                ConnectionInterface::class
-        );
+        $this->prepareDatabase($this->output);
 
-        if ($input->getOption('fresh')) {
-            $output->writeln('Dropping existing database tables');
+        $paths = $this->getMigrationPaths();
 
-            $connection->dropTables();
+        if ($this->input->hasOption('database')) {
+            $this->migrator->setConnectionName($this->input->getOption('database'));
         }
 
-        if (!$connection->hasTable($connection->getMigrationsTable())) {
-            $output->writeln('<fg=yellow>Creating migrations table</>');
-            $this->createMigrationsTable($connection);
-            $output->writeln('<fg=green>Created migrations table</>');
-        }
+        $this->migrator->setOutput($this->output);
 
-        $migrations = (new ArrayCollection($connection->query()->select('*')
-            ->from($connection->getMigrationsTable())
-            ->all()))->pluck('name');
+        $this->migrator->setOutput($this->output)->run($paths, [
+            'pretend' => $this->input->getOption('pretend'),
+            'step' => $this->input->getOption('step'),
+        ]);
 
-        foreach ($paths as $path) {
-            if (!file_exists($path)) {
-                continue;
-            }
-            if (in_array($path, $migrations->toArray())) {
-                continue;
-            }
-            $file = pathinfo($path);
-            $class = explode('_', $file['filename'])[1];
-
-            require $path;
-
-            $output->writeln("<fg=yellow>Migrating:</> " . $file['filename']);
-
-            /** @var Migration $migration */
-            $migration = new $class();
-            if (!is_null($mConnectionName = $migration->getConnectionName())) {
-                $mConnection = $this->connection("database.connection.$mConnectionName");
-                $migration->up($mConnection);
-            } else {
-                $migration->up($connection);
-            }
-
-            $connection
-                ->getQueryBuilder()
-                ->insert($connection->getMigrationsTable())
-                ->values(['name' => ":migrationId"])
-                ->setParameter('migrationId', $path)
-                ->execute();
-
-            $output->writeln("<fg=green>Migrated:</> " . $file['filename']);
+        if ($this->input->getOption('seed') && ! $this->input->getOption('pretend')) {
+            $this->call('db:seed', ['--force' => true]);
         }
 
         return Command::SUCCESS;
     }
 
-    private function createMigrationsTable(ConnectionInterface $connection): void
+    /**
+     * Prepare the migration database for running.
+     *
+     * @return void
+     */
+    protected function prepareDatabase(OutputInterface $output)
     {
+        if (! $this->migrator->repositoryExists()) {
+            $this->call('migrate:install', array_filter([
+                '--database' => $this->input->getOption('database'),
+            ]));
+        }
+    }
 
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['database', 'd', InputOption::VALUE_OPTIONAL, 'Sets the database connection to use for migration'],
+
+            ['force', null, InputOption::VALUE_NONE, 'Force the operation to run when in production'],
+
+            ['pretend', null, InputOption::VALUE_NONE, 'Dump the SQL queries that would be run'],
+
+            ['step', null, InputOption::VALUE_NONE, 'Force the migrations to be run so they can be rolled back individually'],
+
+            ['seed', null, InputOption::VALUE_NONE, 'Indicates if the seed task should be re-run'],
+        ];
     }
 }

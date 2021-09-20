@@ -51,10 +51,8 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     protected ?Container $container = null;
 
     public static array $internalServices = [
-        LoggerInterface::class => Logger::class,
         ListenerProviderInterface::class => ListenerProvider::class,
         EventDispatcherInterface::class => Dispatcher::class,
-        RouterInterface::class => Router::class,
     ];
 
     protected Dispatcher $dispatcher;

@@ -1,0 +1,26 @@
+<?php
+
+namespace TeraBlaze\Database\Events;
+
+use TeraBlaze\EventDispatcher\Event;
+
+class NoPendingMigrations extends Event
+{
+    /**
+     * The migration method that was called.
+     *
+     * @var string
+     */
+    public string $method;
+
+    /**
+     * Create a new event instance.
+     *
+     * @param string $method
+     * @return void
+     */
+    public function __construct(string $method)
+    {
+        $this->method = $method;
+    }
+}

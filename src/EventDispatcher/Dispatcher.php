@@ -5,6 +5,7 @@ namespace TeraBlaze\EventDispatcher;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
+use TeraBlaze\Support\ArrayMethods;
 
 /**
  * Class Dispatcher
@@ -13,15 +14,15 @@ use Psr\EventDispatcher\StoppableEventInterface;
 class Dispatcher implements EventDispatcherInterface
 {
     /**
-     * @var ListenerProviderInterface
+     * @var ListenerProvider
      */
-    private ListenerProviderInterface $listenerProvider;
+    private $listenerProvider;
 
     /**
      * EventDispatcher constructor.
-     * @param ListenerProviderInterface $listenerProvider
+     * @param ListenerProvider $listenerProvider
      */
-    public function __construct(ListenerProviderInterface $listenerProvider)
+    public function __construct(ListenerProvider $listenerProvider)
     {
         $this->listenerProvider = $listenerProvider;
     }
@@ -44,5 +45,11 @@ class Dispatcher implements EventDispatcherInterface
     public function getListenerProvider(): ListenerProviderInterface
     {
         return $this->listenerProvider;
+    }
+
+    public function listen(string $event, $listeners)
+    {
+        $listeners = ArrayMethods::wrap($listeners);
+        $this->listenerProvider->addListeners($event, $listeners);
     }
 }

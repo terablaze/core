@@ -3,7 +3,6 @@
 namespace TeraBlaze\Collection;
 
 use ArrayIterator;
-use Closure;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 
@@ -234,7 +233,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * {@inheritDoc}
      */
-    public function exists(Closure $p)
+    public function exists(callable $p)
     {
         foreach ($this->elements as $key => $element) {
             if ($p($key, $element)) {
@@ -368,9 +367,34 @@ class ArrayCollection implements CollectionInterface
      *
      * @return static
      */
-    public function map(Closure $func)
+    public function map(callable $func)
     {
-        return $this->createFrom(array_map($func, $this->elements));
+        $keys = array_keys($this->elements);
+
+        $elements = array_map($func, $this->elements, $keys);
+
+        return $this->createFrom(array_combine($keys, $elements));
+    }
+
+    /**
+     * Map a collection and flatten the result by a single level.
+     *
+     * @param  callable  $callback
+     * @return static
+     */
+    public function flatMap(callable $callback)
+    {
+        return $this->map($callback)->collapse();
+    }
+
+    /**
+     * Collapse the collection of items into a single array.
+     *
+     * @return static
+     */
+    public function collapse()
+    {
+        return new static(ArrayMethods::collapse($this->elements));
     }
 
     /**
@@ -378,7 +402,7 @@ class ArrayCollection implements CollectionInterface
      *
      * @return static
      */
-    public function filter(Closure $p)
+    public function filter(callable $p)
     {
         return $this->createFrom(array_filter($this->elements, $p, ARRAY_FILTER_USE_BOTH));
     }
@@ -386,7 +410,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * {@inheritDoc}
      */
-    public function forAll(Closure $p)
+    public function forAll(callable $p)
     {
         foreach ($this->elements as $key => $element) {
             if (!$p($key, $element)) {
@@ -400,7 +424,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * {@inheritDoc}
      */
-    public function partition(Closure $p)
+    public function partition(callable $p)
     {
         $matches = $noMatches = [];
 

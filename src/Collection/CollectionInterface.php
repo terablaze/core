@@ -3,7 +3,6 @@
 namespace TeraBlaze\Collection;
 
 use ArrayAccess;
-use Closure;
 use Countable;
 use IteratorAggregate;
 
@@ -171,54 +170,69 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     /**
      * Tests for the existence of an element that satisfies the given predicate.
      *
-     * @param Closure $p The predicate.
+     * @param callable $p The predicate.
      *
      * @return bool TRUE if the predicate is TRUE for at least one element, FALSE otherwise.
      *
-     * @psalm-param Closure(TKey=, T=):bool $p
+     * @psalm-param callable(TKey=, T=):bool $p
      */
-    public function exists(Closure $p);
+    public function exists(callable $p);
 
     /**
      * Returns all the elements of this collection that satisfy the predicate p.
      * The order of the elements is preserved.
      *
-     * @param Closure $p The predicate used for filtering.
+     * @param callable $p The predicate used for filtering.
      *
-     * @return CollectionInterface A collection with the results of the filter operation.
+     * @return static A collection with the results of the filter operation.
      */
-    public function filter(Closure $p);
+    public function filter(callable $p);
 
     /**
      * Tests whether the given predicate p holds for all elements of this collection.
      *
-     * @param Closure $p The predicate.
+     * @param callable $p The predicate.
      *
      * @return bool TRUE, if the predicate yields TRUE for all elements, FALSE otherwise.
      *
-     * @psalm-param Closure(TKey=, T=):bool $p
+     * @psalm-param callable(TKey=, T=):bool $p
      */
-    public function forAll(Closure $p);
+    public function forAll(callable $p);
 
     /**
      * Applies the given function to each element in the collection and returns
      * a new collection with the elements returned by the function.
      *
-     * @return CollectionInterface
+     * @return static
      */
-    public function map(Closure $func);
+    public function map(callable $func);
+
+    /**
+     * Map a collection and flatten the result by a single level.
+     *
+     * @param  callable  $callback
+     * @return static
+     */
+    public function flatMap(callable $callback);
+
+    /**
+     * Collapse the collection of items into a single array.
+     *
+     * @return static
+     */
+    public function collapse();
 
     /**
      * Partitions this collection in two collections according to a predicate.
      * Keys are preserved in the resulting collections.
      *
-     * @param Closure $p The predicate on which to partition.
+     * @param callable $p The predicate on which to partition.
      *
-     * @return CollectionInterface[] An array with two elements. The first element contains the collection
+     * @return static[] An array with two elements. The first element contains the collection
      *                      of elements where the predicate returned TRUE, the second element
      *                      contains the collection of elements where the predicate returned FALSE.
      */
-    public function partition(Closure $p);
+    public function partition(callable $p);
 
     /**
      * Gets the index/key of a given element. The comparison of two elements is strict,

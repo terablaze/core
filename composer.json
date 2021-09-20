@@ -36,7 +36,11 @@
     "league/commonmark": "2.1.x-dev",
     "ramsey/uuid": "4.x-dev",
     "psr/simple-cache": "1.0.x-dev",
-    "dflydev/fig-cookies": "3.0.x-dev"
+    "dflydev/fig-cookies": "3.0.x-dev",
+    "symfony/finder": "5.4.x-dev",
+    "symfony/filesystem": "5.4.x-dev",
+    "symfony/mime": "5.4.x-dev",
+    "symfony/process": "5.4.x-dev"
   },
   "require-dev": {
     "filp/whoops": "^2.9",
@@ -86,6 +90,7 @@
     ]
   },
   "suggest": {
+    "ext-fileinfo": "Required to use the fileinfo functions.",
     "ext-ftp": "Required to use the Flysystem FTP driver.",
     "ext-gd": "Required to use image manipulation libraries",
     "ext-imagick": "Required to use image manipulation libraries",

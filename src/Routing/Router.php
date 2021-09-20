@@ -186,7 +186,7 @@ class Router implements RouterInterface
         $className = ucfirst($controller);
 
         if (!class_exists($className)) {
-            throw new NotFoundHttpException("Controller '{$className}' not found");
+            throw new NotFoundHttpException("AbstractController '{$className}' not found");
         }
 
         if (!$this->container->has($className)) {

@@ -60,17 +60,17 @@ class MysqliConnector extends Connector implements ConnectorInterface
      */
     protected $_isConnected = false;
 
-    protected $dbConfName = 'default';
+    protected $name = 'default';
 
-    public function setDatabaseConfName(string $dbConfName): ConnectorInterface
+    public function setName(string $name): self
     {
-        $this->dbConfName = $dbConfName;
+        $this->name = $name;
         return $this;
     }
 
-    public function getDatabaseConfName(): string
+    public function getName(): string
     {
-        return $this->dbConfName;
+        return $this->name;
     }
 
     public function connect(): ConnectorInterface

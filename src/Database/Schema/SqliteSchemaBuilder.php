@@ -59,8 +59,7 @@ class SqliteSchemaBuilder extends SchemaBuilder
             $query = "DROP TABLE IF EXISTS `{$this->table}`;";
         }
 
-        $statement = $this->connection->pdo()->prepare($query);
-        $statement->execute();
+        $this->connection->execute($query);
     }
 
     private function stringForField(Field $field): string
@@ -76,18 +75,7 @@ class SqliteSchemaBuilder extends SchemaBuilder
         }
 
         if ($field instanceof BoolField) {
-            $template = "{$prefix} \"{$field->name}\" INTEGER";
-
-            if (!$field->nullable) {
-                $template .= " NOT NULL";
-            }
-
-            if ($field->default !== null) {
-                $default = (int) $field->default;
-                $template .= " DEFAULT {$default}";
-            }
-
-            return $template;
+            return $this->buildBool($prefix, $field);
         }
 
         if ($field instanceof DateTimeField) {
@@ -153,6 +141,22 @@ class SqliteSchemaBuilder extends SchemaBuilder
         }
 
         throw new MigrationException("Unrecognised field type for {$field->name}");
+    }
+
+    public function buildBool(string $prefix, BoolField $field): string
+    {
+        $template = "{$prefix} \"{$field->name}\" INTEGER";
+
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
+        }
+
+        if ($field->default !== null) {
+            $default = (int) $field->default;
+            $template .= " DEFAULT {$default}";
+        }
+
+        return $template;
     }
 
     public function dropColumn(string $name): self

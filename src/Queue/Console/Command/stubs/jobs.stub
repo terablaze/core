@@ -10,14 +10,15 @@ class {{ class }} extends Migration
      *
      * @return void
      */
-    public function up(ConnectionInterface $connection)
+    public function up()
     {
-        $table = $connection->createTable('{{table}}');
+        $table = $this->createTable('{{table}}');
         $table->id('id');
         $table->text('closure');
         $table->text('params');
         $table->int('attempts')->default(0);
         $table->bool('is_complete')->default(false);
+        $table->dateTime('created_at')
         $table->execute();
     }
 
@@ -26,8 +27,8 @@ class {{ class }} extends Migration
      *
      * @return void
      */
-    public function down(ConnectionInterface $connection)
+    public function down()
     {
-        $connection->dropTableIfExists('{{table}}');
+        $this->->dropTableIfExists('{{table}}')->execute();
     }
 }

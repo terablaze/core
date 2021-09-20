@@ -14,10 +14,10 @@ use TeraBlaze\View\Exception\Argument as ViewArgumentException;
 use TeraBlaze\View\View;
 
 /**
- * Class Controller
- * @package TeraBlaze\Controller
+ * Class AbstractController
+ * @package TeraBlaze\AbstractController
  */
-abstract class Controller implements ControllerInterface
+abstract class AbstractController implements ControllerInterface
 {
     use ContainerAwareTrait;
 
@@ -34,7 +34,7 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * Controller destructor
+     * AbstractController destructor
      */
     public function __destruct()
     {

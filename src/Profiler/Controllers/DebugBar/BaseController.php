@@ -2,10 +2,10 @@
 
 namespace TeraBlaze\Profiler\Controllers\DebugBar;
 
-use TeraBlaze\Controller\Controller;
+use TeraBlaze\Controller\AbstractController;
 use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
 
-class BaseController extends Controller
+class BaseController extends AbstractController
 {
     public $debugbar;
 

@@ -2,14 +2,17 @@
 
 namespace TeraBlaze\Database\Connection;
 
+use Closure;
 use PDO;
 use PDOException;
 use PDOStatement;
+use TeraBlaze\Database\Events\QueryExecuted;
 use TeraBlaze\Database\Exception\ConnectionLost;
 use TeraBlaze\Database\Exception\QueryException;
 use TeraBlaze\Database\Query\Expression\ExpressionBuilder;
 use TeraBlaze\Database\Query\QueryBuilderInterface;
 use TeraBlaze\Database\Logging\QueryLogger;
+use TeraBlaze\EventDispatcher\Dispatcher;
 use Throwable;
 
 abstract class Connection implements ConnectionInterface
@@ -23,6 +26,36 @@ abstract class Connection implements ConnectionInterface
 
     protected array $config;
 
+    /**
+     * All of the queries run against the connection.
+     *
+     * @var array
+     */
+    protected $queryLog = [];
+
+    /**
+     * Indicates whether queries are being logged.
+     *
+     * @var bool
+     */
+    protected $loggingQueries = false;
+
+    /**
+     * Indicates if the connection is in a "dry run".
+     *
+     * @var bool
+     */
+    protected $pretending = false;
+
+    /**
+     * The event dispatcher instance.
+     *
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
+    protected $name;
+
     /** @var int */
     protected int $defaultFetchMode = PDO::FETCH_ASSOC;
     private ExpressionBuilder $expr;
@@ -31,6 +64,17 @@ abstract class Connection implements ConnectionInterface
     {
         $this->config = $config;
         $this->expr = new ExpressionBuilder($this);
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     /**
@@ -46,7 +90,7 @@ abstract class Connection implements ConnectionInterface
     /**
      * Executes an, optionally parametrized, SQL query.
      *
-     * If the query is parametrized, a prepared statement is used.
+     * If the query is parametrized, a prepared statement is used.runQueryCallback
      * If an SQLLogger is configured, the execution is logged.
      *
      * @param string $sql SQL query
@@ -58,6 +102,8 @@ abstract class Connection implements ConnectionInterface
      */
     public function execute($sql, array $params = [])
     {
+        $start = microtime(true);
+
         $pdo = $this->pdo();
 
         ['sql' => $sql, 'params' => $params] = $this->fixSqlAndParams($sql, $params);
@@ -66,10 +112,15 @@ abstract class Connection implements ConnectionInterface
 
         try {
             $stmt = $pdo->prepare($sql);
+            if ($this->pretending()) {
+                $this->logQuery($stmt->queryString, $params, $this->getElapsedTime($start));
+                return true;
+            }
             $stmt->execute($params);
             $stmt->setFetchMode($this->defaultFetchMode);
 
             $this->getQueryLogger()->stopLog($stmt->rowCount());
+            $this->logQuery($sql, $params, $this->getElapsedTime($start));
             return $stmt;
         } catch (Throwable $e) {
             $this->getQueryLogger()->stopLogForFailed($e);
@@ -131,6 +182,168 @@ abstract class Connection implements ConnectionInterface
     public function getLastInsertId(): string
     {
         return $this->pdo()->lastInsertId();
+    }
+
+    /**
+     * Execute the given callback in "dry run" mode.
+     *
+     * @param  Closure  $callback
+     * @return array
+     */
+    public function pretend(Closure $callback)
+    {
+        return $this->withFreshQueryLog(function () use ($callback) {
+            $this->pretending = true;
+
+            // Basically to make the database connection "pretend", we will just return
+            // the default values for all the query methods, then we will return an
+            // array of queries that were "executed" within the Closure callback.
+            $callback($this);
+
+            $this->pretending = false;
+
+            return $this->queryLog;
+        });
+    }
+
+    /**
+     * Execute the given callback in "dry run" mode.
+     *
+     * @param  Closure  $callback
+     * @return array
+     */
+    protected function withFreshQueryLog($callback)
+    {
+        $loggingQueries = $this->loggingQueries;
+
+        // First we will back up the value of the logging queries property and then
+        // we'll be ready to run callbacks. This query log will also get cleared
+        // so we will have a new log of all the queries that are executed now.
+        $this->enableQueryLog();
+
+        $this->queryLog = [];
+
+        // Now we'll execute this callback and capture the result. Once it has been
+        // executed we will restore the value of query logging and give back the
+        // value of the callback so the original callers can have the results.
+        $result = $callback();
+
+        $this->loggingQueries = $loggingQueries;
+
+        return $result;
+    }
+
+    /**
+     * Enable the query log on the connection.
+     *
+     * @return void
+     */
+    public function enableQueryLog()
+    {
+        $this->loggingQueries = true;
+    }
+    /**
+     * Log a query in the connection's query log.
+     *
+     * @param  string  $query
+     * @param  array  $bindings
+     * @param  float|null  $time
+     * @return void
+     */
+    public function logQuery($query, $bindings, $time = null)
+    {
+        $this->event(new QueryExecuted($query, $bindings, $time, $this));
+
+        if ($this->loggingQueries) {
+            $this->queryLog[] = compact('query', 'bindings', 'time');
+        }
+    }
+
+    /**
+     * Get the event dispatcher used by the connection.
+     *
+     * @return Dispatcher
+     */
+    public function getEventDispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    /**
+     * Set the event dispatcher instance on the connection.
+     *
+     * @param  Dispatcher  $events
+     * @return $this
+     */
+    public function setEventDispatcher(Dispatcher $dispatcher)
+    {
+        $this->dispatcher = $dispatcher;
+
+        return $this;
+    }
+
+    /**
+     * Unset the event dispatcher for this connection.
+     *
+     * @return void
+     */
+    public function unsetEventDispatcher()
+    {
+        $this->dispatcher = null;
+    }
+
+    /**
+     * Determine if the connection is in a "dry run".
+     *
+     * @return bool
+     */
+    public function pretending()
+    {
+        return $this->pretending === true;
+    }
+
+    /**
+     * Get the connection query log.
+     *
+     * @return array
+     */
+    public function getQueryLog()
+    {
+        return $this->queryLog;
+    }
+
+    /**
+     * Clear the query log.
+     *
+     * @return void
+     */
+    public function flushQueryLog()
+    {
+        $this->queryLog = [];
+    }
+
+    /**
+     * Fire the given event if possible.
+     *
+     * @param  mixed  $event
+     * @return void
+     */
+    protected function event($event)
+    {
+        if (isset($this->dispatcher)) {
+            $this->dispatcher->dispatch($event);
+        }
+    }
+
+    /**
+     * Get the elapsed time since a given starting point.
+     *
+     * @param  int  $start
+     * @return float
+     */
+    protected function getElapsedTime($start)
+    {
+        return round((microtime(true) - $start) * 1000, 2);
     }
 
     /**

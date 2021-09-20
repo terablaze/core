@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by TeraBoxX.
- * User: tommy
- * Date: 2/4/2017
- * Time: 4:09 PM
- */
-
 namespace TeraBlaze\Controller;
 
 use TeraBlaze\Container\ContainerInterface;
@@ -15,7 +8,7 @@ use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\Router;
 
 /**
- * Class Controller
+ * Interface ControllerInterface
  * @package TeraBlaze\Controller
  */
 interface ControllerInterface

@@ -3,6 +3,8 @@
 namespace TeraBlaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use TeraBlaze\Core\Console\Application;
+use TeraBlaze\Routing\Router;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\Exception\InvalidContextException;
@@ -126,14 +128,17 @@ abstract class Parcel implements ParcelInterface
         return $this->name;
     }
 
-    public function registerCommands(\TeraBlaze\Core\Console\Application $application)
+    public function registerCommands(Application $application)
     {
     }
 
     public function registerRoutes(array $routes): void
     {
         if (!empty($routes) && is_array($routes)) {
-            $this->container->get(RouterInterface::class)->addRoutes($routes);
+            $this->container->make(RouterInterface::class, [
+                'class' => Router::class,
+                'alias' => 'routing'
+            ])->addRoutes($routes);
         }
     }
 

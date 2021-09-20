@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Database\Migrations;
 
+use TeraBlaze\Collection\ArrayCollection;
 use TeraBlaze\Database\Connection\ConnectionInterface;
 use TeraBlaze\Database\Query\QueryBuilderInterface;
 
@@ -10,7 +11,7 @@ class MigrationRepository
     /**
      * The name of the migration table.
      *
-     * @var string
+     * @var ConnectionInterface
      */
     protected $connection;
 
@@ -35,29 +36,31 @@ class MigrationRepository
     /**
      * Get the completed migrations.
      *
-     * @return array
+     * @return string[]
      */
     public function getRan(): array
     {
-        return $this->query()
-            ->select('migration')
+        $allRan = $this->query()
+            ->from($this->table)
+            ->select('name')
             ->orderBy('batch', 'asc')
-            ->addOrderBy('migration', 'asc')
+            ->addOrderBy('name', 'asc')
             ->all();
+        return (new ArrayCollection($allRan))->pluck('name')->all();
     }
 
     /**
      * Get list of migrations.
      *
      * @param int $steps
-     * @return array
+     * @return array<int|string, mixed>
      */
     public function getMigrations(int $steps): array
     {
         $query = $this->table()->where('batch >= 1');
 
         return $query->orderBy('batch', 'desc')
-            ->addOrderBy('migration', 'desc')
+            ->addOrderBy('name', 'desc')
             ->limit($steps)->all();
     }
 
@@ -71,7 +74,7 @@ class MigrationRepository
         $query = $this->table()->where('batch = :lastBatchNumber')
             ->setParameter('lastBatchNumber', $this->getLastBatchNumber());
 
-        return $query->orderBy('migration', 'desc')->all();
+        return $query->orderBy('name', 'desc')->all();
     }
 
     /**
@@ -82,9 +85,9 @@ class MigrationRepository
     public function getMigrationBatches(): array
     {
         return $this->table()
-            ->select('batch', 'migration')
+            ->select('batch', 'name')
             ->orderBy('batch', 'asc')
-            ->addOrderBy('migration', 'asc')
+            ->addOrderBy('name', 'asc')
             ->all();
     }
 
@@ -97,21 +100,22 @@ class MigrationRepository
      */
     public function log(string $file, int $batch)
     {
-        $record = ['migration' => $file, 'batch' => $batch];
+        $record = ['name' => ":name", 'batch' => ":batch"];
+        $params = ['name' => $file, 'batch' => $batch];
 
-        $this->table()->save($record);
+        $this->table()->save($record, $params);
     }
 
     /**
      * Remove a migration from the log.
      *
-     * @param $migration
+     * @param mixed $migration
      * @return void
      */
     public function delete($migration)
     {
-        $this->query()->delete($this->table)->where('migration = :migration')
-            ->setParameter('migration', $migration['migration'])->execute();
+        $this->query()->delete($this->table)->where('name = :name')
+            ->setParameter('name', $migration->name)->execute();
     }
 
     /**
@@ -127,9 +131,9 @@ class MigrationRepository
     /**
      * Get the last migration batch number.
      *
-     * @return int
+     * @return null|int
      */
-    public function getLastBatchNumber(): int
+    public function getLastBatchNumber(): ?int
     {
         return $this->table()->max('batch');
     }
@@ -181,5 +185,15 @@ class MigrationRepository
     protected function query(): QueryBuilderInterface
     {
         return $this->connection->getQueryBuilder();
+    }
+
+    public function setConnection(ConnectionInterface $connection): void
+    {
+        $this->connection = $connection;
+    }
+
+    public function getConnection(): ConnectionInterface
+    {
+        return $this->connection;
     }
 }

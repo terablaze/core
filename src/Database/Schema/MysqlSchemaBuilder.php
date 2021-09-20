@@ -27,7 +27,7 @@ class MysqlSchemaBuilder extends SchemaBuilder
         $this->type = $type;
     }
 
-    public function execute()
+    public function  execute()
     {
         $fields = array_map(fn($field) => $this->stringForField($field), $this->fields);
 
@@ -64,8 +64,7 @@ class MysqlSchemaBuilder extends SchemaBuilder
             $query = "DROP TABLE IF EXISTS `{$this->table}`;";
         }
 
-        $statement = $this->connection->pdo()->prepare($query);
-        $statement->execute();
+        $this->connection->execute($query);
     }
 
     private function stringForField(Field $field): string
@@ -81,18 +80,7 @@ class MysqlSchemaBuilder extends SchemaBuilder
         }
 
         if ($field instanceof BoolField) {
-            $template = "{$prefix} `{$field->name}` tinyint(4)";
-
-            if ($field->nullable) {
-                $template .= " DEFAULT NULL";
-            }
-
-            if ($field->default !== null) {
-                $default = (int) $field->default;
-                $template .= " DEFAULT {$default}";
-            }
-
-            return $template;
+            return $this->buildBool($prefix, $field);
         }
 
         if ($field instanceof DateTimeField) {
@@ -130,7 +118,7 @@ class MysqlSchemaBuilder extends SchemaBuilder
         }
 
         if ($field instanceof IntField) {
-            $template = "{$prefix} `{$field->name}` int(11)";
+            $template = "{$prefix} `{$field->name}` {$field->type}({$field->length})";
 
             if ($field->nullable) {
                 $template .= " DEFAULT NULL";

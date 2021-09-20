@@ -5,19 +5,41 @@ namespace TeraBlaze\Database;
 use ReflectionException;
 use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
+use TeraBlaze\Core\Console\Application;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Database\Connection\ConnectionInterface;
 use TeraBlaze\Database\Connection\MysqlConnection;
 use TeraBlaze\Database\Connection\SqliteConnection;
+use TeraBlaze\Database\Console\Command\Migrations\InstallCommand;
+use TeraBlaze\Database\Console\Command\Migrations\MigrateCommand;
+use TeraBlaze\Database\Console\Command\Migrations\MigrateMakeCommand;
+use TeraBlaze\Database\Console\Command\Migrations\RollbackCommand;
 use TeraBlaze\Database\Legacy\Connectors\ConnectorInterface;
 use TeraBlaze\Database\Legacy\Connectors\MysqliConnector;
 use TeraBlaze\Database\Exception\ArgumentException;
-use TeraBlaze\Database\Events\InitializeEvent;
-use TeraBlaze\Database\Events\PreInitializeEvent;
+use TeraBlaze\Database\Migrations\MigrationCreator;
+use TeraBlaze\Database\Migrations\MigrationRepository;
+use TeraBlaze\Database\Migrations\Migrator;
 
 class DatabaseParcel extends Parcel implements ParcelInterface
 {
+    /**
+     * The commands to be registered.
+     *
+     * @var array
+     */
+    protected $commands = [
+        MigrateCommand::class,
+//        MigrateFreshCommand::class,
+        InstallCommand::class,
+//        MigrateRefreshCommand::class,
+//        MigrateResetCommand::class,
+        RollbackCommand::class,
+//        MigrateStatusCommand::class,
+        MigrateMakeCommand::class,
+    ];
+
     /**
      * @throws ArgumentException
      * @throws InvalidContextException
@@ -42,14 +64,9 @@ class DatabaseParcel extends Parcel implements ParcelInterface
      */
     private function initialize(string $confKey, array $conf): void
     {
-        $preInitEvent = new PreInitializeEvent($confKey, $conf);
-        $this->dispatcher->dispatch($preInitEvent);
+        $type = $conf['type'] ?? $conf['driver'] ?? '';
 
-        $confKey = $preInitEvent->getConfKey();
-        $options = $preInitEvent->getConf();
-        $type = $options['type'] ?? $options['driver'] ?? '';
-
-        $connectionName = "database.connection.{$confKey}";
+        $connectionName = "database.connection.$confKey";
         if (empty($type)) {
             throw new ArgumentException("Database driver type not set");
         }
@@ -57,21 +74,21 @@ class DatabaseParcel extends Parcel implements ParcelInterface
         switch ($type) {
             case "mysql":
             case "mysqli":
-                $dbConnection = new MysqlConnection($options);
+                $dbConnection = (new MysqlConnection($conf))
+                    ->setName($confKey)->setEventDispatcher($this->dispatcher);
                 break;
             case "sqlite":
-                $dbConnection = new SqliteConnection($options);
+                $dbConnection = (new SqliteConnection($conf))
+                    ->setName($confKey)->setEventDispatcher($this->dispatcher);
                 break;
             case "mysql_legacy":
             case "mysqli_legacy":
-                $dbConnection = new MysqliConnector($options);
+                $dbConnection = (new MysqliConnector($conf))->setName($confKey);
                 break;
             default:
                 throw new ArgumentException(sprintf("Invalid or unimplemented database type: %s", $type));
         }
-        $initEvent = new InitializeEvent($dbConnection);
-        $this->dispatcher->dispatch($initEvent);
-        $this->container->registerServiceInstance($connectionName, $initEvent->getConnection());
+        $this->container->registerServiceInstance($connectionName, $dbConnection);
         if (getConfig('database.default') === $confKey) {
             if ($dbConnection instanceof ConnectorInterface) {
                 $this->container->setAlias(ConnectorInterface::class, $connectionName);
@@ -82,4 +99,154 @@ class DatabaseParcel extends Parcel implements ParcelInterface
             $this->container->setAlias('database.connection.default', $connectionName);
         }
     }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function registerCommands(Application $application)
+    {
+        if (! $this->getKernel()->inConsole()) {
+            return;
+        }
+        $this->registerRepository();
+
+        $this->registerMigrator();
+
+        $this->registerCreator();
+
+        $this->registerMigrationCommands($application, $this->commands);
+    }
+
+    /**
+     * Register the migration repository service.
+     *
+     * @return void
+     */
+    protected function registerRepository()
+    {
+        $this->container->make(MigrationRepository::class);
+    }
+
+    /**
+     * Register the migrator service.
+     *
+     * @return void
+     */
+    protected function registerMigrator()
+    {
+        // The migrator is responsible for actually running and rollback the migration
+        // files in the application. We'll pass in our database connection resolver
+        // so the migrator can resolve any of these connections when it needs to.
+        $this->container->make(Migrator::class);
+    }
+
+    /**
+     * Register the migration creator.
+     *
+     * @return void
+     * @throws ReflectionException
+     */
+    protected function registerCreator()
+    {
+        $this->container->make(MigrationCreator::class, [
+            'class' => MigrationCreator::class,
+            'arguments' => [
+                MigrationCreator::class,
+                $this->getKernel()->getProjectDir() . DIRECTORY_SEPARATOR . 'stubs',
+            ]
+        ]);
+    }
+
+    /**
+     * Register the given commands.
+     *
+     * @param array $commands
+     * @return void
+     */
+    protected function registerMigrationCommands(Application $application, array $commands)
+    {
+        foreach ($commands as $command) {
+            $application->add($this->container->make($command));
+        }
+    }
+
+    /**
+     * Register the command.
+     *
+     * @return void
+     */
+    protected function registerMigrateCommand()
+    {
+        return $this->container->make(MigrateCommand::class);
+    }
+
+//    /**
+//     * Register the command.
+//     *
+//     * @return void
+//     */
+//    protected function registerMigrateFreshCommand()
+//    {
+//        return $this->container->make(FreshCommand::class);
+//    }
+
+//    /**
+//     * Register the command.
+//     *
+//     * @return void
+//     */
+//    protected function registerMigrateInstallCommand()
+//    {
+//        return $this->container->make(InstallCommand::class);
+//    }
+
+    /**
+     * Register the command.
+     *
+     * @return void
+     */
+    protected function registerMigrateMakeCommand()
+    {
+        return $this->container->make(MigrateMakeCommand::class);
+    }
+
+//    /**
+//     * Register the command.
+//     *
+//     * @return void
+//     */
+//    protected function registerMigrateRefreshCommand()
+//    {
+//        return $this->container->make(RefreshCommand::class);
+//    }
+
+//    /**
+//     * Register the command.
+//     *
+//     * @return void
+//     */
+//    protected function registerMigrateResetCommand()
+//    {
+//        return $this->container->make(ResetCommand::class);
+//    }
+
+    /**
+     * Register the command.
+     *
+     * @return void
+     */
+    protected function registerMigrateRollbackCommand()
+    {
+        return $this->container->make(RollbackCommand::class);
+    }
+
+//    /**
+//     * Register the command.
+//     *
+//     * @return void
+//     */
+//    protected function registerMigrateStatusCommand()
+//    {
+//        return $this->container->make(StatusCommand::class);
+//    }
 }

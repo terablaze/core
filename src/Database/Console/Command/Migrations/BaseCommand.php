@@ -4,7 +4,6 @@ namespace TeraBlaze\Database\Console\Command\Migrations;
 
 use TeraBlaze\Core\Console\Command;
 use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\Database\Connection\ConnectionInterface;
 
 class BaseCommand extends Command
 {
@@ -15,7 +14,7 @@ class BaseCommand extends Command
      */
     protected function getMigrationPaths()
     {
-        $paths[] = $this->getAppMigrationPath();
+        $paths[] = $this->getMigrationPath();
         foreach ($this->getKernel()->getParcels() as $parcel) {
             if ($parcel instanceof ParcelInterface) {
                 $paths[] = $parcel->getPath() . DIRECTORY_SEPARATOR
@@ -25,40 +24,28 @@ class BaseCommand extends Command
         return $paths;
     }
 
-    protected function getMigrations()
+    /**
+     * Determine if the given path(s) are pre-resolved "real" paths.
+     *
+     * @return bool
+     */
+    protected function usingRealPath()
     {
-        $paths = $this->getMigrationPaths();
-        $pattern = '*.php';
-        $migrationFiles = [];
-        foreach ($paths as $path) {
-            if (!is_dir($path)) {
-                continue;
-            }
-            $subMigrationFiles = glob("{$path}/{$pattern}");
-            if (count($subMigrationFiles) < 1) {
-                continue;
-            }
-            $migrationFiles = [...$subMigrationFiles];
-        }
-
-        sort($migrationFiles, SORT_ASC);
-        return $migrationFiles;
+        return $this->input->hasOption('realpath') && $this->input->getOption('realpath');
     }
-
 
     /**
      * Get the path to the migration directory.
      *
      * @return string
      */
-    protected function getAppMigrationPath()
+    protected function getMigrationPath()
     {
-        return $this->getKernel()->getProjectDir() . DIRECTORY_SEPARATOR
-            . "database" . DIRECTORY_SEPARATOR . "migrations";
+        return baseDir('database'.DIRECTORY_SEPARATOR.'migrations');
     }
 
-    protected function connection(string $name): ConnectionInterface
+    protected function handle()
     {
-        return $this->container->get($name);
+        // TODO: Implement handle() method.
     }
 }

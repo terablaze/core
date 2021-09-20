@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Profiler\DebugBar;
 
+use DebugBar\Bridge\MonologCollector;
 use DebugBar\DataCollector\ConfigCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\ExceptionsCollector;
@@ -24,6 +25,7 @@ use TeraBlaze\EventDispatcher\ListenerProvider;
 use TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
+use TeraBlaze\Log\Events\MessageLogged;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\Database\QueryCollector;
 use TeraBlaze\Profiler\Debugbar\DataCollectors\PhpInfoCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RequestCollector;
@@ -77,12 +79,12 @@ class TeraBlazeDebugbar extends DebugBar
     ];
 
 
-    public function __construct(?ContainerInterface $container = null)
+    public function __construct(?ContainerInterface $container = null, LoggerInterface $logger)
     {
         $this->container = $container ?: Container::getContainer();
         $this->dispatcher = $this->container->get(EventDispatcherInterface::class);
         $this->listenerProvider = $this->container->get(ListenerProviderInterface::class);
-//        $this->logger = $logger;
+        $this->logger = $logger;
         $this->kernel = $this->container->get('kernel');
     }
 
@@ -149,50 +151,50 @@ class TeraBlazeDebugbar extends DebugBar
             $this->addCollector(new MemoryCollector());
         }
 
-//        if ($this->shouldCollect('log', true)) {
-//            try {
-//                if ($this->hasCollector('messages')) {
-//                    $logger = new MessagesCollector('log');
-//                    $this['messages']->aggregate($logger);
-//                    $this->app['log']->listen(
-//                        function ($level, $message = null, $context = null) use ($logger) {
-//                            // Laravel 5.4 changed how the global log listeners are called. We must account for
-//                            // the first argument being an "event object", where arguments are passed
-//                            // via object properties, instead of individual arguments.
-//                            if ($level instanceof \Illuminate\Log\Events\MessageLogged) {
-//                                $message = $level->message;
-//                                $context = $level->context;
-//                                $level = $level->level;
-//                            }
-//
-//                            try {
-//                                $logMessage = (string)$message;
-//                                if (mb_check_encoding($logMessage, 'UTF-8')) {
-//                                    $logMessage .= (!empty($context) ? ' ' . json_encode($context) : '');
-//                                } else {
-//                                    $logMessage = "[INVALID UTF-8 DATA]";
-//                                }
-//                            } catch (Exception $e) {
-//                                $logMessage = "[Exception: " . $e->getMessage() . "]";
-//                            }
-//                            $logger->addMessage(
-//                                '[' . date('H:i:s') . '] ' . "LOG.$level: " . $logMessage,
-//                                $level,
-//                                false
-//                            );
-//                        }
-//                    );
-//                } else {
-//                    $this->addCollector(new MonologCollector($this->app['log']->getMonolog()));
-//                }
-//            } catch (Exception $e) {
-//                $this->addThrowable(
-//                    new Exception(
-//                        'Cannot add LogsCollector to TeraBlaze Debugbar: ' . $e->getMessage(), $e->getCode(), $e
-//                    )
-//                );
-//            }
-//        }
+        if ($this->shouldCollect('log', true)) {
+            try {
+                if ($this->hasCollector('messages')) {
+                    $logger = new MessagesCollector('log');
+                    $this['messages']->aggregate($logger);
+                    $this->container->get('log')->listen(
+                        function ($level, $message = null, $context = null) use ($logger) {
+                            // Laravel 5.4 changed how the global log listeners are called. We must account for
+                            // the first argument being an "event object", where arguments are passed
+                            // via object properties, instead of individual arguments.
+                            if ($level instanceof MessageLogged) {
+                                $message = $level->message;
+                                $context = $level->context;
+                                $level = $level->level;
+                            }
+
+                            try {
+                                $logMessage = (string)$message;
+                                if (mb_check_encoding($logMessage, 'UTF-8')) {
+                                    $logMessage .= (!empty($context) ? ' ' . json_encode($context) : '');
+                                } else {
+                                    $logMessage = "[INVALID UTF-8 DATA]";
+                                }
+                            } catch (Exception $e) {
+                                $logMessage = "[Exception: " . $e->getMessage() . "]";
+                            }
+                            $logger->addMessage(
+                                '[' . date('H:i:s') . '] ' . "LOG.$level: " . $logMessage,
+                                $level,
+                                false
+                            );
+                        }
+                    );
+                } else {
+                    $this->addCollector(new MonologCollector($this->container->get('log')->driver()->getLogger()));
+                }
+            } catch (Exception $e) {
+                $this->addThrowable(
+                    new Exception(
+                        'Cannot add LogsCollector to TeraBlaze Debugbar: ' . $e->getMessage(), $e->getCode(), $e
+                    )
+                );
+            }
+        }
 //
 //        if ($this->shouldCollect('db', true) && isset($this->app['db'])) {
 //            $db = $this->app['db'];

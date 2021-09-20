@@ -7,10 +7,10 @@ use TeraBlaze\HttpBase\Response;
 use TeraBlaze\View\Exception\Argument as ViewArgumentException;
 
 /**
- * Class ErrorsController
+ * Class ErrorController
  * @package TeraBlaze\Controller
  */
-class ErrorController extends Controller
+class ErrorController extends AbstractController
 {
     public function renderErrorPage(Request $request, int $errorCode = 404): Response
     {
@@ -25,6 +25,5 @@ class ErrorController extends Controller
         } catch (ViewArgumentException $vException) {
             return new Response(null, $errorCode);
         }
-        return new Response(null, $errorCode);
     }
 }

@@ -9,3 +9,4 @@ composer.lock
 /config
 /tests
 .phpcs-cache
+./blaze

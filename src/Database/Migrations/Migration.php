@@ -3,6 +3,7 @@
 namespace TeraBlaze\Database\Migrations;
 
 use TeraBlaze\Database\Connection\ConnectionInterface;
+use TeraBlaze\Database\Schema\SchemaBuilderInterface;
 
 abstract class Migration
 {
@@ -11,7 +12,7 @@ abstract class Migration
      *
      * @var string|null
      */
-    protected ?string $connectionName = null;
+    protected $connectionName = null;
 
     /**
      * Get the migration connection name.
@@ -23,7 +24,36 @@ abstract class Migration
         return $this->connectionName;
     }
 
-    public function up(ConnectionInterface $connection): void {}
+    public function getConnection(): ConnectionInterface
+    {
+        $connString = $this->getConnectionName()
+            ? 'database.connection.' . $this->getConnectionName()
+            : ConnectionInterface::class;
 
-    public function down(ConnectionInterface $connection): void {}
+        return container()->get($connString);
+    }
+
+    public function createTable(string $table): SchemaBuilderInterface
+    {
+        return $this->getConnection()->createTable($table);
+    }
+
+    public function alterTable(string $table): SchemaBuilderInterface
+    {
+        return $this->getConnection()->alterTable($table);
+    }
+
+    public function dropTable(string $table): SchemaBuilderInterface
+    {
+        return $this->getConnection()->dropTable($table);
+    }
+
+    public function dropTableIfExists(string $table): SchemaBuilderInterface
+    {
+        return $this->getConnection()->dropTableIfExists($table);
+    }
+
+    public function up(): void {}
+
+    public function down(): void {}
 }

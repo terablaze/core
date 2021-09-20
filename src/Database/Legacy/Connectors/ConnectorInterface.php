@@ -17,12 +17,12 @@ interface ConnectorInterface
         'NOW()',
     ];
 
-    public function setDatabaseConfName(string $dbConfName): ConnectorInterface;
+    public function setName(string $cname): self;
 
     /**
      * @return string
      */
-    public function getDatabaseConfName(): string;
+    public function getName(): string;
 
     /**
      * connects to the database

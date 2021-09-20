@@ -89,8 +89,13 @@ class Container implements ContainerInterface
      */
     private function setAliasInternally(string $key, array $service): void
     {
-        $alias = $service['alias'] ?? $service['class'] ?? $key;
-        $this->serviceAliases[$alias] = $key;
+        $aliases = ArrayMethods::wrap($service['alias'] ?? null);
+        if (isset($service['class']) && $service['class'] !== $key) {
+            array_push($aliases, $service['class']);
+        }
+        foreach ($aliases as $alias) {
+            $this->serviceAliases[$alias] = $key;
+        }
     }
 
     /**
@@ -357,10 +362,10 @@ class Container implements ContainerInterface
      * @param string $service
      * @param array<string, mixed> $definition
      * @param bool $replace
-     * @return object
+     * @return object|mixed
      * @throws ReflectionException
      */
-    public function make(string $service, array $definition = [], bool $replace = false): object
+    public function make(string $service, array $definition = [], bool $replace = false)
     {
         if ($this->has($service) && $replace) {
             $this->removeService($service);
@@ -502,11 +507,12 @@ class Container implements ContainerInterface
             $typeName = is_null($type) ? null : $type->getName();
             $resolvedType = $this->resolveType($typeName);
 
+            $defaultValue = null;
             if ($reflectionParameter->isDefaultValueAvailable()) {
                 $defaultValue = $reflectionParameter->getDefaultValue();
             }
 
-            $resolvedArgument = $defaultValue ?? $resolvedType;
+            $resolvedArgument = $resolvedType ?? $defaultValue;
             foreach ($arguments as $key => $argument) {
                 if (is_a($typeName, ModelInterface::class, true)) {
                     unset($arguments[$key]);

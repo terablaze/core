@@ -362,6 +362,27 @@ if (!function_exists('getConfig')) {
     }
 }
 
+if (!function_exists('setConfig')) {
+    /**
+     * Retrieve a configuration option via a provided key.
+     *
+     * @param string $key Unique configuration option key
+     * @param mixed $value Default value to return if option does not exist
+     *
+     * @return mixed Stored config item or $default value
+     * @throws ReflectionException
+     */
+    function setConfig(string $key, $value = null)
+    {
+        /** @var ConfigInterface $config */
+        static $config;
+        if (!$config) {
+            $config = kernel()->getConfig();
+        }
+        return $config->set($key, $value);
+    }
+}
+
 if (!function_exists('baseDir')) {
     function baseDir(string $path = '', bool $trailingSlash = false)
     {
@@ -400,5 +421,19 @@ if (!function_exists('normalizeDir')) {
         $replacePattern = "/[\/\\\\\\" . DIRECTORY_SEPARATOR . "]{2,}/";
         $path = preg_replace($replacePattern, DIRECTORY_SEPARATOR, $path);
         return $trailingSlash ? $path : rtrim($path, DIRECTORY_SEPARATOR);
+    }
+}
+
+if (! function_exists('with')) {
+    /**
+     * Return the given value, optionally passed through the given callback.
+     *
+     * @param  mixed  $value
+     * @param  callable|null  $callback
+     * @return mixed
+     */
+    function with($value, callable $callback = null)
+    {
+        return is_null($callback) ? $value : $callback($value);
     }
 }

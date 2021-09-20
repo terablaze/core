@@ -467,13 +467,13 @@ abstract class QueryBuilder implements QueryBuilderInterface
         return $this->add('from', ['table' => $insert]);
     }
 
-    public function save(array $values, array $parameters = []): self
+    public function save(array $values, array $parameters = [])
     {
         $this->saveCall = [
             'values' => $values,
             'parameters' => $parameters
         ];
-        return $this;
+        return $this->execute();
     }
 
     /**
