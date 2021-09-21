@@ -51,7 +51,7 @@ abstract class AbstractController implements ControllerInterface
 
         $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
-        $viewFile = str_replace("::", "/views/", $viewFile);
+        $viewFile = str_replace("::", "/resources/views/", $viewFile);
         $filename = $this->container->get('kernel')->getProjectDir() . '/src/' . $viewFile;
 
         if (!file_exists($filename)) {
@@ -69,17 +69,31 @@ abstract class AbstractController implements ControllerInterface
         return $string;
     }
 
+    /**
+     * @param $viewFile
+     * @throws ReflectionException
+     * @deprecated
+     */
     protected function includeView($viewFile): void
     {
         $viewVars = $GLOBALS['viewVars'];
         $ext = pathinfo($viewFile, PATHINFO_EXTENSION);
         $viewFile = ($ext === '') ? $viewFile . '.php' : $viewFile;
-        $viewFile = str_replace("::", "/views/", $viewFile);
+        $viewFile = str_replace("::", "/resources/views/", $viewFile);
         extract($viewVars);
         $filename = $this->container->get('kernel')->getProjectDir() . '/src/' . $viewFile;
         include $filename;
     }
 
+    /**
+     * @param string $viewFile
+     * @param array $viewVars
+     * @param int $responseCode
+     * @param array|string[] $headers
+     * @return Response
+     * @throws ViewArgumentException
+     * @deprecated
+     */
     protected function xrender(
         string $viewFile,
         array $viewVars = [],
