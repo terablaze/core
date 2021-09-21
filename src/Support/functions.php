@@ -80,6 +80,9 @@ if (!function_exists('route')) {
 if (!function_exists('asset')) {
     function asset(string $uri = '', int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH)
     {
+        if ($assetUrl = getConfig('app.asset_url')) {
+            $uri = "$assetUrl/$uri";
+        }
         return router()->getGenerator()->generateAsset($uri, $referenceType);
     }
 }
@@ -421,6 +424,41 @@ if (!function_exists('normalizeDir')) {
         $replacePattern = "/[\/\\\\\\" . DIRECTORY_SEPARATOR . "]{2,}/";
         $path = preg_replace($replacePattern, DIRECTORY_SEPARATOR, $path);
         return $trailingSlash ? $path : rtrim($path, DIRECTORY_SEPARATOR);
+    }
+}
+
+if (! function_exists('timeElapsedString')) {
+
+    function timeElapsedString($datetime, $full = false)
+    {
+        $now = new \DateTime();
+        $ago = new \DateTime($datetime);
+        $diff = $now->diff($ago);
+
+        $diff->w = floor($diff->d / 7);
+        $diff->d -= $diff->w * 7;
+
+        $string = array(
+            'y' => 'year',
+            'm' => 'month',
+            'w' => 'week',
+            'd' => 'day',
+            'h' => 'hour',
+            'i' => 'minute',
+            's' => 'second',
+        );
+        foreach ($string as $k => &$v) {
+            if ($diff->$k) {
+                $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+            } else {
+                unset($string[$k]);
+            }
+        }
+
+        if (!$full) {
+            $string = array_slice($string, 0, 1);
+        }
+        return $string ? implode(', ', $string) . ' ago' : 'just now';
     }
 }
 

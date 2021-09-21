@@ -3,7 +3,9 @@
 namespace TeraBlaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use ReflectionException;
 use TeraBlaze\Console\Application;
+use TeraBlaze\Core\Exception\ParcelNotLoadedException;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
@@ -13,6 +15,8 @@ use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\Routing\RouterInterface;
+use TeraBlaze\Translation\TranslationParcel;
+use TeraBlaze\Translation\Translator;
 use TeraBlaze\View\View;
 
 abstract class Parcel implements ParcelInterface
@@ -183,6 +187,46 @@ abstract class Parcel implements ParcelInterface
         if ($this->getName() !== $namespace) {
             View::addNamespacedPaths($this->getName(), $path);
         }
+    }
+
+    /**
+     * Register a translation file namespace.
+     *
+     * @param string $path
+     * @param string|null $namespace
+     * @return void
+     */
+    protected function loadTranslationsFrom(string $path, ?string $namespace = null)
+    {
+        if (null == $namespace) {
+            $namespace = $this->getName();
+        }
+        $path = normalizeDir($this->getPath() . DIRECTORY_SEPARATOR . $path);
+        $this->getTranslator()->addNamespace($namespace, $path);
+    }
+
+    /**
+     * Register a JSON translation file path.
+     *
+     * @param string $path
+     * @return void
+     */
+    protected function loadJsonTranslationsFrom(string $path)
+    {
+        $path = normalizeDir($this->getPath() . DIRECTORY_SEPARATOR . $path);
+        $this->getTranslator()->addJsonPath($path);
+    }
+
+    private function getTranslator(): Translator
+    {
+        if (!$this->container->has('translator')) {
+            throw new ParcelNotLoadedException(sprintf(
+                "Translator parcel not loaded.
+                Ensure the translator parcel: %s is loaded in your parcels config file",
+                TranslationParcel::class
+            ));
+        }
+        return $this->container->get('translator');
     }
 
     private function parseClassName()

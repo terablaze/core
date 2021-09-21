@@ -57,6 +57,7 @@
     },
     "files": [
       "src/Support/functions.php",
+      "src/Translation/functions.php",
       "src/Profiler/functions.php"
     ]
   },

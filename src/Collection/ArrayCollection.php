@@ -468,6 +468,24 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
+     * Reduce the collection to a single value.
+     *
+     * @param  callable  $callback
+     * @param  mixed $initial
+     * @return mixed
+     */
+    public function reduce(callable $callback, $initial = null)
+    {
+        $result = $initial;
+
+        foreach ($this as $key => $value) {
+            $result = $callback($result, $value, $key);
+        }
+
+        return $result;
+    }
+
+    /**
      * Sort through each item with a callback.
      *
      * @param  callable|int|null  $callback

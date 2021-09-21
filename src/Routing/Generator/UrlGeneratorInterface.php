@@ -47,9 +47,9 @@ interface UrlGeneratorInterface
     public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string;
 
     /**
-     * @param string $name
+     * @param string $uri
      * @param int $referenceType
      * @return string
      */
-    public function generateAsset(string $name, int $referenceType = self::ABSOLUTE_PATH): string;
+    public function generateAsset(string $uri, int $referenceType = self::ABSOLUTE_PATH): string;
 }

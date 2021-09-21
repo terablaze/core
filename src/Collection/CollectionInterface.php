@@ -261,5 +261,14 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
 
     public function pluck($value, $key = null);
 
+    /**
+     * Reduce the collection to a single value.
+     *
+     * @param  callable  $callback
+     * @param  mixed $initial
+     * @return mixed
+     */
+    public function reduce(callable $callback, $initial = null);
+
     public function dump();
 }

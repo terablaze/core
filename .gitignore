@@ -11,3 +11,4 @@ composer.lock
 .phpcs-cache
 ./blaze
 .env
+/public
