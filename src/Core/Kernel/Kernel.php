@@ -5,13 +5,10 @@ namespace TeraBlaze\Core\Kernel;
 use Exception;
 use LogicException;
 use Middlewares\Utils\Factory;
-use Monolog\Logger;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Log\LoggerInterface;
 use ReflectionException;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
@@ -25,8 +22,6 @@ use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\EventDispatcher\ListenerProvider;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Routing\Router;
-use TeraBlaze\Routing\RouterInterface;
 
 abstract class Kernel implements KernelInterface, RebootableInterface, TerminableInterface
 {
@@ -107,10 +102,17 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $this->container->registerServiceInstance('kernel', $this);
         $this->container->setAlias(KernelInterface::class, 'kernel');
 
-        $constantsFile = $this->getProjectDir() . '/config/constants.php';
-        if (file_exists($constantsFile)) {
+        if (
+            file_exists(
+                $envConstantsFile = $this->getProjectDir() . '/config/' . $this->getEnvironment() . '/constants.php'
+            )
+        ) {
+            include_once($envConstantsFile);
+        } elseif (file_exists($constantsFile = $this->getProjectDir() . '/config/constants.php')) {
             include_once($constantsFile);
         }
+
+        loadConfig('app');
 
         $this->bootEventDispatcher();
 
@@ -199,10 +201,15 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         return $this->initialRequest ?? null;
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function getCurrentRequest(): ?Request
     {
         if ($this->container->has('request')) {
-            return $this->container->get('request');
+            /** @var Request $request */
+            $request = $this->container->get('request');
+            return $request;
         }
         return $this->getInitialRequest();
     }
@@ -215,15 +222,12 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
      */
     protected function getHttpKernel(): HttpKernelInterface
     {
-        if (!$this->container->has(HttpKernel::class)) {
-            $this->container->registerService(HttpKernel::class, [
-                'class' => HttpKernel::class,
-                'arguments' => [
-                    'middlewares' => $this->middlewares
-                ]
-            ]);
-        }
-        return $this->container->get(HttpKernel::class);
+        return $this->container->make(HttpKernel::class, [
+            'class' => HttpKernel::class,
+            'arguments' => [
+                'middlewares' => $this->middlewares
+            ]
+        ]);
     }
 
     /**

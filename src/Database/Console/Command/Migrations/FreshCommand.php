@@ -3,8 +3,8 @@
 namespace TeraBlaze\Database\Console\Command\Migrations;
 
 use Symfony\Component\Console\Input\InputOption;
-use TeraBlaze\Core\Console\Command;
-use TeraBlaze\Core\Console\ConfirmableTrait;
+use TeraBlaze\Console\Command;
+use TeraBlaze\Console\ConfirmableTrait;
 
 class FreshCommand extends Command
 {
@@ -15,7 +15,7 @@ class FreshCommand extends Command
      *
      * @var string
      */
-    protected $name = 'migrate:fresh';
+    protected static $defaultName = 'migrate:fresh';
 
     /**
      * The console command description.

@@ -3,8 +3,8 @@
 namespace TeraBlaze\Database\Console\Command\Migrations;
 
 use ReflectionException;
-use TeraBlaze\Core\Console\Command;
-use TeraBlaze\Core\Console\ConfirmableTrait;
+use TeraBlaze\Console\Command;
+use TeraBlaze\Console\ConfirmableTrait;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use TeraBlaze\Database\Migrations\Migrator;

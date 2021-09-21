@@ -1,14 +1,12 @@
 <?php
 
-namespace TeraBlaze\Core\Console;
+namespace TeraBlaze\Console;
 
 use Exception;
 use ReflectionException;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
@@ -32,18 +30,11 @@ abstract class Command extends SymfonyCommand
     protected $io;
 
     /**
-     * The console command name.
-     *
-     * @var string
-     */
-    protected $name;
-
-    /**
      * @throws ReflectionException
      */
     public function __construct(string $name = null)
     {
-        parent::__construct($name ?? $this->name);
+        parent::__construct($name);
         $this->container = Container::getContainer();
         $this->kernel = kernel();
     }
@@ -83,10 +74,13 @@ abstract class Command extends SymfonyCommand
         $this->input = $input;
         $this->output = $output;
         $this->io = new SymfonyStyle($input, $output);
-        return $this->handle();
+        return $this->handle() ?? self::SUCCESS;
     }
 
-    abstract protected function handle();
+    /**
+     * @return int
+     */
+    protected function handle(){}
 
     /**
      * @throws Exception

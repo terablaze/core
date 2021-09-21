@@ -4,7 +4,7 @@ namespace TeraBlaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Core\Console\Application;
+use TeraBlaze\Console\Application;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 

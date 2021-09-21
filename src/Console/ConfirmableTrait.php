@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Core\Console;
+namespace TeraBlaze\Console;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

@@ -437,3 +437,15 @@ if (! function_exists('with')) {
         return is_null($callback) ? $value : $callback($value);
     }
 }
+
+if (! function_exists('isWindowsOs')) {
+    /**
+     * Determine whether the current environment is Windows based.
+     *
+     * @return bool
+     */
+    function isWindowsOs()
+    {
+        return PHP_OS_FAMILY === 'Windows';
+    }
+}

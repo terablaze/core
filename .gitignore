@@ -10,3 +10,4 @@ composer.lock
 /tests
 .phpcs-cache
 ./blaze
+.env

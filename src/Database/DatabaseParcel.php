@@ -5,7 +5,7 @@ namespace TeraBlaze\Database;
 use ReflectionException;
 use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
-use TeraBlaze\Core\Console\Application;
+use TeraBlaze\Console\Application;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Database\Connection\ConnectionInterface;

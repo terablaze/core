@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Database;
 
-use TeraBlaze\Core\Console\Command;
+use TeraBlaze\Console\Command;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Support\ArrayMethods;
 use InvalidArgumentException;

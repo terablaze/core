@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Database\Console\Command\Migrations;
 
-use TeraBlaze\Core\Console\Command;
+use TeraBlaze\Console\Command;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 
 class BaseCommand extends Command
@@ -42,10 +42,5 @@ class BaseCommand extends Command
     protected function getMigrationPath()
     {
         return baseDir('database'.DIRECTORY_SEPARATOR.'migrations');
-    }
-
-    protected function handle()
-    {
-        // TODO: Implement handle() method.
     }
 }

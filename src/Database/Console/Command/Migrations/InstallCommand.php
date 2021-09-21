@@ -3,7 +3,7 @@
 namespace TeraBlaze\Database\Console\Command\Migrations;
 
 use Symfony\Component\Console\Input\InputOption;
-use TeraBlaze\Core\Console\Command;
+use TeraBlaze\Console\Command;
 use TeraBlaze\Database\Migrations\MigrationRepository;
 
 class InstallCommand extends Command
@@ -13,7 +13,7 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $name = 'migrate:install';
+    protected static $defaultName = 'migrate:install';
 
     /**
      * The console command description.

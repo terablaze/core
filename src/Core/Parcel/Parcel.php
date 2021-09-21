@@ -3,7 +3,7 @@
 namespace TeraBlaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use TeraBlaze\Core\Console\Application;
+use TeraBlaze\Console\Application;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;

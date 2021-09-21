@@ -311,7 +311,10 @@ class Files
      */
     public function link($target, $link)
     {
-        if (! windows_os()) {
+        if (! $this->exists($target)) {
+            $this->makeDirectory($target, 0755, true);
+        }
+        if (! isWindowsOs()) {
             return symlink($target, $link);
         }
 
