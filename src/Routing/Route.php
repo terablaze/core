@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Routing;
 
+use TeraBlaze\HttpBase\Request;
 use TeraBlaze\Support\ArrayMethods;
 
 /**
@@ -11,7 +12,7 @@ use TeraBlaze\Support\ArrayMethods;
 class Route
 {
     /** @var string $name */
-    public $name;
+    public string $name;
 
     /** @var string $pattern */
     public $pattern;
@@ -37,6 +38,19 @@ class Route
     public $callableRoute;
 
     /**
+     * @var string
+     */
+    private string $explicitlySetLocale;
+    /**
+     * @var string
+     */
+    private string $currentLocale;
+    /**
+     * @var string
+     */
+    private string $localeType;
+
+    /**
      * Route constructor.
      * @param int|string $name
      * @param callable|array<string, mixed> $route
@@ -59,9 +73,12 @@ class Route
         foreach ($route as $callable) {
             if (is_callable($callable)) {
                 $this->callableRoute = $callable;
-                continue;
             }
         }
+
+        $this->explicitlySetLocale = getExplicitlySetLocale();
+        $this->currentLocale = getCurrentLocale();
+        $this->localeType = getConfig('app.locale_type', 'path');
     }
 
     /**
@@ -94,6 +111,18 @@ class Route
     public function getMethod(): array
     {
         return $this->method;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getCleanedMethod(): array
+    {
+        $method = array_map(function (string $methodItem) {
+            return strtolower($methodItem);
+        }, $this->method);
+
+        return ArrayMethods::clean($method);
     }
 
     /**
@@ -142,14 +171,36 @@ class Route
      * @param string $path
      * @return bool
      */
-    public function matches(string $method, string $path): bool
+    public function matches(string $path): bool
     {
-        if (strtolower(reset($this->method)) === strtolower($method) && $this->pattern === $path) {
+        $path = $this->normalizePath($path);
+        if ($this->isDirectMatch($path)) {
+            $this->setLocale($this->currentLocale);
             return true;
         }
-        $path = $this->normalizePath($path);
 
-        $pattern = $this->normalizePath($this->pattern);
+        if ($this->isMatch($path)) {
+            $this->setLocale($this->currentLocale);
+            return true;
+        }
+        return false;
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $path = trim($path, '/');
+        $path = "/{$path}/";
+        return preg_replace('/[\/]{2,}/', '/', $path);
+    }
+
+    private function isDirectMatch(string $path): bool
+    {
+        return $path === $this->getLocaledPattern();
+    }
+
+    private function isMatch(string $path): bool
+    {
+        $pattern = $this->getLocaledPattern();
 
         preg_match_all("#" . Router::NAMED_ROUTE_MATCH . "|:([a-zA-Z0-9]+)#", $pattern, $keys);
 
@@ -174,6 +225,7 @@ class Route
             $keys = $keys[1];
         } else {
             // no keys in the pattern, return a simple match
+            $this->setLocale($this->currentLocale);
             return preg_match("#^{$pattern}$#", $path);
         }
 
@@ -192,16 +244,25 @@ class Route
             $derived = ArrayMethods::flatten($values);
             $this->parameters = array_merge($this->parameters, $derived);
 
+            $this->setLocale($this->currentLocale);
             return true;
         }
-
         return false;
     }
 
-    private function normalizePath(string $path): string
+    private function getLocaledPattern(): string
     {
-        $path = trim($path, '/');
-        $path = "/{$path}/";
-        return preg_replace('/[\/]{2,}/', '/', $path);
+        $pathLocalePrefix = "";
+        if ($this->localeType === 'path' && $this->explicitlySetLocale !== "") {
+            $pathLocalePrefix = "/$this->currentLocale/";
+        }
+        return $this->normalizePath($pathLocalePrefix . $this->pattern);
+    }
+
+    private function setLocale($locale = ''): void
+    {
+        if (!empty($locale)) {
+            container()->get('translator')->setLocale($locale);
+        }
     }
 }

@@ -85,6 +85,6 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
 
     private function getLocale()
     {
-        return '';
+        return getCurrentLocale();
     }
 }

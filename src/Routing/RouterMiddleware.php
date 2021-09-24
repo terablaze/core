@@ -21,13 +21,6 @@ class RouterMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $routes = loadConfigArray('routes');
-
-        // add defined routes
-        if (!empty($routes) && is_array($routes)) {
-            $this->router->addRoutes($routes);
-        }
-
         return $this->router->dispatch($request);
     }
 }

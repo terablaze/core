@@ -6,7 +6,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
-use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
@@ -302,22 +301,14 @@ class Router implements RouterInterface
         $controller = '';
         $action = '';
 
-        $matchedRoute = $this->match($requestMethod, $path);
+        $matchedRoute = $this->match($path);
 
         if ($matchedRoute) {
             $this->current = $matchedRoute;
             $controller = $matchedRoute->getController();
             $action = $matchedRoute->getAction();
             $parameters = $matchedRoute->getParameters();
-            $method = $matchedRoute->getMethod();
-            /** @var Request $request */
-            $request = $request->setExpectsJson($matchedRoute->isExpectsJson());
-
-            $method = array_map(function (string $methodItem) {
-                return strtolower($methodItem);
-            }, $method);
-
-            $method = ArrayMethods::clean($method);
+            $method = $matchedRoute->getCleanedMethod();
 
             if (!in_array(strtolower($requestMethod), $method) && !empty($method)) {
                 throw new MethodNotAllowedHttpException(
@@ -325,6 +316,9 @@ class Router implements RouterInterface
                     "Request method \"{$request->getMethod()}\" not implemented for this endpoint"
                 );
             }
+
+            /** @var Request $request */
+            $request = $request->setExpectsJson($matchedRoute->isExpectsJson());
 
             $event = new PostDispatchEvent($this, $request);
             $this->dispatcher->dispatch($event);
@@ -352,31 +346,13 @@ class Router implements RouterInterface
             return $this->pass($request, $controller, $action, $parameters, $requestMethod);
         }
 
-        $parts = explode("/", trim($path, "/"));
-
-        if (!empty($path) && $path != '/') {
-            if (sizeof($parts) > 0) {
-                $controller = $parts[0];
-
-                if (sizeof($parts) >= 2) {
-                    $action = $parts[1];
-                    $parameters = array_slice($parts, 2);
-                }
-            }
-        }
-        $event = new PostDispatchEvent($this, $request);
-        $this->dispatcher->dispatch($event);
-        if ($event->hasResponse()) {
-            return $event->getResponse();
-        }
-        Events::fire("terablaze.router.dispatch.after", array($path, $controller, $action, $parameters));
-        return $this->pass($request, $controller, $action, $parameters, $requestMethod);
+        throw new NotFoundHttpException(sprintf('No route found for : %s', $path));
     }
 
-    private function match(string $method, string $path): ?Route
+    private function match(string $path): ?Route
     {
         foreach ($this->routes as $route) {
-            if ($route->matches($method, $path)) {
+            if ($route->matches($path)) {
                 return $route;
             }
         }

@@ -12,6 +12,7 @@ use TeraBlaze\Support\HigherOrderTapProxy;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Routing\RouterInterface;
+use TeraBlaze\Support\StringMethods;
 
 if (!function_exists('container')) {
     /**
@@ -27,7 +28,7 @@ if (!function_exists('container')) {
 
 if (!function_exists('kernel')) {
     /**
-     * Gets the active Kernel instance from the controller
+     * Gets the active Kernel instance from the contianer
      *
      * @return KernelInterface
      * @throws ReflectionException
@@ -40,6 +41,162 @@ if (!function_exists('kernel')) {
             $kernel = container()->get(KernelInterface::class);
         }
         return $kernel;
+    }
+}
+
+if (!function_exists('request')) {
+    /**
+     * Gets the current request instance instance from the kernel
+     *
+     * @return \TeraBlaze\HttpBase\Request
+     * @throws ReflectionException
+     */
+    function request()
+    {
+        return kernel()->getCurrentRequest();
+    }
+}
+
+if (!function_exists('session')) {
+    function session($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return request()->getSession();
+        }
+        if (is_array($key)) {
+            foreach ($key as $sessionKey => $sessionValue) {
+                request()->getSession()->set($sessionKey, $sessionValue);
+            }
+            return null;
+        }
+        return request()->getSession()->get($key, $default);
+    }
+}
+
+if (!function_exists('getLocales')) {
+    /**
+     * @return string[]
+     */
+    function getLocales(): array
+    {
+        static $locales;
+        if (!$locales) {
+            $locales = array_unique(array_merge(
+                getConfig('app.locales'),
+                ArrayMethods::wrap(getConfig('app.locale'))
+            ), SORT_REGULAR);
+        }
+        return $locales;
+    }
+}
+
+if (!function_exists('getLocaleFromHost')) {
+    /**
+     * Attempts to get the locale of a url by checking if the first part
+     * of the host is among supported locales
+     *
+     * @param string $host // valid uri host
+     * @return string
+     */
+    function getLocaleFromHost(string $host): string
+    {
+        $resolvedLocale = "";
+        foreach (getLocales() as $locale) {
+            if (StringMethods::startsWith($host, "$locale.")) {
+                $resolvedLocale = $locale;
+                break;
+            }
+        }
+        return $resolvedLocale;
+    }
+}
+
+if (!function_exists('getLocaleFromPath')) {
+    /**
+     * Attempts to get the locale of a url by checking if the first part
+     * of the path is among supported locales
+     *
+     * @param string $path // valid uri path
+     * @return string
+     */
+    function getLocaleFromPath(string $path): string
+    {
+        $resolvedLocale = "";
+        $path = trim($path, '/');
+        $possibleLocale = (explode('/', $path)[0]);
+        foreach (getLocales() as $locale) {
+            if ($locale === $possibleLocale) {
+                $resolvedLocale = $locale;
+                break;
+            }
+        }
+        return $resolvedLocale;
+    }
+}
+
+if (!function_exists('getLocaleFromSession')) {
+    /**
+     * Attempts to get the locale stored in session's app_locale key
+     *
+     * @return string
+     */
+    function getLocaleFromSession(): string
+    {
+        $resolvedLocale = "";
+        if (in_array($locale = session('app_locale'), getLocales(), true)) {
+            $resolvedLocale = $locale;
+        }
+        return $resolvedLocale;
+    }
+}
+
+if (!function_exists('getCurrentLocale')) {
+    /**
+     * Returns the current locale the app is using which is either
+     * explicitly set in hist, path or session, or the default locale
+     * set in app.locale config value
+     *
+     * @return mixed|string
+     * @throws ReflectionException
+     */
+    function getCurrentLocale()
+    {
+        static $currentLocale;
+        if (!$currentLocale) {
+            $currentLocale = getExplicitlySetLocale() ?: getConfig('app.locale');
+        }
+        return $currentLocale;
+    }
+}
+
+if (!function_exists('getExplicitlySetLocale')) {
+    /**
+     * Returns the explicitly set locale in either the
+     * host, path or session
+     *
+     * @return mixed|string
+     * @throws ReflectionException
+     */
+    function getExplicitlySetLocale()
+    {
+        static $explicitlySetLocale;
+        if (is_null($explicitlySetLocale)) {
+            $localeType = getConfig('app.locale_type', 'path');
+            switch ($localeType) {
+                case 'session':
+                    $explicitlySetLocale = getLocaleFromSession();
+                    break;
+                case 'path':
+                    $explicitlySetLocale = getLocaleFromPath(request()->path());
+                    break;
+                case 'host':
+                    $explicitlySetLocale = getLocaleFromHost(request()->getUriString());
+                    break;
+                default:
+                    $explicitlySetLocale = "";
+            }
+        }
+        return $explicitlySetLocale;
     }
 }
 
@@ -427,7 +584,7 @@ if (!function_exists('normalizeDir')) {
     }
 }
 
-if (! function_exists('timeElapsedString')) {
+if (!function_exists('timeElapsedString')) {
 
     function timeElapsedString($datetime, $full = false)
     {
@@ -462,12 +619,12 @@ if (! function_exists('timeElapsedString')) {
     }
 }
 
-if (! function_exists('with')) {
+if (!function_exists('with')) {
     /**
      * Return the given value, optionally passed through the given callback.
      *
-     * @param  mixed  $value
-     * @param  callable|null  $callback
+     * @param mixed $value
+     * @param callable|null $callback
      * @return mixed
      */
     function with($value, callable $callback = null)
@@ -476,7 +633,7 @@ if (! function_exists('with')) {
     }
 }
 
-if (! function_exists('isWindowsOs')) {
+if (!function_exists('isWindowsOs')) {
     /**
      * Determine whether the current environment is Windows based.
      *
