@@ -346,7 +346,7 @@ class Router implements RouterInterface
             return $this->pass($request, $controller, $action, $parameters, $requestMethod);
         }
 
-        throw new NotFoundHttpException(sprintf('No route found for : %s', $path));
+        throw new NotFoundHttpException(sprintf('No route found for : "%s"', $path));
     }
 
     private function match(string $path): ?Route

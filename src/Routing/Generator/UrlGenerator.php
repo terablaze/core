@@ -3,9 +3,11 @@
 namespace TeraBlaze\Routing\Generator;
 
 use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Container\Container;
+use TeraBlaze\Collection\Exceptions\TypeException;
 use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Routing\Exception as Exception;
+use TeraBlaze\Routing\Exception\InvalidParameterException;
+use TeraBlaze\Routing\Exception\MissingParametersException;
+use TeraBlaze\Routing\Exception\MissingRouteParameterNameException;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;
 use TeraBlaze\Routing\Route;
 use TeraBlaze\Routing\Router;
@@ -24,44 +26,59 @@ class UrlGenerator implements UrlGeneratorInterface
     /** @var Route[] $routes */
     protected array $routes;
 
-    /** @var Container $container */
-    protected Container $container;
-
     /** @var Request $request */
     protected $request;
+
     /**
-     * @var string|string[]|null
+     * @var string
      */
-    private $virtualLocation;
+    private string $explicitlySetLocale;
+
+    /**
+     * @var string
+     */
+    private string $currentLocale;
+
+    /**
+     * @var string
+     */
+    private string $localeType;
 
     public function __construct(Router $router)
     {
         $this->router = $router;
         $this->routes = $router->getRoutes();
-        $this->container = Container::getContainer();
         $this->request = $router->getCurrentRequest();
-        $scriptName = $this->request->getServerParams()['SCRIPT_NAME'];
-        $this->virtualLocation = $this->container->hasParameter('virtual_location') ?
-            $this->container->getParameter('virtual_location') :
-            preg_replace('#(/public)?/[^/]*\.php(.*)$#', '/', $scriptName);
+
+        $this->explicitlySetLocale = getExplicitlySetLocale();
+        $this->currentLocale = getCurrentLocale();
+        $this->localeType = getConfig('app.locale_type', 'path');
     }
 
     /**
      * @param string $name
      * @param array<string, string> $parameters
      * @param int $referenceType
+     * @param string|null $locale
      * @return string
-     * @throws Exception\MissingParametersException
-     * @throws Exception\MissingRouteParameterNameException
+     * @throws MissingParametersException
+     * @throws MissingRouteParameterNameException
      * @throws RouteNotFoundException
-     * @throws \TeraBlaze\Collection\Exceptions\TypeException
+     * @throws TypeException|InvalidParameterException
      *
      * {@inheritDoc}
      */
-    public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
-    {
+    public function generate(
+        string $name,
+        array $parameters = [],
+        int $referenceType = self::ABSOLUTE_PATH,
+        ?string $locale = null
+    ): string {
+        if ($this->isValidUrl($name)) {
+            return $name;
+        }
         if (empty($name)) {
-            return $this->resolveReference('', $referenceType);
+            return $this->resolveReference($this->getLocaledUrl('', $locale), $referenceType);
         }
         if (!isset($this->routes[$name])) {
             throw new RouteNotFoundException(
@@ -86,7 +103,7 @@ class UrlGenerator implements UrlGeneratorInterface
                 // Name of the key
                 $keyName = $keyDetails[0] ?? "";
                 if (empty($keyName)) {
-                    throw new Exception\MissingRouteParameterNameException('Route key must have a name');
+                    throw new MissingRouteParameterNameException('Route key must have a name');
                 }
                 $keyPattern = $keyDetails[1] ?? "any";
                 $keyMatch = in_array(
@@ -104,6 +121,12 @@ class UrlGenerator implements UrlGeneratorInterface
                 $keyValue = $params->get($keyName);
                 $requiredKeyNames[$keyName] = $keyName;
                 $keyValue = rawurlencode($keyValue ?? $keyDefault);
+                if (!preg_match("#^$keyMatch$#", $keyValue)) {
+                    throw new InvalidParameterException(
+                        sprintf('The supplied value does for route parameter "%s" is of an incompatible type.
+                        Pattern "%s" allowed, but "%s" supplied.', $keyName, $keyMatch, $keyValue)
+                    );
+                }
                 if (!empty($keyValue)) {
                     $resolvedKeyValue[$keyName] = $keyValue;
                 }
@@ -111,7 +134,7 @@ class UrlGenerator implements UrlGeneratorInterface
             }
 
             if ($diff = array_diff_key($requiredKeyNames, $resolvedKeyValue)) {
-                throw new Exception\MissingParametersException(
+                throw new MissingParametersException(
                     sprintf(
                         'Some mandatory parameters are missing ("%s") to generate a URL for route "%s".',
                         implode('", "', array_keys($diff)),
@@ -141,7 +164,7 @@ class UrlGenerator implements UrlGeneratorInterface
             }
             $url .= $joiner . $queryString . $anchor;
         }
-        return $this->resolveReference($url, $referenceType);
+        return $this->resolveReference($this->getLocaledUrl($url, $locale), $referenceType);
     }
 
 
@@ -162,11 +185,11 @@ class UrlGenerator implements UrlGeneratorInterface
         switch ($referenceType) {
             case self::ABSOLUTE_URL:
                 return $this->request->getUri()->getScheme() . '://' .
-                    $this->request->getUri()->getHost() . $port . $this->virtualLocation . $url;
+                    $this->request->getUri()->getHost() . $port . $this->request->getBaseUrl() . '/' . $url;
             case self::ABSOLUTE_PATH:
-                return $this->virtualLocation . $url;
+                return $this->request->getBaseUrl() . '/' . $url;
             case self::NETWORK_PATH:
-                return '//' . $this->request->getUri()->getHost() . $port . $this->virtualLocation . $url;
+                return '//' . $this->request->getUri()->getHost() . $port . $this->request->getBaseUrl() . '/' . $url;
             default:
                 return $url;
         }
@@ -178,12 +201,25 @@ class UrlGenerator implements UrlGeneratorInterface
      * @param  string  $path
      * @return bool
      */
-    public function isValidUrl($path)
+    private function isValidUrl($path)
     {
         if (! preg_match('~^(#|//|https?://|(mailto|tel|sms):)~', $path)) {
             return filter_var($path, FILTER_VALIDATE_URL) !== false;
         }
 
         return true;
+    }
+
+    private function getLocaledUrl(string $path, ?string $locale = null): string
+    {
+        $pathLocalePrefix = "";
+        if ($this->localeType === 'path') {
+            if ($locale) {
+                $pathLocalePrefix = "$locale/";
+            }elseif ($this->explicitlySetLocale !== "") {
+                $pathLocalePrefix = "$this->currentLocale/";
+            }
+        }
+        return $pathLocalePrefix . $path;
     }
 }

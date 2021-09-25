@@ -226,11 +226,16 @@ if (!function_exists('route')) {
      * @param string $path
      * @param array $parameters
      * @param int $referenceType
+     * @param string|null $locale
      * @return string
      */
-    function route(string $path = '', array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH)
-    {
-        return router()->getGenerator()->generate($path, $parameters, $referenceType);
+    function route(
+        string $path = '',
+        array $parameters = [],
+        int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH,
+        ?string $locale = null
+    ) {
+        return router()->getGenerator()->generate($path, $parameters, $referenceType, $locale);
     }
 }
 

@@ -39,12 +39,18 @@ interface UrlGeneratorInterface
      * @param string $name
      * @param array<string, string> $parameters
      * @param int $referenceType
+     * @param string|null $locale
      * @return string
      * @throws Exception\MissingParametersException
      * @throws RouteNotFoundException
      * @throws TypeException
      */
-    public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string;
+    public function generate(
+        string $name,
+        array $parameters = [],
+        int $referenceType = self::ABSOLUTE_PATH,
+        ?string $locale = null
+    ): string;
 
     /**
      * @param string $uri
