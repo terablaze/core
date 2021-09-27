@@ -63,7 +63,11 @@ class PhaEngine implements EngineInterface
     protected function includeFiles(string $templateFile): string
     {
         $code = file_get_contents($templateFile);
-        preg_match_all('#{% ?(extends|include) ?\'?(.*?)\'? ?%}#i', (string)$code, $matches, PREG_SET_ORDER);
+        preg_match_all('#{% ?(extends) ?\'?(.*?)\'? ?%}#i', (string)$code, $matches, PREG_SET_ORDER);
+        foreach ($matches as $value) {
+            $code = str_replace($value[0], $this->getManager()->includeFile($value[2]), (string)$code);
+        }
+        preg_match_all('#{% ?(include) ?\'?(.*?)\'? ?%}#i', (string)$code, $matches, PREG_SET_ORDER);
         foreach ($matches as $value) {
             $code = str_replace($value[0], $this->getManager()->includeFile($value[2]), (string)$code);
         }
