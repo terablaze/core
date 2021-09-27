@@ -202,6 +202,9 @@ if (!function_exists('getExplicitlySetLocale')) {
      */
     function getExplicitlySetLocale()
     {
+        if (kernel()->inConsole()) {
+            return "";
+        }
         static $explicitlySetLocale;
         if (is_null($explicitlySetLocale)) {
             $localeType = getConfig('app.locale_type', 'path');
