@@ -319,6 +319,11 @@ class Router implements RouterInterface
 
             /** @var Request $request */
             $request = $request->setExpectsJson($matchedRoute->isExpectsJson());
+            if ($request->expectsJson()) {
+                if ($request->hasFlash()) {
+                    $request->getFlash()->reflash();
+                }
+            }
 
             $event = new PostDispatchEvent($this, $request);
             $this->dispatcher->dispatch($event);
