@@ -12,5 +12,9 @@ class BaseController extends AbstractController
     public function __construct(TeraBlazeDebugbar $debugbar)
     {
         $this->debugbar = $debugbar;
+
+        if (request()->hasFlash()) {
+            request()->getFlash()->reflash();
+        }
     }
 }

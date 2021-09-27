@@ -4,8 +4,13 @@ namespace TeraBlaze\Session;
 
 use InvalidArgumentException;
 use TeraBlaze\Core\Parcel\Parcel;
+use TeraBlaze\Session\Csrf\CsrfGuardInterface;
+use TeraBlaze\Session\Csrf\CsrfMiddleware;
+use TeraBlaze\Session\Csrf\FlashCsrfGuard;
+use TeraBlaze\Session\Csrf\SessionCsrfGuard;
+use TeraBlaze\Session\Flash\FlashMessageMiddleware;
+use TeraBlaze\Session\Flash\FlashMessagesInterface;
 use TeraBlaze\Session\Persistence\CacheSessionPersistence;
-use TeraBlaze\Session\Persistence\FileSessionPersistence;
 use TeraBlaze\Session\Persistence\PhpSessionPersistence;
 use TeraBlaze\Session\Persistence\SessionPersistenceInterface;
 use TeraBlaze\Support\StringMethods;
@@ -33,27 +38,11 @@ class SessionParcel extends Parcel
             case "cache":
                 $sessionCache = 'cache.' . $config->get('session.cache');
                 if (!$this->container->has($sessionCache)) {
-                    throw new InvalidArgumentException("If you're using a cache persistence, you must add it to your cache config");
+                    throw new InvalidArgumentException(
+                        "If you're using a cache persistence, you must add it to your cache config"
+                    );
                 }
                 $sessionPersistence = new CacheSessionPersistence(
-                    $this->container->get($sessionCache),
-                    $config->get(
-                        'session.cookie.name',
-                        StringMethods::slug(env('APP_NAME', 'terablaze'), '_') . '_session'
-                    ),
-                    $config->get('session.cookie.path', '/'),
-                    $config->get('session.limiter', 'nocache'),
-                    $config->get('session.expire', 10800),
-                    $config->get('session.last_modified', null),
-                    $config->get('session.persistent', false),
-                    $config->get('session.cookie.domain', null),
-                    $config->get('session.cookie.secure', false),
-                    $config->get('session.cookie.http_only', false),
-                    $config->get('session.cookie.same_site', 'Lax')
-                );
-                break;
-            case "file":
-                $sessionPersistence = new FileSessionPersistence(
                     $this->container->get($sessionCache),
                     $config->get(
                         'session.cookie.name',
@@ -76,7 +65,14 @@ class SessionParcel extends Parcel
         $this->container->registerServiceInstance($sessionPersistenceName, $sessionPersistence);
         $this->container->setAlias(SessionPersistenceInterface::class, $sessionPersistenceName);
 
-        $sessionMiddleware = $this->container->make(SessionMiddleware::class);
+        $this->container->make(SessionMiddleware::class);
+        $this->container->make(FlashMessageMiddleware::class);
+        $this->container->make(CsrfMiddleware::class, [
+            'arguments' => [$config->get('session.csrf_guard', '')]
+        ]);
         $this->getKernel()->registerMiddleWare(SessionMiddleware::class);
+        $this->getKernel()->registerMiddleWare(FlashMessageMiddleware::class);
+        $this->getKernel()->registerMiddleWare(CsrfMiddleware::class);
+
     }
 }

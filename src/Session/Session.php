@@ -4,6 +4,9 @@ namespace TeraBlaze\Session;
 
 use stdClass;
 
+use TeraBlaze\Session\Csrf\CsrfGuardInterface;
+use TeraBlaze\Session\Flash\FlashMessageMiddleware;
+use TeraBlaze\Session\Flash\FlashMessagesInterface;
 use function array_key_exists;
 use function json_decode;
 use function json_encode;
@@ -163,5 +166,15 @@ class Session implements
     public function getSessionLifetime(): int
     {
         return $this->sessionLifetime;
+    }
+
+    public function getFlash(): FlashMessagesInterface
+    {
+        return request()->getFlash();
+    }
+
+    public function getCsrf(): CsrfGuardInterface
+    {
+        return request()->getCsrf();
     }
 }

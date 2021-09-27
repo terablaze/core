@@ -72,6 +72,7 @@ class PhaEngine implements EngineInterface
 
     protected function compileCode(string $code): string
     {
+        $code = $this->compileComments($code);
         $code = $this->compileBlock($code);
         $code = $this->compileYield($code);
         $code = $this->compileEscapedEchos($code);
@@ -161,6 +162,11 @@ class PhaEngine implements EngineInterface
     public function compilePHP($code)
     {
         return preg_replace('~\{%\s*(.+?)\s*\%}~is', '<?php $1 ?>', $code);
+    }
+
+    public function compileComments($code)
+    {
+        return preg_replace('~\{#\s*(.+?)\s*\#}~is', '', $code);
     }
 
     public function __call(string $name, $values)

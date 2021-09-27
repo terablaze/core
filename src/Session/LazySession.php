@@ -3,7 +3,9 @@
 namespace TeraBlaze\Session;
 
 use Psr\Http\Message\ServerRequestInterface;
+use TeraBlaze\Session\Csrf\CsrfGuardInterface;
 use TeraBlaze\Session\Exception\NotInitializableException;
+use TeraBlaze\Session\Flash\FlashMessagesInterface;
 use TeraBlaze\Session\Persistence\SessionPersistenceInterface;
 
 /**
@@ -161,5 +163,15 @@ final class LazySession implements
 
         $this->proxiedSession = $this->persistence->initializeSessionFromRequest($this->request);
         return $this->proxiedSession;
+    }
+
+    public function getFlash(): FlashMessagesInterface
+    {
+        return $this->getProxiedSession()->getFlash();
+    }
+
+    public function getCsrf(): CsrfGuardInterface
+    {
+        return $this->getProxiedSession()->getCsrf();
     }
 }

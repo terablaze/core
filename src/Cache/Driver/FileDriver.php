@@ -82,7 +82,8 @@ class FileDriver extends CacheDriver
 
     private function write(string $key, $value): self
     {
-        file_put_contents($this->path($key), serialize($value));
+        $data = serialize($value);
+        file_put_contents($this->path($key), $data);
         return $this;
     }
 

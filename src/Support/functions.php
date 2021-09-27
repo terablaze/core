@@ -73,6 +73,29 @@ if (!function_exists('session')) {
     }
 }
 
+if (!function_exists('flash')) {
+    function flash($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return session()->getFlash();
+        }
+        if (is_array($key)) {
+            foreach ($key as $sessionKey => $sessionValue) {
+                session()->getFlash()->flash($sessionKey, $sessionValue);
+            }
+            return null;
+        }
+        return session()->getFlash()->getFlash($key, $default);
+    }
+}
+
+if (!function_exists('csrf')) {
+    function csrf()
+    {
+        return session()->getCsrf();
+    }
+}
+
 if (!function_exists('getLocales')) {
     /**
      * @return string[]

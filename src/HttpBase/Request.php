@@ -12,6 +12,10 @@ use TeraBlaze\HttpBase\Utils\HeaderUtils;
 use TeraBlaze\HttpBase\Utils\IpUtils;
 use TeraBlaze\Psr7\ServerRequest as Psr7ServerRequest;
 use TeraBlaze\Psr7Server\ServerRequestCreator;
+use TeraBlaze\Session\Csrf\CsrfGuardInterface;
+use TeraBlaze\Session\Csrf\CsrfMiddleware;
+use TeraBlaze\Session\Flash\FlashMessageMiddleware;
+use TeraBlaze\Session\Flash\FlashMessagesInterface;
 use TeraBlaze\Session\SessionInterface;
 use TeraBlaze\Session\SessionMiddleware;
 use TeraBlaze\Support\StringMethods;
@@ -120,6 +124,33 @@ class Request extends Psr7ServerRequest
     {
         return $this->getAttribute(SessionMiddleware::SESSION_ATTRIBUTE)
             ?? $this->getAttribute(SessionInterface::class);
+    }
+
+    public function hasSession(): bool
+    {
+        return $this->getSession() != null;
+    }
+
+    public function getFlash(): ?FlashMessagesInterface
+    {
+        return $this->getAttribute(FlashMessageMiddleware::FLASH_ATTRIBUTE)
+            ?? $this->getAttribute(FlashMessagesInterface::class);
+    }
+
+    public function hasFlash(): bool
+    {
+        return $this->getFlash() != null;
+    }
+
+    public function getCsrf(): ?CsrfGuardInterface
+    {
+        return $this->getAttribute(CsrfMiddleware::GUARD_ATTRIBUTE)
+            ?? $this->getAttribute(CsrfGuardInterface::class);
+    }
+
+    public function hasCsrf(): bool
+    {
+        return $this->getCsrf() != null;
     }
 
 

@@ -2,6 +2,9 @@
 
 namespace TeraBlaze\Session;
 
+use TeraBlaze\Session\Csrf\CsrfGuardInterface;
+use TeraBlaze\Session\Flash\FlashMessagesInterface;
+
 interface SessionInterface
 {
     /**
@@ -66,4 +69,8 @@ interface SessionInterface
      * true if the instance was produced via regenerate().
      */
     public function isRegenerated(): bool;
+
+    public function getFlash(): FlashMessagesInterface;
+
+    public function getCsrf(): CsrfGuardInterface;
 }
