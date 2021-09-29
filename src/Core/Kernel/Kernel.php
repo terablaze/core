@@ -102,13 +102,16 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
         $this->container->registerServiceInstance('kernel', $this);
         $this->container->setAlias(KernelInterface::class, 'kernel');
-        $this->container->registerServiceInstance('request', $this->getCurrentRequest());
-        $this->container->setAlias(ServerRequestInterface::class, 'request');
+
+        if (!$this->inConsole()) {
+            $this->container->registerServiceInstance('request', $this->getCurrentRequest());
+            $this->container->setAlias(ServerRequestInterface::class, 'request');
+        }
 
         if (
-            file_exists(
-                $envConstantsFile = $this->getProjectDir() . '/config/' . $this->getEnvironment() . '/constants.php'
-            )
+        file_exists(
+            $envConstantsFile = $this->getProjectDir() . '/config/' . $this->getEnvironment() . '/constants.php'
+        )
         ) {
             include_once($envConstantsFile);
         } elseif (file_exists($constantsFile = $this->getProjectDir() . '/config/constants.php')) {
