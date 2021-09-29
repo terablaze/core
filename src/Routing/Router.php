@@ -20,6 +20,7 @@ use TeraBlaze\Routing\Events\PostDispatchEvent;
 use TeraBlaze\Routing\Events\PreBeforeHookEvent;
 use TeraBlaze\Routing\Events\PreControllerEvent;
 use TeraBlaze\Routing\Events\PreDispatchEvent;
+use TeraBlaze\Routing\Events\RouterEvent;
 use TeraBlaze\Routing\Exception\ImplementationException;
 use TeraBlaze\Routing\Exception\MissingParametersException;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;
@@ -52,22 +53,6 @@ class Router implements RouterInterface
      */
     protected ServerRequestInterface $currentRequest;
 
-    /**
-     * @return ServerRequestInterface|Request
-     */
-    public function getCurrentRequest(): ServerRequestInterface
-    {
-        return $this->currentRequest;
-    }
-
-    /**
-     * @return Route
-     */
-    public function getCurrentRoute(): Route
-    {
-        return $this->current;
-    }
-
     private EventDispatcherInterface $dispatcher;
 
     public function __construct(
@@ -76,6 +61,22 @@ class Router implements RouterInterface
     ) {
         $this->container = $container;
         $this->dispatcher = $dispatcher;
+    }
+
+    /**
+     * @return ServerRequestInterface|Request
+     */
+    public function getCurrentRequest(): ServerRequestInterface
+    {
+        return $this->currentRequest ?? kernel()->getCurrentRequest();
+    }
+
+    /**
+     * @return Route
+     */
+    public function getCurrentRoute(): Route
+    {
+        return $this->match(kernel()->getCurrentRequest()->getPathInfo());
     }
 
     /**
@@ -286,29 +287,25 @@ class Router implements RouterInterface
     {
         $this->currentRequest = $request;
         $event = new PreDispatchEvent($this, $request);
+        $request = $event->getRequest();
+        $path = $request->getPathInfo();
         $this->dispatcher->dispatch($event);
         if ($event->hasResponse()) {
             return $event->getResponse();
         }
         Events::fire("terablaze.router.dispatch.before", array($request->getPathInfo()));
 
-        $request = $event->getRequest();
-
-        $path = $request->getPathInfo();
 
         $requestMethod = $request->getMethod();
         $parameters = array();
         $controller = '';
         $action = '';
 
-        $matchedRoute = $this->match($path);
-
-        if ($matchedRoute) {
-            $this->current = $matchedRoute;
-            $controller = $matchedRoute->getController();
-            $action = $matchedRoute->getAction();
-            $parameters = $matchedRoute->getParameters();
-            $method = $matchedRoute->getCleanedMethod();
+        if ($this->match($path)) {
+            $controller = $this->current->getController();
+            $action = $this->current->getAction();
+            $parameters = $this->current->getParameters();
+            $method = $this->current->getCleanedMethod();
 
             if (!in_array(strtolower($requestMethod), $method) && !empty($method)) {
                 throw new MethodNotAllowedHttpException(
@@ -318,7 +315,7 @@ class Router implements RouterInterface
             }
 
             /** @var Request $request */
-            $request = $request->setExpectsJson($matchedRoute->isExpectsJson());
+            $request = $request->setExpectsJson($this->current->isExpectsJson());
             if ($request->expectsJson()) {
                 if ($request->hasFlash()) {
                     $request->getFlash()->reflash();
@@ -334,8 +331,8 @@ class Router implements RouterInterface
                 "terablaze.router.dispatch.after",
                 array($path, $controller, $action, $parameters, $method)
             );
-            if ($matchedRoute->isCallableRoute()) {
-                $response = $this->container->call($matchedRoute->getCallable(), $parameters);
+            if ($this->current->isCallableRoute()) {
+                $response = $this->container->call($this->current->getCallable(), $parameters);
                 if (!$response instanceof ResponseInterface) {
                     throw new ImplementationException(
                         sprintf(
@@ -356,9 +353,12 @@ class Router implements RouterInterface
 
     private function match(string $path): ?Route
     {
+        if (isset($this->current)) {
+            return $this->current;
+        }
         foreach ($this->routes as $route) {
             if ($route->matches($path)) {
-                return $route;
+                return $this->current = $route;
             }
         }
 
