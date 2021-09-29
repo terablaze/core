@@ -8,6 +8,7 @@ use Middlewares\Utils\Factory;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use ReflectionException;
 use TeraBlaze\Config\Config;
@@ -101,6 +102,8 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
         $this->container->registerServiceInstance('kernel', $this);
         $this->container->setAlias(KernelInterface::class, 'kernel');
+        $this->container->registerServiceInstance('request', $this->getCurrentRequest());
+        $this->container->setAlias(ServerRequestInterface::class, 'request');
 
         if (
             file_exists(
