@@ -4,13 +4,11 @@ namespace TeraBlaze\ErrorHandler;
 
 use ErrorException;
 use Exception;
-use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Exception\FatalError;
 use TeraBlaze\Core\Kernel\Kernel;
 use Throwable;
-use Whoops\Handler\PrettyPageHandler;
-use Whoops\Run;
 
 class HandleExceptions
 {
@@ -26,7 +24,7 @@ class HandleExceptions
      *
      * @var Kernel
      */
-    protected $kernel;
+    protected Kernel $kernel;
 
     protected bool $debugMode = true;
 
@@ -37,9 +35,6 @@ class HandleExceptions
      */
     public function bootstrap(Kernel $kernel)
     {
-        if ($kernel->inConsole()) {
-            return;
-        }
         self::$reservedMemory = str_repeat('x', 10240);
 
         $this->kernel = $kernel;
@@ -77,6 +72,18 @@ class HandleExceptions
     }
 
     /**
+     * Handle the PHP shutdown event.
+     *
+     * @return void
+     */
+    public function handleShutdown()
+    {
+        if (!is_null($error = error_get_last()) && $this->isFatal($error['type'])) {
+            $this->handleException($this->fatalErrorFromPhpError($error, 0));
+        }
+    }
+
+    /**
      * Handle an uncaught exception from the application.
      *
      * Note: Most exceptions can be handled via the try / catch block in
@@ -91,24 +98,27 @@ class HandleExceptions
         try {
             self::$reservedMemory = null;
 
-            $this->getExceptionHandler()->report($e, $this->kernel->getCurrentRequest());
+            $this->getExceptionHandler()->report($e);
         } catch (Throwable $e) {
             //
         }
 
-        $this->renderHttpResponse($e, $this->kernel->getCurrentRequest());
+        if ($this->kernel->inConsole()) {
+            $this->renderForConsole($e);
+        } else {
+            $this->renderHttpResponse($e);
+        }
     }
 
     /**
-     * Handle the PHP shutdown event.
+     * Render an exception to the console.
      *
+     * @param  \Throwable  $e
      * @return void
      */
-    public function handleShutdown()
+    protected function renderForConsole(Throwable $e)
     {
-        if (!is_null($error = error_get_last()) && $this->isFatal($error['type'])) {
-            $this->handleException($this->fatalErrorFromPhpError($error, 0));
-        }
+        $this->getExceptionHandler()->renderForConsole(new ConsoleOutput(), $e);
     }
 
     /**
@@ -140,15 +150,15 @@ class HandleExceptions
      * @param Throwable $e
      * @return void
      */
-    protected function renderHttpResponse(Throwable $e, ServerRequestInterface $request)
+    protected function renderHttpResponse(Throwable $e)
     {
-        $this->getExceptionHandler()->render($e, $request)->send();
+        $this->getExceptionHandler()->render($e, $this->kernel->getCurrentRequest())->send();
     }
 
     /**
      * Get an instance of the exception handler.
      *
-     * @return ExceptionHandler
+     * @return ExceptionHandlerInterface
      */
     protected function getExceptionHandler()
     {
@@ -157,6 +167,9 @@ class HandleExceptions
         } catch (Exception $e) {
             $container = Container::getContainer();
         }
-        return (new ExceptionHandler($container, $this->debugMode));
+        return $container->make(ExceptionHandlerInterface::class, [
+            'class' => ExceptionHandler::class,
+            'arguments' => [$container, $this->kernel->isDebug()]
+        ]);
     }
 }

@@ -46,6 +46,10 @@ interface RouterInterface
      */
     public function getRoutes(): array;
 
+    public function getRoute(string $routeName): ?Route;
+
+    public function hasRoute(string $routeName): bool;
+
     /**
      * @param ServerRequestInterface $request
      * @return ResponseInterface

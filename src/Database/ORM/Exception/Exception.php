@@ -2,6 +2,9 @@
 
 namespace TeraBlaze\Database\ORM\Exception;
 
-class Exception extends \Exception
+use TeraBlaze\Core as Core;
+
+class Exception extends Core\Exception
 {
+
 }

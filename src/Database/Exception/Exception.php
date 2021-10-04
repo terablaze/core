@@ -1,11 +1,10 @@
 <?php
 
-namespace TeraBlaze\Database\Exception {
+namespace TeraBlaze\Database\Exception;
 
-    use TeraBlaze\Core as Core;
+use TeraBlaze\Core as Core;
 
-    class Exception extends Core\Exception
-    {
-
-    }
+class Exception extends Core\Exception
+{
 }
+

@@ -367,7 +367,7 @@ class Container implements ContainerInterface
      */
     public function make(string $service, array $definition = [], bool $replace = false)
     {
-        if ($this->has($service) && $replace) {
+        if ($replace && $this->has($service)) {
             $this->removeService($service);
         }
         if (!$this->has($service)) {
@@ -490,7 +490,6 @@ class Container implements ContainerInterface
         // Loops through the details of reflectionParameters
         foreach ($reflectionParameters as $reflectionParameter) {
             $name = $reflectionParameter->getName();
-//            $position = $reflectionParameter->getPosition(); TODO: Deal with parameter position
             $types = $this->getAllReflectionTypes($reflectionParameter);
             if (count($types) > 1) {
                 foreach ($types as $aType) {

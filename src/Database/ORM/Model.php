@@ -3,46 +3,26 @@
 namespace TeraBlaze\Database\ORM;
 
 use DateTime;
+use TeraBlaze\Database\Exception\ConnectionException;
+use TeraBlaze\Database\ORM\Exception\MappingException;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\PolymorphismTrait;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Inspector;
 use TeraBlaze\Database\Connection\ConnectionInterface;
 use TeraBlaze\Database\Query\QueryBuilderInterface;
-use TeraBlaze\Database\ORM\Column\Column;
-use TeraBlaze\Database\ORM\Column\ManyToOne;
-use TeraBlaze\Database\ORM\Column\OneToMany;
-use TeraBlaze\Database\ORM\Exception\Connector as ConnectorException;
-use TeraBlaze\Database\ORM\Exception\Primary;
 use TeraBlaze\Database\ORM\Exception\PropertyException;
+use TeraBlaze\Support\StringMethods;
 
 abstract class Model implements ModelInterface
 {
-    public const DATA_TYPES = [
-        'autonumber' => 'autonumber',
-        'text' => 'text',
-        'integer' => 'integer',
-        'decimal' => 'decimal',
-        'boolean' => 'boolean',
-        'bool' => 'bool',
-        'datetime' => 'datetime',
-    ];
-
-    public const DATE_TYPES = ['date', 'time', 'datetime', 'timestamp', 'year'];
-
-    public const truesy = [
-        1, "1", "true", true, "yes", "yeah", "yup", "yupp", "y"
-    ];
-    public const falsy = [
-        0, "0", "false", false, "no", "nope", "nah", "neh", "n"
-    ];
-
-    /** @var array $__syncSQL */
-    private $__syncSQL = [];
-
     use PolymorphismTrait;
 
-    public function __construct($initData = [])
+    /**
+     * Model constructor.
+     * @param array<int|string, mixed> $initData
+     */
+    public function __construct(array $initData = [])
     {
         if (is_array($initData) && (!empty($initData))) {
             $this->initData($initData);
@@ -71,22 +51,7 @@ abstract class Model implements ModelInterface
                 // TODO: Add a logger to log the exception
                 continue;
             }
-            // Get key to search in self::__columns
-            if ((!isset($this->_getColumns()[$key])) && isset($this->_getColumnsReverseMap()[$key])) {
-                $key = $this->_getColumnsReverseMap()[$key];
-            }
-            if (
-                in_array(mb_strtolower($this->_getColumns()[$key]['type']), ['date', 'time', 'datetime'], true) &&
-                (!$value instanceof DateTime) &&
-                (!empty($value)) &&
-                $this->_getColumns()[$key]['autoconvert'] != false
-            ) {
-                try {
-                    $value = new DateTime($value);
-                } catch (\Exception $exception) {
-                }
-            }
-            $this->$prop = $value;
+            $this->_setPropertyValue($prop, $value);
         }
     }
 
@@ -97,18 +62,43 @@ abstract class Model implements ModelInterface
      */
     private function _getInitProp(string $key): string
     {
-        if (isset($this->_getColumns()[$key])) {
-            return $this->_getColumns()[$key]['raw'];
-        }
-        if (isset($this->_getColumnsReverseMap()[$key])) {
-            return $key;
+        try {
+            return $this->_getClassMetadata()->getPropertyForColumn($key);
+        } catch (MappingException $mappingException) {
+            if (property_exists($this, $key)) {
+                return $key;
+            }
         }
         throw new PropertyException("Entity property with property name or column name '{$key}' not found");
     }
 
     /**
+     * @param string $property
+     * @param $value
+     * @return void
+     */
+    private function _setPropertyValue(string $property, $value): void
+    {
+        if (
+            in_array(
+                StringMethods::lower($this->_getClassMetadata()->getPropertyType($property)),
+                ['date', 'time', 'datetime'],
+                true
+            ) &&
+            (!$value instanceof DateTime) &&
+            (!empty($value)) &&
+            $this->_getClassMetadata()->getPropertyOptions($property)['convertDate'] ?? "" != false
+        ) {
+            try {
+                $value = new DateTime($value);
+            } catch (\Exception $exception) {
+            }
+        }
+        $this->$property = $value;
+    }
+
+    /**
      * @return QueryBuilderInterface
-     * @throws ConnectorException
      */
     public static function query(): QueryBuilderInterface
     {
@@ -118,25 +108,26 @@ abstract class Model implements ModelInterface
 
     public function save()
     {
-        $primary = $this->_getPrimaryColumn();
-        $primaryRaw = $primary["raw"];
-        $primaryName = $primary["name"];
+        [
+            'primary' => $primary,
+            'primaryProperty' => $primaryProperty,
+            'primaryColumn' => $primaryColumn,
+        ] = $this->_getPrimaryColumn();
         $query = static::query();
-        if (!empty($this->$primaryRaw)) {
-            $query->where("$primaryName = :{$primaryName}Where")
-                ->setParameter("{$primaryName}Where", $this->$primaryRaw);
+        if (!empty($this->$primaryProperty)) {
+            $query->where("$primaryColumn = :{$primaryColumn}Where")
+                ->setParameter("{$primaryColumn}Where", $this->$primaryProperty);
         }
         $data = [];
         $params = [];
-        foreach ($this->_getColumns() as $key => $column) {
-            $prop = $column["raw"];
-            if ($column != $primary && $column) {
-                $datum = $this->saveDatum($prop, $column);
-                if (is_null($datum) && $column['nullable'] == false) {
+        foreach ($this->_getClassMetadata()->propertyMappings as $property => $mapping) {
+            if (false == ($mapping['id'] ?? false)) {
+                $datum = $this->saveDatum($property, $mapping);
+                if (is_null($datum) && $mapping['nullable'] == false) {
                     continue;
                 }
-                $data[$key] = ":$key";
-                $params[$key] = $datum;
+                $data[$property] = ":$property";
+                $params[$property] = $datum;
             }
         }
         $result = $query->save($data, $params)->execute();
@@ -150,16 +141,15 @@ abstract class Model implements ModelInterface
      * @param string $prop
      * @param string[] $column
      * @return DateTime|int|mixed|string|null
-     * @throws ConnectorException
      */
     private function saveDatum(string $prop, array $column)
     {
         if (in_array(strtolower($column['type']), self::DATE_TYPES)) {
             $datum = $this->$prop ?? null;
         } else {
-            $datum = $this->$prop ?? $column['default'] ?? null;
+            $datum = $this->$prop ?? $column['options']['default'] ?? null;
         }
-        if ($datum instanceof DateTime && $column['autoconvert'] != false) {
+        if ($datum instanceof DateTime && ($column['options']['convertDate'] ?? '' != false)) {
             $dateTimeMode = $this->_getConnection()->getDateTimeMode();
             if ($dateTimeMode == 'TIMESTAMP') {
                 $datum = $datum->getTimestamp();
@@ -182,15 +172,17 @@ abstract class Model implements ModelInterface
 
     public function delete()
     {
-        $primary = $this->_getPrimaryColumn();
-        $primaryRaw = $primary["raw"];
-        $primaryName = $primary["name"];
-        if (!empty($this->$primaryRaw)) {
+        [
+            'primary' => $primary,
+            'primaryProperty' => $primaryProperty,
+            'primaryColumn' => $primaryColumn,
+        ] = $this->_getPrimaryColumn();
+        if (!empty($this->$primaryProperty)) {
             return $this->_getConnection()
                 ->getQueryBuilder()
                 ->delete($this->_getTable())
-                ->where("{$primaryName} = :id")
-                ->setParameter("id", $this->$primaryRaw)
+                ->where("$primaryColumn = :id")
+                ->setParameter("id", $this->$primaryProperty)
                 ->execute();
         }
         return null;
@@ -222,8 +214,15 @@ abstract class Model implements ModelInterface
         return $model->_all($where, $parameters, $fields, $order, $limit, $offset, $page);
     }
 
-    protected function _all($where = [], $parameters = [], $fields = ["*"], $orderList = [], $limit = null, $offset = null, $page = null)
-    {
+    protected function _all(
+        $where = [],
+        $parameters = [],
+        $fields = ["*"],
+        $orderList = [],
+        $limit = null,
+        $offset = null,
+        $page = null
+    ) {
         $fields = ArrayMethods::wrap($fields);
         $query = $this
             ->_getConnection()
@@ -287,10 +286,8 @@ abstract class Model implements ModelInterface
     public static function find($modelId): ?self
     {
         $model = new static();
-        $primaryKey = $model->_getPrimaryColumn()['name'];
-        return $model->_first([
-            "{$primaryKey} = ?" => $modelId,
-        ]);
+        $primaryKey = $model->_getClassMetadata()->getSingleIdentifierColumnName();
+        return $model->_first(["$primaryKey = :$primaryKey",], [":$primaryKey" => $modelId]);
     }
 
     public static function count($where = '', $parameters = [])
@@ -311,19 +308,11 @@ abstract class Model implements ModelInterface
 
     public function __clone()
     {
-        $primary = $this->_getPrimaryColumn();
-        $primaryRaw = $primary["raw"];
+        [
+            'primaryProperty' => $primaryProperty,
+        ] = $this->_getPrimaryColumn();
 
-        unset($this->$primaryRaw);
-    }
-
-    private function _getInspector(): Inspector
-    {
-        static $inspector;
-        if (is_null($inspector)) {
-            $inspector = new Inspector($this);
-        }
-        return $inspector;
+        unset($this->$primaryProperty);
     }
 
     private function _getContainer(): Container
@@ -331,122 +320,25 @@ abstract class Model implements ModelInterface
         return Container::getContainer();
     }
 
-    public function _getDbConf()
-    {
-        static $dbConf;
-        if (is_null($dbConf)) {
-            $classMeta = $this->_getInspector()->getClassMeta();
-            $dbConf = $classMeta['@dbConf'][0] ?? 'default';
-        }
-        return $dbConf;
-    }
-
     public function _getTable()
     {
-        static $table;
-        if (is_null($table)) {
-            $classMeta = $this->_getInspector()->getClassMeta();
-            $table = $classMeta['@table']['name'] ?? $classMeta['@table'][0] ??
-                $this->_getInspector()->getClassName();
-        }
-        return $table;
+        return $this->_getClassMetadata()->getTableName();
     }
 
     public function _getConnection(): ConnectionInterface
     {
         static $connection;
 
-        $connectionString = 'database.connection.' . $this->_getDbConf();
+        $connectionString = 'database.connection.' . $this->_getClassMetadata()->table['connection'];
         if (empty($connection)) {
             if ($this->_getContainer()->has($connectionString)) {
                 $database = $this->_getContainer()->get($connectionString);
             } else {
-                throw new ConnectorException("PDOConnection: {$connectionString} not found");
+                throw new ConnectionException("PDOConnection: {$connectionString} not found");
             }
             $connection = $database;
         }
         return $connection;
-    }
-
-    public function _getColumns()
-    {
-        static $columns;
-
-        if (empty($columns)) {
-            $primaries = 0;
-            $columns = [];
-            $class = get_class($this);
-            $properties = $this->_getInspector()->getClassProperties();
-
-            foreach ($properties as $property) {
-                $propertyMeta = $this->_getInspector()->getPropertyMeta($property);
-                if (!empty($propertyMeta['@column'])) {
-                    $primary = !empty($propertyMeta['@primary']);
-                    if ($primary) {
-                        $primaries++;
-                    }
-                    $column = (new Column($propertyMeta))->getColumn($property);
-                    $name = $column['name'];
-                    $columns[$name] = $column;
-                }
-                if (!empty($propertyMeta['@column/OneToMany']) || !empty($propertyMeta['@column\OneToMany'])) {
-                    $primary = !empty($propertyMeta['@primary']);
-                    if ($primaries > 1) {
-                        throw new Primary("A foreign key cannot be used as a primary column");
-                    }
-                    $column = (new OneToMany($propertyMeta))->getColumn($property);
-                    $name = $column['name'];
-                    $columns[$name] = $column;
-                }
-                if (!empty($propertyMeta['@column/ManyToOne']) || !empty($propertyMeta['@column\ManyToOne'])) {
-                    $primary = !empty($propertyMeta['@primary']);
-                    if ($primaries > 1) {
-                        throw new Primary("A foreign key cannot be used as a primary column");
-                    }
-                    $column = (new ManyToOne($propertyMeta))->getColumn($property);
-                    $name = $column['name'];
-                    $columns[$name] = $column;
-                }
-            }
-            if ($primaries > 1) {
-                throw new Primary("{$class} cannot have more than once primary column");
-            }
-        }
-        return $columns;
-    }
-
-    protected function _getColumnsReverseMap(): array
-    {
-        static $columnsReverseMap;
-
-        if (is_null($columnsReverseMap)) {
-            foreach ($this->_getColumns() as $key => $column) {
-                $columnsReverseMap[$column['raw']] = $key;
-            }
-        }
-        return $columnsReverseMap;
-    }
-
-    public function _getColumn(string $name): ?string
-    {
-        if (!empty($this->_getColumns()[$name])) {
-            return $this->_getColumns()[$name];
-        }
-        return null;
-    }
-
-    public function _getPrimaryColumn()
-    {
-        static $primary;
-        if (is_null($primary)) {
-            foreach ($this->_getColumns() as $column) {
-                if ($column['primary']) {
-                    $primary = $column;
-                    break;
-                }
-            }
-        }
-        return $primary;
     }
 
     /**
@@ -502,16 +394,33 @@ abstract class Model implements ModelInterface
         }
     }
 
-    public function storeSyncSQL($queries)
+    final public function _getClassMetadata(): ClassMetadata
     {
-        if (!array($queries)) {
-            $queries = [$queries];
+        static $classMetadata;
+
+        if (!$classMetadata) {
+            // TODO: load metadata from cache
+            $class = static::class;
+            $classMetadata = $this->_getContainer()->make(
+                ClassMetadata::class . '@' . $class,
+                [
+                    'class' => ClassMetadata::class,
+                    'arguments' => [$class]
+                ]
+            );
+            $this->_getContainer()
+                ->get(AnnotationDriver::class)->loadMetadataForClass($class, $classMetadata);
         }
-        $this->__syncSQL = $queries;
+        return $classMetadata;
     }
 
-    public function retrieveSyncSQL()
+    private function _getPrimaryColumn()
     {
-        return $this->__syncSQL;
+        $primaryProperty = $this->_getClassMetadata()->getSingleIdentifierPropertyName();
+        return [
+            'primary' => $this->_getClassMetadata()->getPropertyMapping($primaryProperty),
+            'primaryProperty' => $primaryProperty,
+            'primaryColumn' => $this->_getClassMetadata()->getSingleIdentifierColumnName(),
+        ];
     }
 }

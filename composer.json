@@ -40,7 +40,8 @@
     "symfony/finder": "5.4.x-dev",
     "symfony/filesystem": "5.4.x-dev",
     "symfony/mime": "5.4.x-dev",
-    "symfony/process": "5.4.x-dev"
+    "symfony/process": "5.4.x-dev",
+    "doctrine/annotations": "1.14.x-dev"
   },
   "require-dev": {
     "filp/whoops": "^2.9",

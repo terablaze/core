@@ -110,7 +110,7 @@ class Request extends Psr7ServerRequest
 
     public function expectsJson(): bool
     {
-        return $this->expectsJson;
+        return $this->isXmlHttpRequest() || $this->expectsJson;
     }
 
     public function setExpectsJson(bool $expectsJson): self
@@ -275,16 +275,6 @@ class Request extends Psr7ServerRequest
      */
     public static function setTrustedProxies(array $proxies, int $trustedHeaderSet): void
     {
-        if (self::HEADER_X_FORWARDED_ALL === $trustedHeaderSet) {
-            ExceptionHandler::triggerDeprecation(
-                'terablaze/http-base',
-                '0.1.0',
-                'The "HEADER_X_FORWARDED_ALL" constant is deprecated, use either ' .
-                '"HEADER_X_FORWARDED_FOR | HEADER_X_FORWARDED_HOST | HEADER_X_FORWARDED_PORT ' .
-                '| HEADER_X_FORWARDED_PROTO" or "HEADER_X_FORWARDED_AWS_ELB" or ' .
-                '"HEADER_X_FORWARDED_TRAEFIK" constants instead.'
-            );
-        }
         self::$trustedProxies = array_reduce($proxies, function ($proxies, $proxy) {
             if ('REMOTE_ADDR' !== $proxy) {
                 $proxies[] = $proxy;
@@ -436,6 +426,16 @@ class Request extends Psr7ServerRequest
         $ipAddresses = $this->getClientIps();
 
         return $ipAddresses[0];
+    }
+
+    /**
+     * Get the client user agent.
+     *
+     * @return string|null
+     */
+    public function getUserAgent()
+    {
+        return $this->getHeaderLine('User-Agent');
     }
 
     /**
@@ -1202,5 +1202,20 @@ class Request extends Psr7ServerRequest
 
         // Now the IP chain contains only untrusted proxies and the client IP
         return $clientIps ? array_reverse($clientIps) : [$firstTrustedIp];
+    }
+
+    /**
+     * Returns true if the request is a XMLHttpRequest.
+     *
+     * It works if your JavaScript library sets an X-Requested-With HTTP header.
+     * It is known to work with common JavaScript frameworks:
+     *
+     * @see https://wikipedia.org/wiki/List_of_Ajax_frameworks#JavaScript
+     *
+     * @return bool true if the request is an XMLHttpRequest, false otherwise
+     */
+    public function isXmlHttpRequest()
+    {
+        return 'XMLHttpRequest' == $this->getHeaderLine('X-Requested-With');
     }
 }

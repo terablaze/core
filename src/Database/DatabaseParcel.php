@@ -2,6 +2,9 @@
 
 namespace TeraBlaze\Database;
 
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\PsrCachedReader;
+use Doctrine\Common\Annotations\Reader;
 use ReflectionException;
 use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
@@ -15,12 +18,13 @@ use TeraBlaze\Database\Console\Command\Migrations\InstallCommand;
 use TeraBlaze\Database\Console\Command\Migrations\MigrateCommand;
 use TeraBlaze\Database\Console\Command\Migrations\MigrateMakeCommand;
 use TeraBlaze\Database\Console\Command\Migrations\RollbackCommand;
-use TeraBlaze\Database\Legacy\Connectors\ConnectorInterface;
-use TeraBlaze\Database\Legacy\Connectors\MysqliConnector;
 use TeraBlaze\Database\Exception\ArgumentException;
 use TeraBlaze\Database\Migrations\MigrationCreator;
 use TeraBlaze\Database\Migrations\MigrationRepository;
 use TeraBlaze\Database\Migrations\Migrator;
+use TeraBlaze\Database\ORM\AnnotationDriver;
+use TeraBlaze\Database\ORM\ClassMetadata;
+use Tests\TeraBlaze\Model\Book;
 
 class DatabaseParcel extends Parcel implements ParcelInterface
 {
@@ -81,23 +85,17 @@ class DatabaseParcel extends Parcel implements ParcelInterface
                 $dbConnection = (new SqliteConnection($conf))
                     ->setName($confKey)->setEventDispatcher($this->dispatcher);
                 break;
-            case "mysql_legacy":
-            case "mysqli_legacy":
-                $dbConnection = (new MysqliConnector($conf))->setName($confKey);
-                break;
             default:
                 throw new ArgumentException(sprintf("Invalid or unimplemented database type: %s", $type));
         }
         $this->container->registerServiceInstance($connectionName, $dbConnection);
         if (getConfig('database.default') === $confKey) {
-            if ($dbConnection instanceof ConnectorInterface) {
-                $this->container->setAlias(ConnectorInterface::class, $connectionName);
-                return;
-            }
             $this->container->setAlias(ConnectionInterface::class, $connectionName);
             $this->container->setAlias('database.connection', $connectionName);
             $this->container->setAlias('database.connection.default', $connectionName);
         }
+
+        $this->initAnnotationDriver();
     }
 
     /**
@@ -249,4 +247,13 @@ class DatabaseParcel extends Parcel implements ParcelInterface
 //    {
 //        return $this->container->make(StatusCommand::class);
 //    }
+
+    private function initAnnotationDriver($paths = [])
+    {
+        $annotationDriver = new AnnotationDriver(
+            new AnnotationReader(),
+            (array) $paths
+        );
+        $this->container->registerServiceInstance($annotationDriver);
+    }
 }
