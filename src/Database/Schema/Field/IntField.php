@@ -4,25 +4,27 @@ namespace TeraBlaze\Database\Schema\Field;
 
 class IntField extends Field
 {
-    public ?int $default = null;
-    public string $type = 'int';
-    public int $length = 11;
+    public $zeroFill = false;
 
-    public function default(int $value): self
+    public bool $autoIncrement = false;
+
+    public bool $unsigned = false;
+
+    public function zeroFill()
     {
-        $this->default = $value;
+        $this->zeroFill = true;
         return $this;
     }
 
-    public function type(string $type): self
+    public function autoIncrement()
     {
-        $this->type = $type;
+        $this->autoIncrement = true;
         return $this;
     }
 
-    public function length(int $length): self
+    public function unsigned()
     {
-        $this->length = $length;
+        $this->unsigned = true;
         return $this;
     }
 }

@@ -46,6 +46,11 @@ class SqliteConnection extends Connection implements ConnectionInterface
         return new SqliteSchemaBuilder($this, $table, 'dropIfExists');
     }
 
+    public function renameTable(string $from, string $to): SqliteSchemaBuilder
+    {
+        return (new SqliteSchemaBuilder ($this, $from, 'rename'))->renameTo($to);
+    }
+
     public function getTables(): array
     {
         $statement = $this->pdo->prepare("SELECT name FROM sqlite_master WHERE type = 'table'");

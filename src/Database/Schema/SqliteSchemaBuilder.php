@@ -2,7 +2,6 @@
 
 namespace TeraBlaze\Database\Schema;
 
-use TeraBlaze\Database\Connection\SqliteConnection;
 use TeraBlaze\Database\Exception\MigrationException;
 use TeraBlaze\Database\Schema\Field\Field;
 use TeraBlaze\Database\Schema\Field\BoolField;
@@ -15,18 +14,7 @@ use TeraBlaze\Database\Schema\Field\TextField;
 
 class SqliteSchemaBuilder extends SchemaBuilder
 {
-    protected SqliteConnection $connection;
-    protected string $table;
-    protected string $type;
-
-    public function __construct(SqliteConnection $connection, string $table, string $type)
-    {
-        $this->connection = $connection;
-        $this->table = $table;
-        $this->type = $type;
-    }
-
-    public function execute()
+    public function build()
     {
         $command = $this->type === 'create' ? '' : 'ALTER TABLE';
 
@@ -40,6 +28,10 @@ class SqliteSchemaBuilder extends SchemaBuilder
                     {$fields}
                 );
             ";
+        }
+
+        if ($this->type === 'rename') {
+            $query = "ALTER TABLE `{$this->table}` RENAME TO `{$this->to}`";
         }
 
         if ($this->type === 'alter') {
@@ -79,7 +71,7 @@ class SqliteSchemaBuilder extends SchemaBuilder
         }
 
         if ($field instanceof DateTimeField) {
-            $template = "{$prefix} \"{$field->name}\" TEXT";
+            $template = "{$prefix} \"{$field->column}\" TEXT";
 
             if (!$field->nullable) {
                 $template .= " NOT NULL";
@@ -95,7 +87,7 @@ class SqliteSchemaBuilder extends SchemaBuilder
         }
 
         if ($field instanceof FloatField) {
-            $template = "{$prefix} \"{$field->name}\" REAL";
+            $template = "{$prefix} \"{$field->column}\" REAL";
 
             if (!$field->nullable) {
                 $template .= " NOT NULL";
@@ -109,11 +101,11 @@ class SqliteSchemaBuilder extends SchemaBuilder
         }
 
         if ($field instanceof IdField) {
-            return "{$prefix} \"{$field->name}\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE";
+            return "{$prefix} \"{$field->column}\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE";
         }
 
         if ($field instanceof IntField) {
-            $template = "{$prefix} \"{$field->name}\" INTEGER";
+            $template = "{$prefix} \"{$field->column}\" INTEGER";
 
             if (!$field->nullable) {
                 $template .= " NOT NULL";
@@ -127,7 +119,7 @@ class SqliteSchemaBuilder extends SchemaBuilder
         }
 
         if ($field instanceof StringField || $field instanceof TextField) {
-            $template = "{$prefix} \"{$field->name}\" TEXT";
+            $template = "{$prefix} \"{$field->column}\" TEXT";
 
             if (!$field->nullable) {
                 $template .= " NOT NULL";
@@ -140,12 +132,12 @@ class SqliteSchemaBuilder extends SchemaBuilder
             return $template;
         }
 
-        throw new MigrationException("Unrecognised field type for {$field->name}");
+        throw new MigrationException("Unrecognised field type for {$field->column}");
     }
 
     public function buildBool(string $prefix, BoolField $field): string
     {
-        $template = "{$prefix} \"{$field->name}\" INTEGER";
+        $template = "{$prefix} \"{$field->column}\" INTEGER";
 
         if (!$field->nullable) {
             $template .= " NOT NULL";
@@ -159,7 +151,7 @@ class SqliteSchemaBuilder extends SchemaBuilder
         return $template;
     }
 
-    public function dropColumn(string $name): self
+    public function dropColumn(string $column = null): self
     {
         throw new MigrationException('SQLite doesn\'t support dropping columns');
     }

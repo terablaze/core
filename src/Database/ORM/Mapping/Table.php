@@ -11,6 +11,16 @@ final class Table implements Annotation
     /**
      * @var string
      */
+    public $repositoryClass;
+
+    /**
+     * @var boolean
+     */
+    public $readOnly = false;
+
+    /**
+     * @var string
+     */
     public $name;
 
     /**

@@ -4,35 +4,29 @@ namespace TeraBlaze\Database\Schema;
 
 use TeraBlaze\Database\Connection\MysqlConnection;
 use TeraBlaze\Database\Exception\MigrationException;
+use TeraBlaze\Database\Schema\Field\DecimalField;
+use TeraBlaze\Database\Schema\Field\EnumField;
 use TeraBlaze\Database\Schema\Field\Field;
 use TeraBlaze\Database\Schema\Field\BoolField;
 use TeraBlaze\Database\Schema\Field\DateTimeField;
 use TeraBlaze\Database\Schema\Field\FloatField;
 use TeraBlaze\Database\Schema\Field\IdField;
 use TeraBlaze\Database\Schema\Field\IntField;
+use TeraBlaze\Database\Schema\Field\JsonField;
 use TeraBlaze\Database\Schema\Field\StringField;
 use TeraBlaze\Database\Schema\Field\TextField;
+use TeraBlaze\Support\ArrayMethods;
 
 class MysqlSchemaBuilder extends SchemaBuilder
 {
-    protected MysqlConnection $connection;
-    protected string $table;
-    protected string $type;
-    protected array $drops = [];
-
-    public function __construct(MysqlConnection $connection, string $table, string $type)
-    {
-        $this->connection = $connection;
-        $this->table = $table;
-        $this->type = $type;
-    }
-
-    public function  execute()
+    public function build()
     {
         $fields = array_map(fn($field) => $this->stringForField($field), $this->fields);
 
-        $primary = array_filter($this->fields, fn($field) => $field instanceof IdField);
-        $primaryKey = isset($primary[0]) ? "PRIMARY KEY (`{$primary[0]->name}`)" : '';
+        $primaries = array_filter($this->fields, fn($field) => $field instanceof IdField);
+        $primaryColumns = array_map(fn(IdField $primary) => $primary->column, $primaries);
+        $primary = implode(', ', ArrayMethods::wrap($primaryColumns));
+        $primaryKey = !empty($primary) ? "PRIMARY KEY (`{$primary}`)" : '';
 
         if ($this->type === 'create') {
             $fields = join(PHP_EOL, array_map(fn($field) => "{$field},", $fields));
@@ -41,19 +35,23 @@ class MysqlSchemaBuilder extends SchemaBuilder
                 CREATE TABLE `{$this->table}` (
                     {$fields}
                     {$primaryKey}
-                ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+                ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
             ";
         }
 
-        if ($this->type === 'alter') {
-            $fields = join(PHP_EOL, array_map(fn($field) => "{$field};", $fields));
-            $drops = join(PHP_EOL, array_map(fn($drop) => "DROP COLUMN `{$drop}`;", $this->drops));
+        if ($this->type === 'rename') {
+            $query = "ALTER TABLE `{$this->table}` RENAME TO `{$this->renameTo}`";
+        }
 
-            $query = "
-                ALTER TABLE `{$this->table}`
+        if ($this->type === 'alter') {
+            $fields = join(PHP_EOL, array_map(fn($field) => "{$field},", $fields));
+            $drops = $this->compileDrops();
+            $renames = $this->compileRenames();
+
+            $query = $this->cleanQuery("ALTER TABLE `{$this->table}`
                 {$fields}
-                {$drops}
-            ";
+                {$renames}
+                {$drops}") . ";";
         }
 
         if ($this->type === 'drop') {
@@ -65,96 +63,91 @@ class MysqlSchemaBuilder extends SchemaBuilder
         }
 
         $this->connection->execute($query);
+
+        if ($indexes = $this->getIndexes()) {
+            $this->connection->execute($indexes);
+        }
+
+        if ($fks = $this->getForeignKeys()) {
+            $this->connection->execute("ALTER TABLE `$this->table` $fks;");
+        }
     }
 
-    private function stringForField(Field $field): string
+    public function getIndexes()
     {
-        $prefix = '';
+        $indexesString = implode(
+            PHP_EOL,
+            array_map(
+                function($name, $index) {
+                    if (is_array($index)) {
+                        $index = implode('`, `', $index);
+                    }
+                    return "CREATE INDEX `$name` ON `$this->table`(`$index`);";
+                },
+                array_keys($this->indexes),
+                array_values($this->indexes)
+            )
+        );
 
-        if ($this->type === 'alter') {
-            $prefix = 'ADD';
-        }
+        $uniquesString = implode(
+            PHP_EOL,
+            array_map(
+                function($name, $index) {
+                    if (is_array($index)) {
+                        $index = implode('`, `', $index);
+                    }
+                    return "CREATE UNIQUE INDEX `$name` ON `$this->table`(`$index`);";
+                },
+                array_keys($this->uniques),
+                array_values($this->uniques)
+            )
+        );
 
-        if ($field->alter) {
-            $prefix = 'MODIFY';
-        }
+        $fullTextString = implode(
+            PHP_EOL,
+            array_map(
+                function($name, $index) {
+                    if (is_array($index)) {
+                        $index = implode('`, `', $index);
+                    }
+                    return "CREATE FULLTEXT INDEX `$name` ON `$this->table`(`$index`);";
+                },
+                array_keys($this->fullTexts),
+                array_values($this->fullTexts)
+            )
+        );
 
-        if ($field instanceof BoolField) {
-            return $this->buildBool($prefix, $field);
-        }
-
-        if ($field instanceof DateTimeField) {
-            $template = "{$prefix} `{$field->name}` datetime";
-
-            if ($field->nullable) {
-                $template .= " DEFAULT NULL";
-            }
-
-            if ($field->default === 'CURRENT_TIMESTAMP') {
-                $template .= " DEFAULT CURRENT_TIMESTAMP";
-            } elseif ($field->default !== null) {
-                $template .= " DEFAULT '{$field->default}'";
-            }
-
-            return $template;
-        }
-
-        if ($field instanceof FloatField) {
-            $template = "{$prefix} `{$field->name}` float";
-
-            if ($field->nullable) {
-                $template .= " DEFAULT NULL";
-            }
-
-            if ($field->default !== null) {
-                $template .= " DEFAULT '{$field->default}'";
-            }
-
-            return $template;
-        }
-
-        if ($field instanceof IdField) {
-            return "{$prefix} `{$field->name}` int(11) unsigned NOT NULL AUTO_INCREMENT";
-        }
-
-        if ($field instanceof IntField) {
-            $template = "{$prefix} `{$field->name}` {$field->type}({$field->length})";
-
-            if ($field->nullable) {
-                $template .= " DEFAULT NULL";
-            }
-
-            if ($field->default !== null) {
-                $template .= " DEFAULT '{$field->default}'";
-            }
-
-            return $template;
-        }
-
-        if ($field instanceof StringField) {
-            $template = "{$prefix} `{$field->name}` varchar(255)";
-
-            if ($field->nullable) {
-                $template .= " DEFAULT NULL";
-            }
-
-            if ($field->default !== null) {
-                $template .= " DEFAULT '{$field->default}'";
-            }
-
-            return $template;
-        }
-
-        if ($field instanceof TextField) {
-            return "{$prefix} `{$field->name}` text";
-        }
-
-        throw new MigrationException("Unrecognised field type for {$field->name}");
+        return ($indexesString ? $indexesString . PHP_EOL : "") .
+            ($uniquesString ? $uniquesString . PHP_EOL : "") .
+            ($fullTextString ? $fullTextString . PHP_EOL : "");
     }
 
-    public function dropColumn(string $name): self
+    public function getForeignKeys()
     {
-        $this->drops[] = $name;
-        return $this;
+        return implode(
+            "," . PHP_EOL,
+            array_map(
+                function(ForeignKey $foreign) {
+                    $columns  = $foreign->column;
+                    $references  = $foreign->references;
+                    if (is_array($columns)) {
+                        $columns = implode('`, `', $columns);
+                    }
+                    if (is_array($references)) {
+                        $references = implode('`, `', $references);
+                    }
+                    $query = "ADD CONSTRAINT `$foreign->name` " .
+                        "FOREIGN KEY (`$columns`) REFERENCES `$foreign->referenceTable`(`$references`)";
+                    if (isset($foreign->onDelete)) {
+                        $query .= " ON DELETE $foreign->onDelete";
+                    }
+                    if (isset($foreign->onUpdate)) {
+                        $query .= " ON UPDATE $foreign->onUpdate";
+                    }
+                    return $query;
+                },
+                $this->foreignKeys
+            )
+        );
     }
 }

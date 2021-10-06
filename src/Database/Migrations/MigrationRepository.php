@@ -149,7 +149,7 @@ class MigrationRepository
         $table->id('id');
         $table->string('name');
         $table->int('batch');
-        $table->execute();
+        $table->build();
     }
 
     /**
@@ -169,7 +169,7 @@ class MigrationRepository
      */
     public function deleteRepository()
     {
-        $this->connection->dropTableIfExists($this->table)->execute();
+        $this->connection->dropTableIfExists($this->table)->build();
     }
 
     /**

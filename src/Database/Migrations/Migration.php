@@ -19,12 +19,12 @@ abstract class Migration
      *
      * @return string|null
      */
-    public function getConnectionName(): ?string
+    final public function getConnectionName(): ?string
     {
         return $this->connectionName;
     }
 
-    public function getConnection(): ConnectionInterface
+    final public function getConnection(): ConnectionInterface
     {
         $connString = $this->getConnectionName()
             ? 'database.connection.' . $this->getConnectionName()
@@ -33,24 +33,29 @@ abstract class Migration
         return container()->get($connString);
     }
 
-    public function createTable(string $table): SchemaBuilderInterface
+    final public function createTable(string $table): SchemaBuilderInterface
     {
         return $this->getConnection()->createTable($table);
     }
 
-    public function alterTable(string $table): SchemaBuilderInterface
+    final public function alterTable(string $table): SchemaBuilderInterface
     {
         return $this->getConnection()->alterTable($table);
     }
 
-    public function dropTable(string $table): SchemaBuilderInterface
+    final public function dropTable(string $table): SchemaBuilderInterface
     {
         return $this->getConnection()->dropTable($table);
     }
 
-    public function dropTableIfExists(string $table): SchemaBuilderInterface
+    final public function dropTableIfExists(string $table): SchemaBuilderInterface
     {
         return $this->getConnection()->dropTableIfExists($table);
+    }
+
+    final public function renameTable(string $from, string $to): SchemaBuilderInterface
+    {
+        return $this->getConnection()->renameTable($from, $to);
     }
 
     public function up(): void {}

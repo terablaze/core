@@ -69,25 +69,24 @@ class AnnotationDriver
      * @psalm-var array<class-string, int>
      */
     protected $entityAnnotationClasses = [
-        Mapping\Entity::class => 1,
-        Mapping\MappedSuperclass::class => 2,
+        Mapping\Table::class => 1,
     ];
 
     /**
      * Initializes a new AnnotationDriver that uses the given AnnotationReader for reading
      * docblock annotations.
      *
-     * @param Reader               $reader The AnnotationReader to use, duck-typed.
-     * @param string|string[]|null $paths  One or multiple paths where mapping classes can be found.
+     * @param Reader $reader The AnnotationReader to use, duck-typed.
+     * @param string|string[]|null $paths One or multiple paths where mapping classes can be found.
      */
     public function __construct($reader, $paths = null)
     {
         $this->reader = $reader;
-        if (! $paths) {
+        if (!$paths) {
             return;
         }
 
-        $this->addPaths((array) $paths);
+        $this->addPaths((array)$paths);
     }
 
     /**
@@ -197,15 +196,15 @@ class AnnotationDriver
             return $this->classNames;
         }
 
-        if (! $this->paths) {
+        if (!$this->paths) {
             throw MappingException::pathRequired();
         }
 
-        $classes       = [];
+        $classes = [];
         $includedFiles = [];
 
         foreach ($this->paths as $path) {
-            if (! is_dir($path)) {
+            if (!is_dir($path)) {
                 throw MappingException::fileMappingDriversRequireConfiguredDirectoryPath($path);
             }
 
@@ -221,7 +220,7 @@ class AnnotationDriver
             foreach ($iterator as $file) {
                 $sourceFile = $file[0];
 
-                if (! preg_match('(^phar:)i', $sourceFile)) {
+                if (!preg_match('(^phar:)i', $sourceFile)) {
                     $sourceFile = realpath($sourceFile);
                 }
 
@@ -243,9 +242,9 @@ class AnnotationDriver
         $declared = get_declared_classes();
 
         foreach ($declared as $className) {
-            $rc         = new ReflectionClass($className);
+            $rc = new ReflectionClass($className);
             $sourceFile = $rc->getFileName();
-            if (! in_array($sourceFile, $includedFiles) || $this->isTransient($className)) {
+            if (!in_array($sourceFile, $includedFiles) || $this->isTransient($className)) {
                 continue;
             }
 
@@ -261,7 +260,7 @@ class AnnotationDriver
     {
         $class = $metadata->getReflectionClass();
 
-        if ( ! $class) {
+        if (!$class) {
             // this happens when running annotation driver in combination with
             // static reflection services. This is not the nicest fix
             $class = new \ReflectionClass($metadata->name);
@@ -271,7 +270,7 @@ class AnnotationDriver
 
         if ($classAnnotations) {
             foreach ($classAnnotations as $key => $annot) {
-                if (! is_numeric($key)) {
+                if (!is_numeric($key)) {
                     continue;
                 }
 
@@ -280,22 +279,18 @@ class AnnotationDriver
         }
 
         // Evaluate Entity annotation
-        if (isset($classAnnotations[Mapping\Entity::class])) {
-            $entityAnnot = $classAnnotations[Mapping\Entity::class];
+        if (!isset($classAnnotations[Mapping\Table::class])) {
+            throw MappingException::classIsNotAValidEntityOrMappedSuperClass($className);
+        } else {
+            $tableAnnot = $classAnnotations[Mapping\Table::class];
 
-            if ($entityAnnot->readOnly) {
+            if ($tableAnnot->readOnly) {
                 // TODO: Save readonly metadata
                 $metadata->markReadOnly();
             }
-        } else {
-            throw MappingException::classIsNotAValidEntityOrMappedSuperClass($className);
-        }
 
-        // Evaluate Table annotation
-        if (isset($classAnnotations[Mapping\Table::class])) {
-            $tableAnnot   = $classAnnotations[Mapping\Table::class];
             $primaryTable = [
-                'name'   => $tableAnnot->name ?? $class->getShortName(),
+                'name' => $tableAnnot->name ?? $class->getShortName(),
                 'schema' => $tableAnnot->schema,
                 'connection' => $tableAnnot->connection
             ];
@@ -304,15 +299,15 @@ class AnnotationDriver
                 foreach ($tableAnnot->indexes as $indexAnnot) {
                     $index = ['columns' => $indexAnnot->columns];
 
-                    if (! empty($indexAnnot->flags)) {
+                    if (!empty($indexAnnot->flags)) {
                         $index['flags'] = $indexAnnot->flags;
                     }
 
-                    if (! empty($indexAnnot->options)) {
+                    if (!empty($indexAnnot->options)) {
                         $index['options'] = $indexAnnot->options;
                     }
 
-                    if (! empty($indexAnnot->name)) {
+                    if (!empty($indexAnnot->name)) {
                         $primaryTable['indexes'][$indexAnnot->name] = $index;
                     } else {
                         $primaryTable['indexes'][] = $index;
@@ -324,11 +319,11 @@ class AnnotationDriver
                 foreach ($tableAnnot->uniqueConstraints as $uniqueConstraintAnnot) {
                     $uniqueConstraint = ['columns' => $uniqueConstraintAnnot->columns];
 
-                    if (! empty($uniqueConstraintAnnot->options)) {
+                    if (!empty($uniqueConstraintAnnot->options)) {
                         $uniqueConstraint['options'] = $uniqueConstraintAnnot->options;
                     }
 
-                    if (! empty($uniqueConstraintAnnot->name)) {
+                    if (!empty($uniqueConstraintAnnot->name)) {
                         $primaryTable['uniqueConstraints'][$uniqueConstraintAnnot->name] = $uniqueConstraint;
                     } else {
                         $primaryTable['uniqueConstraints'][] = $uniqueConstraint;
@@ -377,8 +372,8 @@ class AnnotationDriver
                 }
 
                 if (
-                    $generatedValueAnnot =
-                        $this->reader->getPropertyAnnotation($property, Mapping\GeneratedValue::class)
+                $generatedValueAnnot =
+                    $this->reader->getPropertyAnnotation($property, Mapping\GeneratedValue::class)
                 ) {
                     $metadata->setIdGeneratorType(
                         constant(
@@ -472,7 +467,7 @@ class AnnotationDriver
      */
     private function getFetchMode($className, $fetchMode)
     {
-        if (! defined('TeraBlaze\Database\ORM\ClassMetadata::FETCH_' . $fetchMode)) {
+        if (!defined('TeraBlaze\Database\ORM\ClassMetadata::FETCH_' . $fetchMode)) {
             throw MappingException::invalidFetchMode($className, $fetchMode);
         }
 
@@ -532,11 +527,11 @@ class AnnotationDriver
     {
         $mapping = [
             'propertyName' => $propertyName,
-            'type'      => $column->type,
-            'scale'     => $column->scale,
-            'length'    => $column->length,
-            'unique'    => $column->unique,
-            'nullable'  => $column->nullable,
+            'type' => $column->type,
+            'scale' => $column->scale,
+            'length' => $column->length,
+            'unique' => $column->unique,
+            'nullable' => $column->nullable,
             'precision' => $column->precision
         ];
 
@@ -558,7 +553,7 @@ class AnnotationDriver
     /**
      * Factory method for the Annotation Driver.
      *
-     * @param array|string          $paths
+     * @param array|string $paths
      * @param AnnotationReader|null $reader
      *
      * @return AnnotationDriver

@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Database\Schema\Field;
 
-class FloatField extends Field
+class DecimalField extends Field
 {
     public int $precision;
 

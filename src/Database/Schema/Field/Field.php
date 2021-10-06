@@ -4,44 +4,86 @@ namespace TeraBlaze\Database\Schema\Field;
 
 abstract class Field
 {
-    public string $name;
-    public bool $nullable = false;
+    public $column;
+
+    public $type = 'string';
+
+    public $length;
+
+    public $default = null;
+
+    public array $index = [];
+
+    public array $unique = [];
+
+    public array $fullText = [];
+
+    public $nullable = false;
+
     public bool $alter = false;
-    public $index = null;
-    public $unique = null;
 
-    public function __construct(string $name)
+    public function __construct(string $column, string $type = "", int $length = 0)
     {
-        $this->name = $name;
+        $this->column = $column;
+        $this->type = $type;
+        $this->length = $length;
     }
 
-    public function nullable(): self
+    /**
+     * @param mixed $value
+     * @return $this
+     */
+    public function default($value)
     {
-        $this->nullable = true;
+        $this->default = $value;
         return $this;
     }
 
-    public function name(string $name): self
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    public function alter(): self
+    /**
+     * @return $this
+     */
+    public function alter()
     {
         $this->alter = true;
         return $this;
     }
 
-    public function index(?string $name = null): self
+    /**
+     * @return $this
+     */
+    public function nullable()
     {
-        $this->index = $name ?? "index_$this->name";
+        $this->nullable = true;
         return $this;
     }
 
-    public function unique(?string $name = null): self
+    /**
+     * @param string|null $name
+     * @return $this
+     */
+    public function index(?string $name = null)
     {
-        $this->unique = $name ?? "unique_$this->name";
+        $this->index[$name ?? "index_" . $this->column] = $this->column;
+        return $this;
+    }
+
+    /**
+     * @param string|null $name
+     * @return $this
+     */
+    public function unique(?string $name = null)
+    {
+        $this->unique[$name ?? "unique_" . $this->column] = $this->column;
+        return $this;
+    }
+
+    /**
+     * @param string|null $name
+     * @return $this
+     */
+    public function fullText(?string $name = null)
+    {
+        $this->fullText[$name ?? "fulltext_" . $this->column] = $this->column;
         return $this;
     }
 }

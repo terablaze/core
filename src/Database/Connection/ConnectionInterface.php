@@ -76,6 +76,11 @@ interface ConnectionInterface
     public function dropTableIfExists(string $table): SchemaBuilder;
 
     /**
+     * Start a new migration to drop a table if exists from this connection
+     */
+    public function renameTable(string $from, string $to): SchemaBuilder;
+
+    /**
      * Return a list of table names on this connection
      */
     public function getTables(): array;

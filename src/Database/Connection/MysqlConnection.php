@@ -57,6 +57,11 @@ class MysqlConnection extends Connection implements ConnectionInterface
         return new MysqlSchemaBuilder($this, $table, 'dropIfExists');
     }
 
+    public function renameTable(string $from, string $to): MysqlSchemaBuilder
+    {
+        return (new MysqlSchemaBuilder($this, $from, 'rename'))->renameTo($to);
+    }
+
     public function getTables(): array
     {
         $statement = $this->pdo->prepare('SHOW TABLES');
