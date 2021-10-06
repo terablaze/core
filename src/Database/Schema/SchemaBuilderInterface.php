@@ -69,11 +69,11 @@ interface SchemaBuilderInterface
 
     public function renameIndex(string $from, string $to): void;
 
-    public function build();
-
     public function dropColumn($column = null/*, string ...$columns*/): self;
 
     public function dropIndex($index = null/*, string ...$columns*/): self;
 
     public function dropForeign($key = null/*, string ...$columns*/): self;
+
+    public function build();
 }
