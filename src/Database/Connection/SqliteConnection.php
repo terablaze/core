@@ -2,10 +2,10 @@
 
 namespace TeraBlaze\Database\Connection;
 
-use TeraBlaze\Database\Schema\SqliteSchemaBuilder;
 use TeraBlaze\Database\Query\SqliteQueryBuilder;
 use InvalidArgumentException;
 use PDO;
+use TeraBlaze\Database\Schema\SqliteSchema;
 
 class SqliteConnection extends Connection implements ConnectionInterface
 {
@@ -26,29 +26,29 @@ class SqliteConnection extends Connection implements ConnectionInterface
         return new SqliteQueryBuilder($this);
     }
 
-    public function createTable(string $table): SqliteSchemaBuilder
+    public function createTable(string $table): SqliteSchema
     {
-        return new SqliteSchemaBuilder($this, $table, 'create');
+        return new SqliteSchema($this, $table, 'create');
     }
 
-    public function alterTable(string $table): SqliteSchemaBuilder
+    public function alterTable(string $table): SqliteSchema
     {
-        return new SqliteSchemaBuilder($this, $table, 'alter');
+        return new SqliteSchema($this, $table, 'alter');
     }
 
-    public function dropTable(string $table): SqliteSchemaBuilder
+    public function dropTable(string $table): SqliteSchema
     {
-        return new SqliteSchemaBuilder($this, $table, 'drop');
+        return new SqliteSchema($this, $table, 'drop');
     }
 
-    public function dropTableIfExists(string $table): SqliteSchemaBuilder
+    public function dropTableIfExists(string $table): SqliteSchema
     {
-        return new SqliteSchemaBuilder($this, $table, 'dropIfExists');
+        return new SqliteSchema($this, $table, 'dropIfExists');
     }
 
-    public function renameTable(string $from, string $to): SqliteSchemaBuilder
+    public function renameTable(string $from, string $to): SqliteSchema
     {
-        return (new SqliteSchemaBuilder ($this, $from, 'rename'))->renameTo($to);
+        return (new SqliteSchema($this, $from, 'rename'))->renameTo($to);
     }
 
     public function getTables(): array

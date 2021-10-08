@@ -2,10 +2,10 @@
 
 namespace TeraBlaze\Database\Connection;
 
-use TeraBlaze\Database\Schema\MysqlSchemaBuilder;
 use TeraBlaze\Database\Query\MysqlQueryBuilder;
 use InvalidArgumentException;
 use PDO;
+use TeraBlaze\Database\Schema\MysqlSchema;
 
 class MysqlConnection extends Connection implements ConnectionInterface
 {
@@ -37,29 +37,29 @@ class MysqlConnection extends Connection implements ConnectionInterface
         return new MysqlQueryBuilder($this);
     }
 
-    public function createTable(string $table): MysqlSchemaBuilder
+    public function createTable(string $table): MysqlSchema
     {
-        return new MysqlSchemaBuilder($this, $table, 'create');
+        return new MysqlSchema($this, $table, 'create');
     }
 
-    public function alterTable(string $table): MysqlSchemaBuilder
+    public function alterTable(string $table): MysqlSchema
     {
-        return new MysqlSchemaBuilder($this, $table, 'alter');
+        return new MysqlSchema($this, $table, 'alter');
     }
 
-    public function dropTable(string $table): MysqlSchemaBuilder
+    public function dropTable(string $table): MysqlSchema
     {
-        return new MysqlSchemaBuilder($this, $table, 'drop');
+        return new MysqlSchema($this, $table, 'drop');
     }
 
-    public function dropTableIfExists(string $table): MysqlSchemaBuilder
+    public function dropTableIfExists(string $table): MysqlSchema
     {
-        return new MysqlSchemaBuilder($this, $table, 'dropIfExists');
+        return new MysqlSchema($this, $table, 'dropIfExists');
     }
 
-    public function renameTable(string $from, string $to): MysqlSchemaBuilder
+    public function renameTable(string $from, string $to): MysqlSchema
     {
-        return (new MysqlSchemaBuilder($this, $from, 'rename'))->renameTo($to);
+        return (new MysqlSchema($this, $from, 'rename'))->renameTo($to);
     }
 
     public function getTables(): array

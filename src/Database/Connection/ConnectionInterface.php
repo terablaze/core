@@ -4,10 +4,10 @@ namespace TeraBlaze\Database\Connection;
 
 use Closure;
 use PDO;
-use TeraBlaze\Database\Schema\SchemaBuilder;
 use TeraBlaze\Database\Query\Expression\ExpressionBuilder;
 use TeraBlaze\Database\Query\QueryBuilderInterface;
 use TeraBlaze\Database\Logging\QueryLogger;
+use TeraBlaze\Database\Schema\SchemaInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 
 interface ConnectionInterface
@@ -58,27 +58,27 @@ interface ConnectionInterface
     /**
      * Start a new migration to add a table on this connection
      */
-    public function createTable(string $table): SchemaBuilder;
+    public function createTable(string $table): SchemaInterface;
 
     /**
      * Start a new migration to add a table on this connection
      */
-    public function alterTable(string $table): SchemaBuilder;
+    public function alterTable(string $table): SchemaInterface;
 
     /**
      * Start a new migration to drop a table from this connection
      */
-    public function dropTable(string $table): SchemaBuilder;
+    public function dropTable(string $table): SchemaInterface;
 
     /**
      * Start a new migration to drop a table if exists from this connection
      */
-    public function dropTableIfExists(string $table): SchemaBuilder;
+    public function dropTableIfExists(string $table): SchemaInterface;
 
     /**
      * Start a new migration to drop a table if exists from this connection
      */
-    public function renameTable(string $from, string $to): SchemaBuilder;
+    public function renameTable(string $from, string $to): SchemaInterface;
 
     /**
      * Return a list of table names on this connection

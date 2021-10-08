@@ -3,7 +3,7 @@
 namespace TeraBlaze\Database\Migrations;
 
 use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Schema\SchemaBuilderInterface;
+use TeraBlaze\Database\Schema\SchemaInterface;
 
 abstract class Migration
 {
@@ -33,27 +33,27 @@ abstract class Migration
         return container()->get($connString);
     }
 
-    final public function createTable(string $table): SchemaBuilderInterface
+    final public function createTable(string $table): SchemaInterface
     {
         return $this->getConnection()->createTable($table);
     }
 
-    final public function alterTable(string $table): SchemaBuilderInterface
+    final public function alterTable(string $table): SchemaInterface
     {
         return $this->getConnection()->alterTable($table);
     }
 
-    final public function dropTable(string $table): SchemaBuilderInterface
+    final public function dropTable(string $table): SchemaInterface
     {
         return $this->getConnection()->dropTable($table);
     }
 
-    final public function dropTableIfExists(string $table): SchemaBuilderInterface
+    final public function dropTableIfExists(string $table): SchemaInterface
     {
         return $this->getConnection()->dropTableIfExists($table);
     }
 
-    final public function renameTable(string $from, string $to): SchemaBuilderInterface
+    final public function renameTable(string $from, string $to): SchemaInterface
     {
         return $this->getConnection()->renameTable($from, $to);
     }

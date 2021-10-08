@@ -4,17 +4,11 @@ namespace TeraBlaze\Database\Schema\Field;
 
 class FloatField extends Field
 {
-    public int $precision;
-
-    public int $scale;
-
     public bool $unsigned = false;
 
-    public function __construct(string $column, int $precision = 10, int $scale = 2)
+    public function __construct(string $column)
     {
         parent::__construct($column);
-        $this->precision = $precision;
-        $this->scale = $scale;
     }
 
     public function unsigned()
