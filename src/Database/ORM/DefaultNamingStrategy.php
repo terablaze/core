@@ -35,8 +35,12 @@ class DefaultNamingStrategy implements NamingStrategyInterface
     /**
      * {@inheritdoc}
      */
-    public function embeddedFieldToColumnName($propertyName, $embeddedColumnName, $className = null, $embeddedClassName = null)
-    {
+    public function embeddedFieldToColumnName(
+        $propertyName,
+        $embeddedColumnName,
+        $className = null,
+        $embeddedClassName = null
+    ) {
         return $propertyName . '_' . $embeddedColumnName;
     }
 

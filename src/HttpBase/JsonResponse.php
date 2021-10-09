@@ -112,7 +112,8 @@ class JsonResponse extends Response
             return $this->withBody(Stream::create($this->data));
         }
 
-        // Only set the header when there is none or when it equals 'text/javascript' (from a previous update with callback)
+        // Only set the header when there is none or when it equals
+        // 'text/javascript' (from a previous update with callback)
         // in order to not overwrite a custom definition.
         if (
             !$this->hasHeader('Content-Type') ||

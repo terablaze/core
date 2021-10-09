@@ -327,7 +327,7 @@ class MappingException extends Exception
      *
      * @return MappingException
      */
-    static function missingRequiredOption($property, $expectedOption, $hint = '')
+    public static function missingRequiredOption($property, $expectedOption, $hint = '')
     {
         $message = "The mapping of property '{$property}' is invalid: The option '{$expectedOption}' is required.";
 

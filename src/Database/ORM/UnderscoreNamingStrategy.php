@@ -2,10 +2,6 @@
 
 namespace TeraBlaze\Database\ORM;
 
-use const CASE_LOWER;
-use const CASE_UPPER;
-use const E_USER_DEPRECATED;
-
 use function preg_replace;
 use function strpos;
 use function strrpos;
@@ -13,6 +9,10 @@ use function strtolower;
 use function strtoupper;
 use function substr;
 use function trigger_error;
+
+use const CASE_LOWER;
+use const CASE_UPPER;
+use const E_USER_DEPRECATED;
 
 /**
  * Naming strategy implementing the underscore naming convention.
@@ -45,7 +45,8 @@ class UnderscoreNamingStrategy implements NamingStrategyInterface
     {
         if (! $numberAware) {
             @trigger_error(
-                'Creating ' . self::class . ' without making it number aware is deprecated and will be removed in Doctrine ORM 3.0.',
+                'Creating ' . self::class . ' without making it number '.
+                'aware is deprecated and will be removed in Doctrine ORM 3.0.',
                 E_USER_DEPRECATED
             );
         }
@@ -98,8 +99,12 @@ class UnderscoreNamingStrategy implements NamingStrategyInterface
     /**
      * {@inheritdoc}
      */
-    public function embeddedFieldToColumnName($propertyName, $embeddedColumnName, $className = null, $embeddedClassName = null)
-    {
+    public function embeddedFieldToColumnName(
+        $propertyName,
+        $embeddedColumnName,
+        $className = null,
+        $embeddedClassName = null
+    ) {
         return $this->underscore($propertyName) . '_' . $embeddedColumnName;
     }
 

@@ -1865,7 +1865,9 @@ class ClassMetadata implements ClassMetadataInterface
     public function getAssociationTargetClass($assocName)
     {
         if (! isset($this->associationMappings[$assocName])) {
-            throw new InvalidArgumentException("Association name expected, '" . $assocName . "' is not an association.");
+            throw new InvalidArgumentException(
+                "Association name expected, '" . $assocName . "' is not an association."
+            );
         }
 
         return $this->associationMappings[$assocName]['targetEntity'];
