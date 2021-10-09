@@ -60,8 +60,8 @@ class KeyGenerateCommand extends Command
     protected function generateRandomKey()
     {
         return 'base64:' . base64_encode(
-                Encrypter::generateKey(getConfig('app.cipher'))
-            );
+            Encrypter::generateKey(getConfig('app.cipher'))
+        );
     }
 
     /**

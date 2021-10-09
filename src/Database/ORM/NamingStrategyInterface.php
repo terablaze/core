@@ -5,7 +5,7 @@ namespace TeraBlaze\Database\ORM;
 /**
  * A set of rules for determining the physical column and table names
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.3
  * @author  Fabio B. Silva <fabio.bat.silva@gmail.com>

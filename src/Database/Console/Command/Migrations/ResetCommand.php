@@ -64,7 +64,8 @@ class ResetCommand extends BaseCommand
             }
 
             $this->migrator->setOutput($this->output)->reset(
-                $this->getMigrationPaths(), $this->option('pretend')
+                $this->getMigrationPaths(),
+                $this->option('pretend')
             );
         });
     }

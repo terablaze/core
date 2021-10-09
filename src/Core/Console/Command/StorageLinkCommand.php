@@ -13,7 +13,7 @@ class StorageLinkCommand extends Command
      *
      * @var string
      */
-    protected static $defaultName= 'storage:link';
+    protected static $defaultName = 'storage:link';
 
     /**
      * The console command description.

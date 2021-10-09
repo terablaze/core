@@ -5,6 +5,7 @@ namespace TeraBlaze\Database\ORM;
 use const CASE_LOWER;
 use const CASE_UPPER;
 use const E_USER_DEPRECATED;
+
 use function preg_replace;
 use function strpos;
 use function strrpos;
@@ -99,7 +100,7 @@ class UnderscoreNamingStrategy implements NamingStrategyInterface
      */
     public function embeddedFieldToColumnName($propertyName, $embeddedColumnName, $className = null, $embeddedClassName = null)
     {
-        return $this->underscore($propertyName).'_'.$embeddedColumnName;
+        return $this->underscore($propertyName) . '_' . $embeddedColumnName;
     }
 
     /**
@@ -135,7 +136,7 @@ class UnderscoreNamingStrategy implements NamingStrategyInterface
                 ($referencedColumnName ?: $this->referenceColumnName());
     }
 
-    private function underscore(string $string) : string
+    private function underscore(string $string): string
     {
         $string = preg_replace($this->pattern, '_$1', $string);
 

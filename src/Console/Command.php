@@ -80,7 +80,9 @@ abstract class Command extends SymfonyCommand
     /**
      * @return int
      */
-    protected function handle(){}
+    protected function handle()
+    {
+    }
 
     /**
      * @throws Exception

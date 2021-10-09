@@ -5,7 +5,6 @@ namespace TeraBlaze\Container;
 use ReflectionException;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\Events\Events;
 
 trait ContainerAwareTrait
 {

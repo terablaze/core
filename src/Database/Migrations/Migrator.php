@@ -467,7 +467,7 @@ class Migrator
             if (!is_dir($path)) {
                 continue;
             }
-            $subMigrationFiles = $this->files->glob($path.'/*_*.php');
+            $subMigrationFiles = $this->files->glob($path . '/*_*.php');
             if (count($subMigrationFiles) < 1) {
                 continue;
             }

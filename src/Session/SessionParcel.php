@@ -73,6 +73,5 @@ class SessionParcel extends Parcel
         $this->getKernel()->registerMiddleWare(SessionMiddleware::class);
         $this->getKernel()->registerMiddleWare(FlashMessageMiddleware::class);
         $this->getKernel()->registerMiddleWare(CsrfMiddleware::class);
-
     }
 }

@@ -104,7 +104,8 @@ class MappingException extends Exception
         if (false !== ($parent = get_parent_class($entityName))) {
             return new self(sprintf(
                 'No identifier/primary key specified for Entity "%s" sub class of "%s". Every Entity must have an identifier/primary key.',
-                $entityName, $parent
+                $entityName,
+                $parent
             ));
         }
 
@@ -112,7 +113,6 @@ class MappingException extends Exception
             'No identifier/primary key specified for Entity "%s". Every Entity must have an identifier/primary key.',
             $entityName
         ));
-
     }
 
     /**
@@ -241,7 +241,7 @@ class MappingException extends Exception
      */
     public static function emptyQueryMapping($entity, $queryName)
     {
-        return new self('Query named "'.$queryName.'" in "'.$entity.'" could not be empty.');
+        return new self('Query named "' . $queryName . '" in "' . $entity . '" could not be empty.');
     }
 
     /**
@@ -262,7 +262,7 @@ class MappingException extends Exception
      */
     public static function missingQueryMapping($entity, $queryName)
     {
-        return new self('Query named "'.$queryName.'" in "'.$entity.' requires a result class or result set mapping.');
+        return new self('Query named "' . $queryName . '" in "' . $entity . ' requires a result class or result set mapping.');
     }
 
     /**
@@ -273,7 +273,7 @@ class MappingException extends Exception
      */
     public static function missingResultSetMappingEntity($entity, $resultName)
     {
-        return new self('Result set mapping named "'.$resultName.'" in "'.$entity.' requires a entity class name.');
+        return new self('Result set mapping named "' . $resultName . '" in "' . $entity . ' requires a entity class name.');
     }
 
     /**
@@ -284,7 +284,7 @@ class MappingException extends Exception
      */
     public static function missingResultSetMappingPropertyName($entity, $resultName)
     {
-        return new self('Result set mapping named "'.$resultName.'" in "'.$entity.' requires a property name.');
+        return new self('Result set mapping named "' . $resultName . '" in "' . $entity . ' requires a property name.');
     }
 
     /**
@@ -331,7 +331,7 @@ class MappingException extends Exception
     {
         $message = "The mapping of property '{$property}' is invalid: The option '{$expectedOption}' is required.";
 
-        if ( ! empty($hint)) {
+        if (! empty($hint)) {
             $message .= ' (Hint: ' . $hint . ')';
         }
 
@@ -387,7 +387,8 @@ class MappingException extends Exception
         if (false !== ($parent = get_parent_class($className))) {
             return new self(sprintf(
                 'Class "%s" sub class of "%s" is not a valid entity or mapped super class.',
-                $className, $parent
+                $className,
+                $parent
             ));
         }
 
@@ -405,7 +406,7 @@ class MappingException extends Exception
      */
     public static function propertyTypeIsRequired($className, $propertyName)
     {
-        return new self("The attribute 'type' is required for the column description of property ".$className."::\$".$propertyName.".");
+        return new self("The attribute 'type' is required for the column description of property " . $className . "::\$" . $propertyName . ".");
     }
 
     /**
@@ -415,7 +416,7 @@ class MappingException extends Exception
      */
     public static function tableIdGeneratorNotImplemented($className)
     {
-        return new self("TableIdGenerator is not yet implemented for use with class ".$className);
+        return new self("TableIdGenerator is not yet implemented for use with class " . $className);
     }
 
     /**
@@ -426,7 +427,7 @@ class MappingException extends Exception
      */
     public static function duplicatePropertyMapping($entity, $propertyName)
     {
-        return new self('Property "'.$propertyName.'" in "'.$entity.'" was already declared, but it must be declared only once');
+        return new self('Property "' . $propertyName . '" in "' . $entity . '" was already declared, but it must be declared only once');
     }
 
     /**
@@ -437,7 +438,7 @@ class MappingException extends Exception
      */
     public static function duplicateAssociationMapping($entity, $propertyName)
     {
-        return new self('Property "'.$propertyName.'" in "'.$entity.'" was already declared, but it must be declared only once');
+        return new self('Property "' . $propertyName . '" in "' . $entity . '" was already declared, but it must be declared only once');
     }
 
     /**
@@ -448,7 +449,7 @@ class MappingException extends Exception
      */
     public static function duplicateQueryMapping($entity, $queryName)
     {
-        return new self('Query named "'.$queryName.'" in "'.$entity.'" was already declared, but it must be declared only once');
+        return new self('Query named "' . $queryName . '" in "' . $entity . '" was already declared, but it must be declared only once');
     }
 
     /**
@@ -459,7 +460,7 @@ class MappingException extends Exception
      */
     public static function duplicateResultSetMapping($entity, $resultName)
     {
-        return new self('Result set mapping named "'.$resultName.'" in "'.$entity.'" was already declared, but it must be declared only once');
+        return new self('Result set mapping named "' . $resultName . '" in "' . $entity . '" was already declared, but it must be declared only once');
     }
 
     /**
@@ -469,7 +470,7 @@ class MappingException extends Exception
      */
     public static function singleIdNotAllowedOnCompositePrimaryKey($entity)
     {
-        return new self('Single id is not allowed on composite primary key in entity '.$entity);
+        return new self('Single id is not allowed on composite primary key in entity ' . $entity);
     }
 
     /**
@@ -491,9 +492,8 @@ class MappingException extends Exception
      */
     public static function unsupportedOptimisticLockingType($entity, $propertyName, $unsupportedType)
     {
-        return new self('Locking type "'.$unsupportedType.'" (specified in "'.$entity.'", property "'.$propertyName.'") '
-            .'is not supported by Doctrine.'
-        );
+        return new self('Locking type "' . $unsupportedType . '" (specified in "' . $entity . '", property "' . $propertyName . '") '
+            . 'is not supported by Doctrine.');
     }
 
     /**
@@ -508,7 +508,7 @@ class MappingException extends Exception
     public static function invalidClassInDiscriminatorMap($className, $owningClass)
     {
         return new self(
-            "Entity class '$className' used in the discriminator map of class '$owningClass' ".
+            "Entity class '$className' used in the discriminator map of class '$owningClass' " .
             "does not exist."
         );
     }
@@ -526,7 +526,11 @@ class MappingException extends Exception
             "The entries " . implode(', ', $entries) . " in discriminator map of class '" . $className . "' is duplicated. " .
             "If the discriminator map is automatically generated you have to convert it to an explicit discriminator map now. " .
             "The entries of the current map are: @DiscriminatorMap({" . implode(', ', array_map(
-                function($a, $b) { return "'$a': '$b'"; }, array_keys($map), array_values($map)
+                function ($a, $b) {
+                    return "'$a': '$b'";
+                },
+                array_keys($map),
+                array_values($map)
             )) . "})"
         );
     }
@@ -603,7 +607,7 @@ class MappingException extends Exception
      */
     public static function duplicateColumnName($className, $columnName)
     {
-        return new self("Duplicate definition of column '".$columnName."' on entity '".$className."' in a property or discriminator column mapping.");
+        return new self("Duplicate definition of column '" . $columnName . "' on entity '" . $className . "' in a property or discriminator column mapping.");
     }
 
     /**
@@ -614,7 +618,7 @@ class MappingException extends Exception
      */
     public static function illegalToManyAssociationOnMappedSuperclass($className, $property)
     {
-        return new self("It is illegal to put an inverse side one-to-many or many-to-many association on mapped superclass '".$className."#".$property."'.");
+        return new self("It is illegal to put an inverse side one-to-many or many-to-many association on mapped superclass '" . $className . "#" . $property . "'.");
     }
 
     /**
@@ -626,8 +630,8 @@ class MappingException extends Exception
      */
     public static function cannotMapCompositePrimaryKeyEntitiesAsForeignId($className, $targetEntity, $targetProperty)
     {
-        return new self("It is not possible to map entity '".$className."' with a composite primary key ".
-            "as part of the primary key of another entity '".$targetEntity."#".$targetProperty."'.");
+        return new self("It is not possible to map entity '" . $className . "' with a composite primary key " .
+            "as part of the primary key of another entity '" . $targetEntity . "#" . $targetProperty . "'.");
     }
 
     /**
@@ -649,7 +653,7 @@ class MappingException extends Exception
      */
     public static function noPropertyNameFoundForColumn($className, $column)
     {
-        return new self("Cannot find a property on '$className' that is mapped to column '$column'. Either the ".
+        return new self("Cannot find a property on '$className' that is mapped to column '$column'. Either the " .
             "property does not exist or an association exists but it has multiple join columns.");
     }
 
@@ -661,7 +665,7 @@ class MappingException extends Exception
      */
     public static function illegalOrphanRemovalOnIdentifierAssociation($className, $property)
     {
-        return new self("The orphan removal option is not allowed on an association that is ".
+        return new self("The orphan removal option is not allowed on an association that is " .
             "part of the identifier in '$className#$property'.");
     }
 
@@ -673,8 +677,8 @@ class MappingException extends Exception
      */
     public static function illegalOrphanRemoval($className, $property)
     {
-        return new self("Orphan removal is only allowed on one-to-one and one-to-many ".
-            "associations, but " . $className."#" .$property . " is not.");
+        return new self("Orphan removal is only allowed on one-to-one and one-to-many " .
+            "associations, but " . $className . "#" . $property . " is not.");
     }
 
     /**
@@ -719,7 +723,7 @@ class MappingException extends Exception
     {
         return new self(
             "Entity '" . $className . "' has to be part of the discriminator map of '" . $rootClassName . "' " .
-            "to be properly mapped in the inheritance hierarchy. Alternatively you can make '".$className."' an abstract class " .
+            "to be properly mapped in the inheritance hierarchy. Alternatively you can make '" . $className . "' an abstract class " .
             "to avoid this exception from occurring."
         );
     }
@@ -788,7 +792,7 @@ class MappingException extends Exception
      */
     public static function compositeKeyAssignedIdGeneratorRequired($className)
     {
-        return new self("Entity '". $className . "' has a composite identifier but uses an ID generator other than manually assigning (Identity, Sequence). This is not supported.");
+        return new self("Entity '" . $className . "' has a composite identifier but uses an ID generator other than manually assigning (Identity, Sequence). This is not supported.");
     }
 
     /**
@@ -800,7 +804,7 @@ class MappingException extends Exception
      */
     public static function invalidTargetEntityClass($targetEntity, $sourceEntity, $associationName)
     {
-        return new self("The target-entity " . $targetEntity . " cannot be found in '" . $sourceEntity."#".$associationName."'.");
+        return new self("The target-entity " . $targetEntity . " cannot be found in '" . $sourceEntity . "#" . $associationName . "'.");
     }
 
     /**
@@ -812,7 +816,9 @@ class MappingException extends Exception
      */
     public static function invalidCascadeOption(array $cascades, $className, $propertyName)
     {
-        $cascades = implode(", ", array_map(function ($e) { return "'" . $e . "'"; }, $cascades));
+        $cascades = implode(", ", array_map(function ($e) {
+            return "'" . $e . "'";
+        }, $cascades));
 
         return new self(sprintf(
             "You have specified invalid cascade options for %s::$%s: %s; available options: 'remove', 'persist', 'refresh', 'merge', and 'detach'",

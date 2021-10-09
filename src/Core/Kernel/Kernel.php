@@ -109,9 +109,9 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         }
 
         if (
-        file_exists(
-            $envConstantsFile = $this->getProjectDir() . '/config/' . $this->getEnvironment() . '/constants.php'
-        )
+            file_exists(
+                $envConstantsFile = $this->getProjectDir() . '/config/' . $this->getEnvironment() . '/constants.php'
+            )
         ) {
             include_once($envConstantsFile);
         } elseif (file_exists($constantsFile = $this->getProjectDir() . '/config/constants.php')) {

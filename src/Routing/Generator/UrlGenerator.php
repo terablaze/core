@@ -216,7 +216,7 @@ class UrlGenerator implements UrlGeneratorInterface
         if ($this->localeType === 'path') {
             if ($locale) {
                 $pathLocalePrefix = "$locale/";
-            }elseif ($this->explicitlySetLocale !== "") {
+            } elseif ($this->explicitlySetLocale !== "") {
                 $pathLocalePrefix = "$this->currentLocale/";
             }
         }

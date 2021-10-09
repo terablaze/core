@@ -7,11 +7,9 @@ use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Container\ContainerAwareTrait;
-use TeraBlaze\Events\Events;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\RouterInterface;
 use TeraBlaze\Session\Traits\SessionAwareTrait;
-use TeraBlaze\View\Exception\Argument as ViewArgumentException;
 use TeraBlaze\View\View;
 
 /**

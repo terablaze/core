@@ -13,7 +13,6 @@ use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\ErrorHandler\Exception\Http\MethodNotAllowedHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
-use TeraBlaze\Events\Events;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\Routing\Events\PostControllerEvent;
 use TeraBlaze\Routing\Events\PostDispatchEvent;
@@ -238,7 +237,6 @@ class Router implements RouterInterface
         if ($event->hasResponse()) {
             return $event->getResponse();
         }
-        Events::fire("terablaze.router.dispatch.before", array($request->getPathInfo()));
 
 
         $requestMethod = $request->getMethod();
@@ -272,10 +270,6 @@ class Router implements RouterInterface
             if ($event->hasResponse()) {
                 return $event->getResponse();
             }
-            Events::fire(
-                "terablaze.router.dispatch.after",
-                array($path, $controller, $action, $parameters, $method)
-            );
             if ($this->current->isCallableRoute()) {
                 $response = $this->container->call($this->current->getCallable(), $parameters);
                 if (!$response instanceof ResponseInterface) {

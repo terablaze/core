@@ -120,9 +120,15 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
             $locales = $fallback ? $this->localeArray($locale) : [$locale];
 
             foreach ($locales as $locale) {
-                if (! is_null($line = $this->getLine(
-                    $namespace, $group, $locale, $item, $replace
-                ))) {
+                if (
+                    ! is_null($line = $this->getLine(
+                        $namespace,
+                        $group,
+                        $locale,
+                        $item,
+                        $replace
+                    ))
+                ) {
                     return $line;
                 }
             }
@@ -146,7 +152,9 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
     public function choice(string $key, $number, array $replace = [], ?string $locale = null): string
     {
         $line = $this->get(
-            $key, $replace, $locale = $this->localeForChoice($locale)
+            $key,
+            $replace,
+            $locale = $this->localeForChoice($locale)
         );
 
         // If the given "number" is actually an array or countable we will simply count the
@@ -159,7 +167,8 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
         $replace['count'] = $number;
 
         return $this->makeReplacements(
-            $this->getSelector()->choose($line, $number, $locale), $replace
+            $this->getSelector()->choose($line, $number, $locale),
+            $replace
         );
     }
 
@@ -219,7 +228,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
 
         foreach ($replace as $key => $value) {
             $line = str_replace(
-                [':'.$key, ':'.StringMethods::upper($key), ':'.StringMethods::ucfirst($key)],
+                [':' . $key, ':' . StringMethods::upper($key), ':' . StringMethods::ucfirst($key)],
                 [$value, StringMethods::upper($value), StringMethods::ucfirst($value)],
                 $line
             );
@@ -352,7 +361,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
     public function getSelector(): MessageSelector
     {
         if (! isset($this->selector)) {
-            $this->selector = new MessageSelector;
+            $this->selector = new MessageSelector();
         }
 
         return $this->selector;

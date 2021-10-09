@@ -102,10 +102,8 @@ class Inspector
         $pattern = "(@[a-zA-Z]+\s*[a-zA-Z0-9, ()_]*)";
         $matches = StringMethods::match($comment, $pattern);
 
-        if ($matches != null)
-        {
-            foreach ($matches as $match)
-            {
+        if ($matches != null) {
+            foreach ($matches as $match) {
                 $parts = ArrayMethods::clean(
                     ArrayMethods::trim(
                         StringMethods::split($match, "[\s]", 2)
@@ -114,8 +112,7 @@ class Inspector
 
                 $meta[$parts[0]] = true;
 
-                if (sizeof($parts) > 1)
-                {
+                if (sizeof($parts) > 1) {
                     $meta[$parts[0]] = ArrayMethods::clean(
                         ArrayMethods::trim(
                             StringMethods::split($parts[1], ",")

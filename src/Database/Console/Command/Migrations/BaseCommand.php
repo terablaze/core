@@ -41,6 +41,6 @@ class BaseCommand extends Command
      */
     protected function getMigrationPath()
     {
-        return baseDir('database'.DIRECTORY_SEPARATOR.'migrations');
+        return baseDir('database' . DIRECTORY_SEPARATOR . 'migrations');
     }
 }

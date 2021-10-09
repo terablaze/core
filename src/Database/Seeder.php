@@ -95,7 +95,7 @@ abstract class Seeder
 
             $instance->setContainer($this->container);
         } else {
-            $instance = new $class;
+            $instance = new $class();
         }
 
         if (isset($this->command)) {
@@ -142,7 +142,7 @@ abstract class Seeder
     public function __invoke(array $parameters = [])
     {
         if (! method_exists($this, 'run')) {
-            throw new InvalidArgumentException('Method [run] missing from '.get_class($this));
+            throw new InvalidArgumentException('Method [run] missing from ' . get_class($this));
         }
 
         return isset($this->container)

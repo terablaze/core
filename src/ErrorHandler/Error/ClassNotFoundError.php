@@ -11,11 +11,13 @@ class ClassNotFoundError extends \Error
     {
         parent::__construct($message, $previous->getCode(), $previous->getPrevious());
 
-        foreach ([
+        foreach (
+            [
             'file' => $previous->getFile(),
             'line' => $previous->getLine(),
             'trace' => $previous->getTrace(),
-        ] as $property => $value) {
+            ] as $property => $value
+        ) {
             $refl = new \ReflectionProperty(\Error::class, $property);
             $refl->setAccessible(true);
             $refl->setValue($this, $value);

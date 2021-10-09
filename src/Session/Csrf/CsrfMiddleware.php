@@ -25,7 +25,8 @@ class CsrfMiddleware implements MiddlewareInterface
 
     private string $guard = '';
 
-    public function __construct($guard) {
+    public function __construct($guard)
+    {
         $this->guard = $guard;
     }
 

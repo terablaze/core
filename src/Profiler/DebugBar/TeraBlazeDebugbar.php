@@ -190,7 +190,9 @@ class TeraBlazeDebugbar extends DebugBar
             } catch (Exception $e) {
                 $this->addThrowable(
                     new Exception(
-                        'Cannot add LogsCollector to TeraBlaze Debugbar: ' . $e->getMessage(), $e->getCode(), $e
+                        'Cannot add LogsCollector to TeraBlaze Debugbar: ' . $e->getMessage(),
+                        $e->getCode(),
+                        $e
                     )
                 );
             }

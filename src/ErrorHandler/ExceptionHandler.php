@@ -414,7 +414,7 @@ class ExceptionHandler implements ExceptionHandlerInterface
      */
     protected function registerErrorViewPaths()
     {
-        (new RegisterErrorViewPaths)();
+        (new RegisterErrorViewPaths())();
     }
 
     /**
@@ -484,7 +484,7 @@ class ExceptionHandler implements ExceptionHandlerInterface
      */
     public function renderForConsole(OutputInterface $output, Throwable $e): void
     {
-        (new ConsoleApplication)->renderThrowable($e, $output);
+        (new ConsoleApplication())->renderThrowable($e, $output);
     }
 
     /**
@@ -500,8 +500,7 @@ class ExceptionHandler implements ExceptionHandlerInterface
         string $version,
         string $message,
         ...$args
-    ): void
-    {
+    ): void {
         @trigger_error(($package || $version ? "Since $package $version: " : '') .
             ($args ? vsprintf($message, $args) : $message), \E_USER_DEPRECATED);
     }

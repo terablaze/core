@@ -372,7 +372,7 @@ class AnnotationDriver
                 }
 
                 if (
-                $generatedValueAnnot =
+                    $generatedValueAnnot =
                     $this->reader->getPropertyAnnotation($property, Mapping\GeneratedValue::class)
                 ) {
                     $metadata->setIdGeneratorType(

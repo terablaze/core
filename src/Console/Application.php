@@ -41,10 +41,17 @@ class Application extends BaseApplication
 
         $inputDefinition = $this->getDefinition();
         $inputDefinition->addOption(new InputOption(
-            '--env', '-e', InputOption::VALUE_REQUIRED, 'The Environment name.', $kernel->getEnvironment()
+            '--env',
+            '-e',
+            InputOption::VALUE_REQUIRED,
+            'The Environment name.',
+            $kernel->getEnvironment()
         ));
         $inputDefinition->addOption(new InputOption(
-            '--no-debug', null, InputOption::VALUE_NONE, 'Switches off debug mode.'
+            '--no-debug',
+            null,
+            InputOption::VALUE_NONE,
+            'Switches off debug mode.'
         ));
     }
 

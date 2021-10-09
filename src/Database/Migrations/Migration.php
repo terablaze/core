@@ -58,7 +58,11 @@ abstract class Migration
         return $this->getConnection()->renameTable($from, $to);
     }
 
-    public function up(): void {}
+    public function up(): void
+    {
+    }
 
-    public function down(): void {}
+    public function down(): void
+    {
+    }
 }
