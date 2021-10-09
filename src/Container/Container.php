@@ -305,9 +305,7 @@ class Container implements ContainerInterface
                 $context = $context[$token];
             }
 
-            if (!is_string($context)) {
-                // TODO: Resolve parameters
-            } elseif ($this->isParameter($context)) {
+            if (is_string($context) && $this->isParameter($context)) {
                 $context = $this->getParameter($this->cleanParameterReference($context));
             }
 
@@ -464,28 +462,9 @@ class Container implements ContainerInterface
      */
     private function resolveArguments(array $argumentDefinitions, array $reflectionParameters = []): array
     {
-        $arguments = [];
         $resolvedArguments = [];
 
-        foreach ($argumentDefinitions as $key => $argumentDefinition) {
-            if (is_array($argumentDefinition)) {
-                $argumentDefinition = $this->resolveArguments($argumentDefinition);
-            }
-            if (is_string($argumentDefinition) && $this->isService($argumentDefinition)) {
-                $arguments[$key] = $this->get($this->cleanServiceReference($argumentDefinition));
-            } elseif (is_string($argumentDefinition) && $this->isParameter($argumentDefinition)) {
-                $arguments[$key] = $this->getParameter($this->cleanParameterReference($argumentDefinition));
-            } else {
-                if (is_array($argumentDefinition)) {
-                    $argumentDefinition = $this->resolveArguments($argumentDefinition);
-                }
-                $arguments[$key] = $argumentDefinition;
-            }
-        }
-
-//        if (count($argumentDefinitions) === count($reflectionParameters)) {
-//            return $arguments;
-//        }
+        $arguments = $this->resolveDefinedArguments($argumentDefinitions);
 
         // Loops through the details of reflectionParameters
         foreach ($reflectionParameters as $reflectionParameter) {
@@ -538,10 +517,33 @@ class Container implements ContainerInterface
         }
 
         if (count($resolvedArguments) == 0) {
-            return array_values($arguments);
+            return $arguments;
         }
 
         return $resolvedArguments;
+    }
+
+    /**
+     * @param array<string|int, mixed> $argumentDefinitions
+     * @return array<string|int, mixed>
+     * @throws ContainerException
+     * @throws ParameterNotFoundException
+     * @throws ReflectionException
+     */
+    private function resolveDefinedArguments(array $argumentDefinitions): array
+    {
+        array_walk_recursive($argumentDefinitions, function (&$argumentDefinition) {
+            if (is_string($argumentDefinition) && $this->isService($argumentDefinition)) {
+                $argumentDefinition = $this->get($this->cleanServiceReference($argumentDefinition));
+            } elseif (is_string($argumentDefinition) && $this->isParameter($argumentDefinition)) {
+                $argumentDefinition = $this->getParameter($this->cleanParameterReference($argumentDefinition));
+            }
+            // If the resolved parameter is an array, resolve again
+            if (is_array($argumentDefinition)) {
+                $argumentDefinition = $this->resolveDefinedArguments($argumentDefinition);
+            }
+        });
+        return $argumentDefinitions ?: [];
     }
 
     /**

@@ -43,7 +43,6 @@ class Handler implements RequestHandlerInterface
                 return $entry;
             };
         }
-        dd($queue);
 
         $this->resolver = $resolver;
     }
