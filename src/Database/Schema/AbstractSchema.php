@@ -103,7 +103,7 @@ abstract class AbstractSchema implements SchemaInterface
 
     public function date(string $column): DateTimeField
     {
-        return $this->fields[] = new DateTimeField($column, "DATETIME");
+        return $this->fields[] = new DateTimeField($column, "DATE");
     }
 
     public function time(string $column): DateTimeField
