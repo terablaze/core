@@ -27,7 +27,7 @@ use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Log\Events\MessageLogged;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\Database\QueryCollector;
-use TeraBlaze\Profiler\Debugbar\DataCollectors\PhpInfoCollector;
+use TeraBlaze\Profiler\DebugBar\DataCollectors\PhpInfoCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RequestCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RouteCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\TeraBlazeCollector;
