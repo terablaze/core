@@ -144,6 +144,11 @@ interface SchemaInterface
     public function getTable(): string;
 
     /**
+     * @return static
+     */
+    public function setType(string $type): self;
+
+    /**
      * @return string
      */
     public function getType(): string;
@@ -207,4 +212,6 @@ interface SchemaInterface
      * @return string[]
      */
     public function getFkDrops(): array;
+
+    public function renameTo(string $to): self;
 }

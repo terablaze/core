@@ -87,7 +87,7 @@ abstract class Model implements ModelInterface
             ) &&
             (!$value instanceof DateTime) &&
             (!empty($value)) &&
-            $this->_getClassMetadata()->getPropertyOptions($property)['convertDate'] ?? "" != false
+            ($this->_getClassMetadata()->getPropertyOptions($property)['convertDate'] ?? "" != false)
         ) {
             try {
                 $value = new DateTime($value);
@@ -121,16 +121,17 @@ abstract class Model implements ModelInterface
         $data = [];
         $params = [];
         foreach ($this->_getClassMetadata()->propertyMappings as $property => $mapping) {
+            $queryName = $this->_getClassMetadata()->getColumnName($property);
             if (false == ($mapping['id'] ?? false)) {
                 $datum = $this->saveDatum($property, $mapping);
                 if (is_null($datum) && $mapping['nullable'] == false) {
                     continue;
                 }
-                $data[$property] = ":$property";
-                $params[$property] = $datum;
+                $data[$queryName] = ":$queryName";
+                $params[$queryName] = $datum;
             }
         }
-        $result = $query->save($data, $params)->execute();
+        $result = $query->save($data, $params);
         if ($query->getType() === QueryBuilderInterface::INSERT) {
             return $query->getLastInsertId();
         }

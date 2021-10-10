@@ -30,6 +30,9 @@ class MysqlConnection extends Connection implements ConnectionInterface
         $this->defaultFetchMode = $config['defaultFetchMode'] ?? PDO::FETCH_ASSOC;
 
         $this->pdo = new PDO("mysql:host={$host};port={$port};dbname={$database}", $username, $password);
+        foreach ($this->options as $key => $value) {
+            $this->pdo->setAttribute($key, $value);
+        }
     }
 
     public function query(): MysqlQueryBuilder
@@ -37,29 +40,9 @@ class MysqlConnection extends Connection implements ConnectionInterface
         return new MysqlQueryBuilder($this);
     }
 
-    public function createTable(string $table): MysqlSchema
+    public function getSchema(string $table): MysqlSchema
     {
-        return new MysqlSchema($this, $table, 'create');
-    }
-
-    public function alterTable(string $table): MysqlSchema
-    {
-        return new MysqlSchema($this, $table, 'alter');
-    }
-
-    public function dropTable(string $table): MysqlSchema
-    {
-        return new MysqlSchema($this, $table, 'drop');
-    }
-
-    public function dropTableIfExists(string $table): MysqlSchema
-    {
-        return new MysqlSchema($this, $table, 'dropIfExists');
-    }
-
-    public function renameTable(string $from, string $to): MysqlSchema
-    {
-        return (new MysqlSchema($this, $from, 'rename'))->renameTo($to);
+        return new MysqlSchema($this, $table);
     }
 
     public function getTables(): array

@@ -50,6 +50,12 @@ abstract class AbstractSchema implements SchemaInterface
     /** @var string[] */
     protected array $fkDrops = [];
 
+    public function __construct(ConnectionInterface $connection, string $table)
+    {
+        $this->connection = $connection;
+        $this->table = $table;
+    }
+
     public function id(string $column = 'id', string $type = 'INT', ?int $length = null): IdField
     {
         return $this->fields[] = new IdField($column, $type, $length);
@@ -160,19 +166,19 @@ abstract class AbstractSchema implements SchemaInterface
     public function index($column, ?string $name = null): void
     {
         $columns = ArrayMethods::wrap($column);
-        $this->indexes[$name ?? "index_" . implode('_', $columns)] = $columns;
+        $this->indexes[$name ?? "INDEX_" . implode('_', $columns)] = $columns;
     }
 
     public function unique($column, ?string $name = null): void
     {
         $columns = ArrayMethods::wrap($column);
-        $this->uniques[$name ?? "unique_" . implode('_', $columns)] = $columns;
+        $this->uniques[$name ?? "UNIQUE_" . implode('_', $columns)] = $columns;
     }
 
     public function fullText($column, ?string $name = null): void
     {
         $columns = ArrayMethods::wrap($column);
-        $this->fullTexts[$name ?? "fulltext_" . implode('_', $columns)] = $columns;
+        $this->fullTexts[$name ?? "FULLTEXT_" . implode('_', $columns)] = $columns;
     }
 
     public function foreign($columns, ?string $name = null): ForeignKey
@@ -235,6 +241,15 @@ abstract class AbstractSchema implements SchemaInterface
     public function getTable(): string
     {
         return $this->table;
+    }
+
+    /**
+     * @return static
+     */
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
     }
 
     /**
@@ -341,14 +356,7 @@ abstract class AbstractSchema implements SchemaInterface
         return $this->fkDrops;
     }
 
-    public function __construct(ConnectionInterface $connection, string $table, string $type)
-    {
-        $this->connection = $connection;
-        $this->table = $table;
-        $this->type = $type;
-    }
-
-    public function renameTo(string $to): SchemaInterface
+    public function renameTo(string $to): self
     {
         $this->renameTo = $to;
         return $this;

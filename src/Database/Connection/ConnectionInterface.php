@@ -51,6 +51,11 @@ interface ConnectionInterface
     public function query(): QueryBuilderInterface;
 
     /**
+     * @return SchemaInterface
+     */
+    public function getSchema(string $table): SchemaInterface;
+
+    /**
      * Start a new query on this connection
      */
     public function getQueryBuilder(): QueryBuilderInterface;

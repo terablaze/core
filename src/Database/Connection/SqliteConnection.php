@@ -19,6 +19,9 @@ class SqliteConnection extends Connection implements ConnectionInterface
         }
 
         $this->pdo = new PDO("sqlite:{$path}");
+        foreach ($this->options as $key => $value) {
+            $this->pdo->setAttribute($key, $value);
+        }
     }
 
     public function query(): SqliteQueryBuilder
@@ -26,29 +29,9 @@ class SqliteConnection extends Connection implements ConnectionInterface
         return new SqliteQueryBuilder($this);
     }
 
-    public function createTable(string $table): SqliteSchema
+    public function getSchema(string $table): SqliteSchema
     {
-        return new SqliteSchema($this, $table, 'create');
-    }
-
-    public function alterTable(string $table): SqliteSchema
-    {
-        return new SqliteSchema($this, $table, 'alter');
-    }
-
-    public function dropTable(string $table): SqliteSchema
-    {
-        return new SqliteSchema($this, $table, 'drop');
-    }
-
-    public function dropTableIfExists(string $table): SqliteSchema
-    {
-        return new SqliteSchema($this, $table, 'dropIfExists');
-    }
-
-    public function renameTable(string $from, string $to): SqliteSchema
-    {
-        return (new SqliteSchema($this, $from, 'rename'))->renameTo($to);
+        return new SqliteSchema($this, $table);
     }
 
     public function getTables(): array

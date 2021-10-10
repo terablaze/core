@@ -12,12 +12,26 @@ use TeraBlaze\Database\Exception\QueryException;
 use TeraBlaze\Database\Query\Expression\ExpressionBuilder;
 use TeraBlaze\Database\Query\QueryBuilderInterface;
 use TeraBlaze\Database\Logging\QueryLogger;
+use TeraBlaze\Database\Schema\SchemaInterface;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use Throwable;
 
 abstract class Connection implements ConnectionInterface
 {
     protected $dateTimeMode = 'DATETIME';
+
+    /**
+     * The default PDO connection options.
+     *
+     * @var array
+     */
+    protected $options = [
+        PDO::ATTR_CASE => PDO::CASE_NATURAL,
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+        PDO::ATTR_STRINGIFY_FETCHES => false,
+//        PDO::ATTR_EMULATE_PREPARES => false,
+    ];
 
     /** @var QueryLogger $queryLogger */
     protected $queryLogger;
@@ -422,5 +436,30 @@ abstract class Connection implements ConnectionInterface
             'sql' => $sql,
             'params' => $params,
         ];
+    }
+
+    public function createTable(string $table): SchemaInterface
+    {
+        return $this->getSchema($table)->setType('create');
+    }
+
+    public function alterTable(string $table): SchemaInterface
+    {
+        return $this->getSchema($table)->setType('alter');
+    }
+
+    public function dropTable(string $table): SchemaInterface
+    {
+        return $this->getSchema($table)->setType('drop');
+    }
+
+    public function dropTableIfExists(string $table): SchemaInterface
+    {
+        return $this->getSchema($table)->setType('dropIfExists');
+    }
+
+    public function renameTable(string $from, string $to): SchemaInterface
+    {
+        return $this->getSchema($from)->setType('rename')->renameTo($to);
     }
 }

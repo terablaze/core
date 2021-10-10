@@ -1,0 +1,28 @@
+<?php
+
+use TeraBlaze\Database\Migrations\Migration;
+
+class {{ class }} extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up(): void
+    {
+        $table = $this->createTable('{{ table }}');
+        $table->id();
+        $table->build();
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down(): void
+    {
+        $this->dropTableIfExists('{{ table }}')->build();
+    }
+}
