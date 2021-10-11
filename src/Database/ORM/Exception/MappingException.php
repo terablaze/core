@@ -663,6 +663,18 @@ class MappingException extends Exception
      *
      * @return MappingException
      */
+    public static function noColumnFoundForProperty($className, $property)
+    {
+        return new self("Cannot find a column that is mapped to a property '$property' on '$className'. Either the " .
+            "column does not exist or an association exists but it has multiple join columns.");
+    }
+
+    /**
+     * @param string $className
+     * @param string $property
+     *
+     * @return MappingException
+     */
     public static function illegalOrphanRemovalOnIdentifierAssociation($className, $property)
     {
         return new self("The orphan removal option is not allowed on an association that is " .

@@ -158,6 +158,15 @@ class ClassMetadata implements ClassMetadataInterface
     public $name;
 
     /**
+     * READ-ONLY: The namespace the entity class is contained in.
+     *
+     * @var string
+     *
+     * @todo Not really needed. Usage could be localized.
+     */
+    public $namespace;
+
+    /**
      * READ-ONLY: The property names of all properties that are part of the identifier/primary key
      * of the mapped entity class.
      *
@@ -386,6 +395,7 @@ class ClassMetadata implements ClassMetadataInterface
         $this->namingStrategy = $namingStrategy ?: new DefaultNamingStrategy();
         $this->instantiator   = new Instantiator();
         $this->reflClass = new ReflectionClass($entityName);
+        $this->namespace = $this->reflClass->getNamespaceName();
     }
 
     /**
@@ -1453,9 +1463,9 @@ class ClassMetadata implements ClassMetadataInterface
      */
     public function getPropertyType($propertyName)
     {
-        return isset($this->propertyMappings[$propertyName])
-            ? $this->propertyMappings[$propertyName]['type']
-            : null;
+        return $this->propertyMappings[$propertyName]['type']
+            ?? $this->associationMappings[$propertyName]['targetEntity']
+            ?? null;
     }
 
     /**
@@ -1771,6 +1781,33 @@ class ClassMetadata implements ClassMetadataInterface
         }
 
         throw MappingException::noPropertyNameFoundForColumn($this->name, $columnName);
+    }
+
+    /**
+     * Used to retrieve a columnName for either property or association from a given column.
+     *
+     * @param string $propertyName
+     *
+     * @return string
+     *
+     * @throws MappingException
+     */
+    public function getColumnForProperty($propertyName)
+    {
+        if (isset($this->propertyMappings[$propertyName]['columnName'])) {
+            return $this->propertyMappings[$propertyName]['columnName'];
+        }
+
+        foreach ($this->associationMappings as $assocName => $mapping) {
+            if (
+                $this->isAssociationWithSingleJoinColumn($assocName) &&
+                ($columnName = ($this->associationMappings[$propertyName]['joinColumns'][0]['name'] ?? false))
+            ) {
+                return $columnName;
+            }
+        }
+
+        throw MappingException::noColumnFoundForProperty($this->name, $propertyName);
     }
 
     public function getAllMappings(): array

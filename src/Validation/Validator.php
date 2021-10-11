@@ -7,6 +7,7 @@ use TeraBlaze\Validation\Rule\RuleInterface;
 
 class Validator
 {
+    /** @var RuleInterface[] */
     protected array $rules = [];
 
     public function addRule(string $alias, RuleInterface $rule): self

@@ -77,8 +77,8 @@ abstract class AbstractBuilder implements BuilderInterface
             $template .= " UNSIGNED";
         }
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -92,8 +92,8 @@ abstract class AbstractBuilder implements BuilderInterface
     {
         $template = "$prefix `$field->column` tinyint(1)";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -108,14 +108,20 @@ abstract class AbstractBuilder implements BuilderInterface
     {
         $template = "$prefix `$field->column` $field->type";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default === 'CURRENT_TIMESTAMP' || $field->default === 'NOW()') {
             $template .= " DEFAULT $field->default";
+        } elseif ($field->useCurrent) {
+            $template .= " DEFAULT CURRENT_TIMESTAMP";
         } elseif ($field->default !== null) {
             $template .= " DEFAULT '$field->default'";
+        }
+
+        if ($field->useCurrentOnUpdate) {
+            $template .= " ON UPDATE CURRENT_TIMESTAMP";
         }
 
         return $template;
@@ -129,8 +135,8 @@ abstract class AbstractBuilder implements BuilderInterface
             $template .= " UNSIGNED";
         }
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -148,8 +154,8 @@ abstract class AbstractBuilder implements BuilderInterface
             $template .= " UNSIGNED";
         }
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -163,8 +169,8 @@ abstract class AbstractBuilder implements BuilderInterface
     {
         $template = "$prefix `$field->column` $field->type($field->length)";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -178,8 +184,8 @@ abstract class AbstractBuilder implements BuilderInterface
     {
         $template = "$prefix `$field->column` $field->type";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -193,8 +199,8 @@ abstract class AbstractBuilder implements BuilderInterface
     {
         $template = "$prefix `$field->column` ENUM(" . implode('", "', $field->enumValues) . ")";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -208,8 +214,8 @@ abstract class AbstractBuilder implements BuilderInterface
     {
         $template = "$prefix `$field->column` JSON";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {

@@ -3,6 +3,7 @@
 namespace TeraBlaze\Database\ORM;
 
 use DateTime;
+use Exception;
 use TeraBlaze\Database\Exception\ConnectionException;
 use TeraBlaze\Database\ORM\Exception\MappingException;
 use TeraBlaze\Support\ArrayMethods;
@@ -13,21 +14,11 @@ use TeraBlaze\Database\Connection\ConnectionInterface;
 use TeraBlaze\Database\Query\QueryBuilderInterface;
 use TeraBlaze\Database\ORM\Exception\PropertyException;
 use TeraBlaze\Support\StringMethods;
+use Throwable;
 
 abstract class Model implements ModelInterface
 {
     use PolymorphismTrait;
-
-    /**
-     * Model constructor.
-     * @param array<int|string, mixed> $initData
-     */
-    public function __construct(array $initData = [])
-    {
-        if (is_array($initData) && (!empty($initData))) {
-            $this->initData($initData);
-        }
-    }
 
     public static function __callStatic(string $method, array $parameters = [])
     {
@@ -44,11 +35,13 @@ abstract class Model implements ModelInterface
         if (empty($initData)) {
             return;
         }
+
         foreach ($initData as $key => $value) {
             try {
                 $prop = $this->_getInitProp($key);
             } catch (PropertyException $propertyException) {
                 // TODO: Add a logger to log the exception
+                unset($prop);
                 continue;
             }
             $this->_setPropertyValue($prop, $value);
@@ -91,10 +84,13 @@ abstract class Model implements ModelInterface
         ) {
             try {
                 $value = new DateTime($value);
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
             }
         }
-        $this->$property = $value;
+        try {
+            $this->$property = $value;
+        } catch (Throwable $throwable) {
+        }
     }
 
     /**
@@ -104,6 +100,23 @@ abstract class Model implements ModelInterface
     {
         $model = new static();
         return $model->_getConnection()->getQueryBuilder()->from($model->_getTable());
+    }
+
+    /**
+     * @param array<int|string, mixed> $initData
+     * return $this|null
+     */
+    public static function create(array $initData = []): ?self
+    {
+        $model = new static();
+        if (is_array($initData) && (!empty($initData))) {
+            $model->initData($initData);
+        }
+        if ($model->save()) {
+            $model->_loadAssociations($initData);
+            return $model;
+        }
+        return null;
     }
 
     public function save()
@@ -120,8 +133,8 @@ abstract class Model implements ModelInterface
         }
         $data = [];
         $params = [];
-        foreach ($this->_getClassMetadata()->propertyMappings as $property => $mapping) {
-            $queryName = $this->_getClassMetadata()->getColumnName($property);
+        foreach ($this->_getClassMetadata()->getAllMappings() as $property => $mapping) {
+            $queryName = $this->_getClassMetadata()->getColumnForProperty($property);
             if (false == ($mapping['id'] ?? false)) {
                 $datum = $this->saveDatum($property, $mapping);
                 if (is_null($datum) && $mapping['nullable'] == false) {
@@ -133,7 +146,11 @@ abstract class Model implements ModelInterface
         }
         $result = $query->save($data, $params);
         if ($query->getType() === QueryBuilderInterface::INSERT) {
-            return $query->getLastInsertId();
+            try {
+                return $this->$primaryProperty = $query->getLastInsertId();
+            } catch (Throwable $throwable) {
+                // TODO: deal with this later
+            }
         }
         return $result !== false;
     }
@@ -207,7 +224,8 @@ abstract class Model implements ModelInterface
         $limit = null,
         $offset = null,
         $page = null
-    ): ?EntityCollection {
+    ): ?EntityCollection
+    {
         $model = new static();
         if (empty($fields)) {
             $fields = ['*'];
@@ -223,7 +241,8 @@ abstract class Model implements ModelInterface
         $limit = null,
         $offset = null,
         $page = null
-    ) {
+    )
+    {
         $fields = ArrayMethods::wrap($fields);
         $query = $this
             ->_getConnection()
@@ -241,6 +260,7 @@ abstract class Model implements ModelInterface
         foreach ($rows as $row) {
             $object = clone $this;
             $object->initData($row);
+            $object->_loadAssociations($row);
             $objectRows[] = $object;
             $object = null;
         }
@@ -252,7 +272,8 @@ abstract class Model implements ModelInterface
         $parameters = [],
         $fields = ["*"],
         $order = []
-    ): ?self {
+    ): ?self
+    {
         $model = new static();
         if (empty($fields)) {
             $fields = ['*'];
@@ -265,7 +286,8 @@ abstract class Model implements ModelInterface
         $parameters = [],
         $fields = ["*"],
         $orderList = []
-    ): ?self {
+    ): ?self
+    {
         if (is_string($fields)) {
             $fields = [$fields];
         }
@@ -279,6 +301,7 @@ abstract class Model implements ModelInterface
         $first = $query->first();
         if ($first) {
             $this->initData($first);
+            $this->_loadAssociations($first);
             return $this;
         }
         return null;
@@ -288,7 +311,7 @@ abstract class Model implements ModelInterface
     {
         $model = new static();
         $primaryKey = $model->_getClassMetadata()->getSingleIdentifierColumnName();
-        return $model->_first(["$primaryKey = :$primaryKey",], [":$primaryKey" => $modelId]);
+        return $model->_first("$primaryKey = :$primaryKey", [":$primaryKey" => $modelId]);
     }
 
     public static function count($where = '', $parameters = [])
@@ -423,5 +446,44 @@ abstract class Model implements ModelInterface
             'primaryProperty' => $primaryProperty,
             'primaryColumn' => $this->_getClassMetadata()->getSingleIdentifierColumnName(),
         ];
+    }
+
+    private function _loadAssociations(array $initData)
+    {
+        $primaryProperty = $this->_getPrimaryColumn()['primaryProperty'];
+        ModelStore::store(static::class, $this->$primaryProperty, $this);
+
+        $associationMappings = $this->_getClassMetadata()->getAssociationMappings();
+        foreach ($associationMappings as $property => $associationMapping) {
+            /** @var string $type */
+            $type = $this->_getClassMetadata()->getPropertyType($property);
+            if (!is_a($type, Model::class, true)) {
+                continue;
+            }
+            if ($associationMapping['type'] & ClassMetadata::TO_ONE) {
+                $column = $this->_getClassMetadata()->getColumnForProperty($property);
+                $initDatum = $initData[$column];
+                $storedInstance = ModelStore::retrieve($type, $initDatum);
+                if (isset($this->$property) && ($this->$property == $storedInstance)) {
+                    continue;
+                }
+                if (ModelStore::has($type, $initDatum)) {
+                    $this->$property = $storedInstance;
+                    continue;
+                }
+                $column = $this->_getClassMetadata()->getSingleAssociationReferencedJoinColumnName($property);
+
+                $value = $type::first("$column = ?", [$initDatum]);
+                $this->$property = $value;
+            } elseif ($associationMapping['type'] == ClassMetadata::ONE_TO_MANY) {
+                $mappedProperty = $this->_getClassMetadata()->getAssociationMappedByTargetProperty($property);
+
+                $column = (new $type())->_getClassMetadata()->getColumnForProperty($mappedProperty);
+                /** @var EntityCollection $many */
+                $many = $type::all("$column = ?", [$this->$primaryProperty]);
+
+                $this->$property = $many;
+            }
+        }
     }
 }

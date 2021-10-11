@@ -3,8 +3,6 @@
 namespace TeraBlaze\Database\Schema\Builder;
 
 use TeraBlaze\Database\Exception\MigrationException;
-use TeraBlaze\Database\Schema\Field\IdField;
-use TeraBlaze\Support\ArrayMethods;
 
 class MysqlBuilder extends AbstractBuilder
 {
@@ -30,14 +28,16 @@ class MysqlBuilder extends AbstractBuilder
         }
 
         if ($this->schema->getType() === 'alter') {
-            $fields = join(PHP_EOL, array_map(fn($field) => "$field,", (array) $fields));
+            $fields = join(PHP_EOL, array_map(fn($field) => "$field,", (array)$fields));
             $drops = $this->compileDrops();
             $renames = $this->compileRenames();
 
-            $query = $this->cleanQuery("ALTER TABLE `{$this->schema->getTable()}`
-                $fields
-                $renames
-                $drops") . ";";
+            if (!empty($fields) || !empty($drops) || !empty($renames)) {
+                $query = $this->cleanQuery("ALTER TABLE `{$this->schema->getTable()}`
+                    $fields
+                    $renames
+                    $drops") . ";";
+            }
         }
 
         if ($this->schema->getType() === 'drop') {
@@ -48,11 +48,9 @@ class MysqlBuilder extends AbstractBuilder
             $query = "DROP TABLE IF EXISTS `{$this->schema->getTable()}`;";
         }
 
-        if (empty($query)) {
-            throw new MigrationException('You cannot build empty migration');
+        if (!empty($query)) {
+            $this->schema->getConnection()->execute($query);
         }
-
-        $this->schema->getConnection()->execute($query);
 
         if ($indexes = $this->getIndexes()) {
             $this->schema->getConnection()->execute($indexes);

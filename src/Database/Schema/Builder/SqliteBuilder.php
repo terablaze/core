@@ -14,7 +14,6 @@ use TeraBlaze\Database\Schema\Field\IntField;
 use TeraBlaze\Database\Schema\Field\JsonField;
 use TeraBlaze\Database\Schema\Field\StringField;
 use TeraBlaze\Database\Schema\Field\TextField;
-use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
 
 class SqliteBuilder extends AbstractBuilder
@@ -24,46 +23,45 @@ class SqliteBuilder extends AbstractBuilder
         $query = "";
         $fields = array_map(fn($field) => $this->stringForField($field), $this->schema->getFields());
 
-        $primaries = array_filter($this->schema->getFields(), fn($field) => $field instanceof IdField);
-        $primaryColumns = array_map(fn(IdField $primary) => $primary->column, $primaries);
-        $primary = implode(', ', ArrayMethods::wrap($primaryColumns));
-        $primaryKey = !empty($primary) ? "PRIMARY KEY (`$primary`)" : '';
+        $primaryKeys = $this->getPrimaryKeys();
 
         if ($this->schema->getType() === 'create') {
             $fields = join(',' . PHP_EOL, $fields);
 
             $query = "
                 CREATE TABLE \"{$this->schema->getTable()}\" (
-                    $fields
+                    {$this->cleanQuery($fields . PHP_EOL . $primaryKeys)}
                 );
             ";
         }
 
         if ($this->schema->getType() === 'rename') {
-            $query = "ALTER TABLE `{$this->schema->getTable()}` RENAME TO `{$this->schema->getRenameTo()}`";
+            $query = "ALTER TABLE \"{$this->schema->getTable()}\" RENAME TO \"{$this->schema->getRenameTo()}\"";
         }
 
         if ($this->schema->getType() === 'alter') {
             $fields = join(';' . PHP_EOL, $fields);
+            $drops = $this->compileDrops();
+            $renames = $this->compileRenames();
 
-            $query = "
-                ALTER TABLE \"{$this->schema->getTable()}\"
-                $fields;
-            ";
+            if (!empty($fields) || !empty($drops) || !empty($renames)) {
+                $query = $this->cleanQuery("ALTER TABLE \"{$this->schema->getTable()}\"
+                    $renames
+                    $drops") . ";";
+            }
         }
 
         if ($this->schema->getType() === 'drop') {
-            $query = "DROP TABLE `{$this->schema->getTable()}`;";
+            $query = "DROP TABLE \"{$this->schema->getTable()}\";";
         }
 
         if ($this->schema->getType() === 'dropIfExists') {
-            $query = "DROP TABLE IF EXISTS `{$this->schema->getTable()}`;";
+            $query = "DROP TABLE IF EXISTS \"{$this->schema->getTable()}\";";
         }
 
-        if (empty($query)) {
-            throw new MigrationException('You cannot build empty migration');
+        if (!empty($query)) {
+            $this->schema->getConnection()->execute($query);
         }
-        $this->schema->getConnection()->execute($query);
 
         if ($indexes = $this->getIndexes()) {
             $this->schema->getConnection()->execute($indexes);
@@ -72,6 +70,17 @@ class SqliteBuilder extends AbstractBuilder
         if ($foreignKeys = $this->getForeignKeys()) {
             $this->schema->getConnection()->execute("ALTER TABLE \"{$this->schema->getTable()}\" $foreignKeys;");
         }
+    }
+
+    protected function getPrimaryKeys(): string
+    {
+        $query = "";
+        if ($this->primaries) {
+            $columns = implode('", "', $this->primaries['columns'] ?? []);
+            $name = $this->primaries['name'] ?? 'PRIMARY';
+            $query = "CONSTRAINT \"$name\" PRIMARY KEY (\"$columns\")";
+        }
+        return $query;
     }
 
     protected function stringForField(Field $field): string
@@ -158,7 +167,7 @@ class SqliteBuilder extends AbstractBuilder
         }
 
         if ($field->default !== null) {
-            $default = (int) $field->default;
+            $default = (int)$field->default;
             $template .= " DEFAULT $default";
         }
 
@@ -251,8 +260,8 @@ class SqliteBuilder extends AbstractBuilder
         $template = "$prefix \"$field->column\" CHECK (\"$field->column\" " .
             "IN(" . implode('", "', $field->enumValues) . "))";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -266,8 +275,8 @@ class SqliteBuilder extends AbstractBuilder
     {
         $template = "$prefix \"$field->column\" JSON";
 
-        if ($field->nullable) {
-            $template .= " DEFAULT NULL";
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
         }
 
         if ($field->default !== null) {
@@ -275,5 +284,43 @@ class SqliteBuilder extends AbstractBuilder
         }
 
         return $template;
+    }
+
+    protected function compileRenames(): string
+    {
+        $columns = implode(
+            PHP_EOL,
+            array_map(
+                function ($from, $to) {
+                    return "RENAME COLUMN \"$from\" TO \"$to\",";
+                },
+                array_keys($this->schema->getRenameColumns()),
+                array_values($this->schema->getRenameColumns())
+            )
+        );
+        $indexes = implode(
+            PHP_EOL,
+            array_map(
+                function ($from, $to) {
+                    return "RENAME INDEX \"$from\" TO \"$to\",";
+                },
+                array_keys($this->schema->getRenameIndexes()),
+                array_values($this->schema->getRenameIndexes())
+            )
+        );
+
+        return ($columns ? $columns . PHP_EOL : "") .
+            ($indexes ? $indexes . PHP_EOL : "");
+    }
+
+    protected function compileDrops(): string
+    {
+        $drops = implode(PHP_EOL, array_map(fn($drop) => "DROP COLUMN \"$drop\",", $this->schema->getDrops()));
+        $indexDrops = implode(PHP_EOL, array_map(fn($drop) => "DROP INDEX \"$drop\",", $this->schema->getIndexDrops()));
+        $fkDrops = implode(PHP_EOL, array_map(fn($drop) => "DROP FOREIGN KEY \"$drop\",", $this->schema->getFkDrops()));
+
+        return ($drops ? $drops . PHP_EOL : "") .
+            ($indexDrops ? $indexDrops . PHP_EOL : "") .
+            ($fkDrops ? $fkDrops . PHP_EOL : "");
     }
 }
