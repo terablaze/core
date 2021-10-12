@@ -8,7 +8,6 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Kernel\Handler;
-use TeraBlaze\Core\Kernel\HttpKernel;
 use TeraBlaze\HttpBase\Request;
 
 class RouterMiddleware implements MiddlewareInterface
@@ -24,7 +23,7 @@ class RouterMiddleware implements MiddlewareInterface
 
     /**
      * @param ServerRequestInterface|Request $request
-     * @param RequestHandlerInterface $handler
+     * @param RequestHandlerInterface|Handler $handler
      * @return ResponseInterface
      * @throws Exception\ImplementationException
      * @throws \ReflectionException
@@ -51,7 +50,9 @@ class RouterMiddleware implements MiddlewareInterface
                 $middleware = $this->container->make($middleware);
             });
 
-            return (new Handler($this->container, $middlewares))->handle($dispatchResult);
+            $handler->addMiddleware($middlewares);
+
+            return $handler->handle($dispatchResult);
         }
 
         throw new \Exception('Unable to resolve request');

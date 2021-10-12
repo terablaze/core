@@ -48,6 +48,7 @@ class Handler implements RequestHandlerInterface
         $entry = current($this->queue);
         $middleware = call_user_func($this->resolver, $entry);
         next($this->queue);
+        array_shift($this->queue);
 
         if ($middleware instanceof MiddlewareInterface) {
             return $middleware->process($request, $this);
@@ -70,6 +71,11 @@ class Handler implements RequestHandlerInterface
                 MiddlewareInterface::class
             )
         );
+    }
+
+    public function addMiddleware($middleware)
+    {
+        array_splice($this->queue, -1, 0, $middleware);
     }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
