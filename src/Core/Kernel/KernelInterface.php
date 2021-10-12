@@ -107,7 +107,7 @@ interface KernelInterface extends HttpKernelInterface
 
     public function registerMiddleWares(): void;
 
-    public function registerMiddleWare(string $class): void;
+    public function registerMiddleWare(string $class, ?string $name = null): void;
 
     public function getInitialRequest(): ?Request;
 

@@ -14,6 +14,7 @@ use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\ErrorHandler\Exception\Http\MethodNotAllowedHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use TeraBlaze\HttpBase\Request;
+use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Routing\Events\PostControllerEvent;
 use TeraBlaze\Routing\Events\PostDispatchEvent;
 use TeraBlaze\Routing\Events\PreControllerEvent;
@@ -157,77 +158,14 @@ class Router implements RouterInterface
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @param string $controller
-     * @param string $action
-     * @param array<string|int, mixed> $parameters
-     * @param string $method
-     * @return ResponseInterface
-     * @throws ImplementationException
-     * @throws ReflectionException
-     */
-    protected function pass(
-        ServerRequestInterface $request,
-        string $controller,
-        string $action,
-        array $parameters = array(),
-        string $method = ''
-    ): ResponseInterface {
-        $event = new PreControllerEvent($this, $request, $controller);
-        $controller = $event->getController();
-
-        $className = ucfirst($controller);
-
-        if (!class_exists($className)) {
-            throw new NotFoundHttpException("Controller '{$className}' not found");
-        }
-
-        if (!$this->container->has($className)) {
-            $this->container->registerService($className, ['class' => $className]);
-        }
-
-        $controllerInstance = $this->container->get($className);
-        if ($controllerInstance instanceof ControllerInterface) {
-            $controllerInstance->setContainer($this->container);
-        }
-
-        $event = new PostControllerEvent($this, $request, $controllerInstance);
-        $controllerInstance = $event->getControllerInstance();
-
-        if (!method_exists($controllerInstance, $action)) {
-            throw new NotFoundHttpException("Action '{$action}' not found");
-        }
-
-        $response = $this->container->call([$controllerInstance, $action], $parameters);
-
-        if (is_null($response)) {
-            throw new ImplementationException(
-                "Result of {$className}::{$action}() is either empty or null, " .
-                "ensure the controller's action {$className}::{$action}() " .
-                "is properly implemented and returns an instance of " . ResponseInterface::class
-            );
-        }
-
-        if (!$response instanceof ResponseInterface) {
-            throw new ImplementationException(
-                "Result of {$className}::{$action}() is of type " . gettype($response) .
-                ", ensure the controller's action {$className}::{$action}() " .
-                "returns an instance of " . ResponseInterface::class
-            );
-        }
-
-        return $response;
-    }
-
-    /**
-     * @param Request|ServerRequestInterface $request
-     * @return ResponseInterface
-     * @throws ImplementationException
-     * @throws ReflectionException
+     * @param ServerRequestInterface|Request $request
+     * @return ServerRequestInterface|Request|ResponseInterface|Response
      * @throws ContainerException
+     * @throws ImplementationException
      * @throws ParameterNotFoundException
+     * @throws ReflectionException
      */
-    public function dispatch(ServerRequestInterface $request): ResponseInterface
+    public function dispatch(ServerRequestInterface $request)
     {
         $this->currentRequest = $request;
         $event = new PreDispatchEvent($this, $request);
@@ -238,16 +176,10 @@ class Router implements RouterInterface
             return $event->getResponse();
         }
 
-
         $requestMethod = $request->getMethod();
-        $parameters = array();
-        $controller = '';
-        $action = '';
 
         if ($this->match($path)) {
-            $controller = $this->current->getController();
-            $action = $this->current->getAction();
-            $parameters = $this->current->getParameters();
+            $request = $request->withAttribute('route', $this->current);
             $method = $this->current->getCleanedMethod();
 
             if (!in_array(strtolower($requestMethod), $method) && !empty($method)) {
@@ -270,21 +202,8 @@ class Router implements RouterInterface
             if ($event->hasResponse()) {
                 return $event->getResponse();
             }
-            if ($this->current->isCallableRoute()) {
-                $response = $this->container->call($this->current->getCallable(), $parameters);
-                if (!$response instanceof ResponseInterface) {
-                    throw new ImplementationException(
-                        sprintf(
-                            "Result of this closure is of type %s, ensure the an instance of %s is returned",
-                            gettype($response),
-                            ResponseInterface::class
-                        )
-                    );
-                }
-                return $response;
-            }
 
-            return $this->pass($request, $controller, $action, $parameters, $requestMethod);
+            return $request;
         }
 
         throw new NotFoundHttpException(sprintf('No route found for : "%s"', $path));

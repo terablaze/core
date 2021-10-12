@@ -3,7 +3,9 @@
 namespace TeraBlaze\Core\Kernel;
 
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use TeraBlaze\Container\Container;
+use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\Core\Kernel\Events\ExceptionEvent;
 use TeraBlaze\Core\Kernel\Events\FinishRequestEvent;
 use TeraBlaze\Core\Kernel\Events\RequestEvent;
@@ -11,10 +13,15 @@ use TeraBlaze\Core\Kernel\Events\ResponseEvent;
 use TeraBlaze\Core\Kernel\Events\TerminateEvent;
 use TeraBlaze\ErrorHandler\Exception\Http\BadRequestHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
+use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\HttpBase\Exception\RequestExceptionInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
+use TeraBlaze\Routing\Events\PostControllerEvent;
+use TeraBlaze\Routing\Events\PreControllerEvent;
+use TeraBlaze\Routing\Exception\ImplementationException;
+use TeraBlaze\Routing\Route;
 
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {
@@ -98,12 +105,86 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
             return $this->filterResponse($event->getResponse(), $request);
         }
 
+        array_push($this->middlewares, [$this->container->get(HttpKernel::class), 'pass']);
+
         $handler = new Handler($this->container, $this->middlewares);
 
         /** @var Response $response */
         $response = $handler->handle($request);
 
         return $this->filterResponse($response, $request);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     */
+    public function pass(
+        ServerRequestInterface $request
+    ): ResponseInterface {
+        /** @var Route $route */
+        $route = $request->getAttribute('route');
+        if ($route->isCallableRoute()) {
+            $response = $this->container->call($route->getCallable(), $route->getParameters());
+            if (!$response instanceof ResponseInterface) {
+                throw new ImplementationException(
+                    sprintf(
+                        "Result of this closure is of type %s, ensure the an instance of %s is returned",
+                        gettype($response),
+                        ResponseInterface::class
+                    )
+                );
+            }
+            return $response;
+        }
+
+        $controller = $route->getController();
+        $action = $route->getAction();
+        $parameters = $route->getParameters();
+
+//        $event = new PreControllerEvent(router(), $request, $controller);
+//        $controller = $event->getController();
+
+        $className = ucfirst($controller);
+
+        if (!class_exists($className)) {
+            throw new NotFoundHttpException("Controller '{$className}' not found");
+        }
+
+        if (!$this->container->has($className)) {
+            $this->container->registerService($className, ['class' => $className]);
+        }
+
+        $controllerInstance = $this->container->get($className);
+        if ($controllerInstance instanceof ControllerInterface) {
+            $controllerInstance->setContainer($this->container);
+        }
+
+        $event = new PostControllerEvent(router(), $request, $controllerInstance);
+        $controllerInstance = $event->getControllerInstance();
+
+        if (!method_exists($controllerInstance, $action)) {
+            throw new NotFoundHttpException("Action '{$action}' not found");
+        }
+
+        $response = $this->container->call([$controllerInstance, $action], $parameters);
+
+        if (is_null($response)) {
+            throw new ImplementationException(
+                "Result of {$className}::{$action}() is either empty or null, " .
+                "ensure the controller's action {$className}::{$action}() " .
+                "is properly implemented and returns an instance of " . ResponseInterface::class
+            );
+        }
+
+        if (!$response instanceof ResponseInterface) {
+            throw new ImplementationException(
+                "Result of {$className}::{$action}() is of type " . gettype($response) .
+                ", ensure the controller's action {$className}::{$action}() " .
+                "returns an instance of " . ResponseInterface::class
+            );
+        }
+
+        return $response;
     }
 
     /**

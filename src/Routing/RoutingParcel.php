@@ -28,5 +28,6 @@ class RoutingParcel extends Parcel implements ParcelInterface
     {
         $this->registerRoutes($routes);
         $this->container->make(RouterMiddleware::class);
+        $this->getKernel()->registerMiddleWare(RouterMiddleware::class);
     }
 }

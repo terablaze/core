@@ -460,7 +460,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
      * @param string $class
      * @throws ReflectionException
      */
-    public function registerMiddleWare(string $class): void
+    public function registerMiddleWare(string $class, ?string $name = null): void
     {
         if ($this->container->has($class)) {
             $this->middlewares[$class] = $this->container->get($class);
@@ -470,7 +470,10 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
             throw new Exception("Middleware with class name: {$class} not found");
         }
         $this->container->registerService($class, ['class' => $class]);
-        $this->middlewares[$class] = $this->container->get($class);
+        if (! is_null($name)) {
+            $this->container->setAlias($name, $class);
+        }
+        $this->middlewares[$name ?? $class] = $this->container->get($class);
     }
 
     protected function bootEventDispatcher()

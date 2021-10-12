@@ -11,6 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use RuntimeException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Routing\RouterMiddleware;
+use TeraBlaze\Support\ArrayMethods;
 
 class Handler implements RequestHandlerInterface
 {
@@ -24,15 +25,7 @@ class Handler implements RequestHandlerInterface
     public function __construct(ContainerInterface $container, $queue, callable $resolver = null)
     {
         $this->container = $container;
-        if (!is_array($queue)) {
-            $queue = [$queue];
-        }
-
-        $this->queue = $queue;
-
-        if ($this->container->has(RouterMiddleware::class)) {
-            $this->queue[RouterMiddleware::class] = $this->container->get(RouterMiddleware::class);
-        }
+        $this->queue = ArrayMethods::wrap($queue);
 
         if (empty($this->queue)) {
             throw new InvalidArgumentException('Middleware queue cannot be empty');

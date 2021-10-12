@@ -6,6 +6,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
 use TeraBlaze\Collection\Exceptions\TypeException;
+use TeraBlaze\HttpBase\Request;
+use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Routing\Exception\ImplementationException;
 use TeraBlaze\Routing\Exception\MissingParametersException;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;
@@ -52,11 +54,9 @@ interface RouterInterface
 
     /**
      * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     * @throws ImplementationException
-     * @throws ReflectionException
+     * @return ServerRequestInterface|Request|ResponseInterface|Response
      */
-    public function dispatch(ServerRequestInterface $request): ResponseInterface;
+    public function dispatch(ServerRequestInterface $request);
 
     /**
      * @param string $name
