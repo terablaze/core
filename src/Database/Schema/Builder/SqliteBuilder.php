@@ -14,6 +14,8 @@ use TeraBlaze\Database\Schema\Field\IntField;
 use TeraBlaze\Database\Schema\Field\JsonField;
 use TeraBlaze\Database\Schema\Field\StringField;
 use TeraBlaze\Database\Schema\Field\TextField;
+use TeraBlaze\Database\Schema\ForeignKey;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
 
 class SqliteBuilder extends AbstractBuilder
@@ -311,6 +313,86 @@ class SqliteBuilder extends AbstractBuilder
 
         return ($columns ? $columns . PHP_EOL : "") .
             ($indexes ? $indexes . PHP_EOL : "");
+    }
+
+    protected function getIndexes(): string
+    {
+        $indexesString = implode(
+            PHP_EOL,
+            array_map(
+                function ($name, $index) {
+                    if (is_array($index)) {
+                        $index = implode('", "', $index);
+                    }
+                    return "CREATE INDEX \"$name\" ON \"{$this->schema->getTable()}\"(\"$index\");";
+                },
+                array_keys($this->indexes),
+                array_values($this->indexes)
+            )
+        );
+
+        $uniquesString = implode(
+            PHP_EOL,
+            array_map(
+                function ($name, $index) {
+                    if (is_array($index)) {
+                        $index = implode('", "', $index);
+                    }
+                    return "CREATE UNIQUE INDEX \"$name\" ON \"{$this->schema->getTable()}\"(\"$index\");";
+                },
+                array_keys($this->uniques),
+                array_values($this->uniques)
+            )
+        );
+
+        $fullTextString = implode(
+            PHP_EOL,
+            array_map(
+                function ($name, $index) {
+                    if (is_array($index)) {
+                        $index = implode('", "', $index);
+                    }
+                    return "CREATE FULLTEXT INDEX \"$name\" ON \"{$this->schema->getTable()}\"(\"$index\");";
+                },
+                array_keys($this->fullTexts),
+                array_values($this->fullTexts)
+            )
+        );
+
+        return ($indexesString ? $indexesString . PHP_EOL : "") .
+            ($uniquesString ? $uniquesString . PHP_EOL : "") .
+            ($fullTextString ? $fullTextString . PHP_EOL : "");
+    }
+
+    protected function getForeignKeys(): string
+    {
+        return implode(
+            "," . PHP_EOL,
+            array_map(
+                function (ForeignKey $foreign) {
+                    $columns = $foreign->column;
+                    $references = $foreign->references;
+                    if (is_array($columns)) {
+                        $columns = implode('", "', $columns);
+                    }
+                    if (is_array($references)) {
+                        $references = implode('", "', $references);
+                    }
+                    $foreignKeyName = $foreign->name ??
+                        "FK_{$this->schema->getTable()}_" . implode('_', ArrayMethods::wrap($foreign->column));
+                    $query = "ADD CONSTRAINT \"$foreignKeyName\" " .
+                        "FOREIGN KEY (\"$columns\") REFERENCES \"$foreign->referenceTable\"(\"$references\")";
+                    if (isset($foreign->onDelete)) {
+                        $query .= " ON DELETE $foreign->onDelete";
+                    }
+                    if (isset($foreign->onUpdate)) {
+                        $query .= " ON UPDATE $foreign->onUpdate";
+                    }
+                    return $query;
+                },
+                $this->schema->getForeignKeys()
+            )
+        );
     }
 
     protected function compileDrops(): string

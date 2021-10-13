@@ -7,7 +7,7 @@ use TeraBlaze\Support\ArrayMethods;
 class ForeignKey
 {
     public $column;
-    public string $name;
+    public ?string $name = null;
     /**
      * @var string|string[]
      */
@@ -20,7 +20,7 @@ class ForeignKey
     public function __construct($column, $name = null)
     {
         $this->column = $column;
-        $this->name = $name ?? "FK_" . implode('_', ArrayMethods::wrap($column));
+        $this->name = $name;
     }
 
     /**

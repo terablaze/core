@@ -16,6 +16,7 @@ use TeraBlaze\Database\Schema\Field\StringField;
 use TeraBlaze\Database\Schema\Field\TextField;
 use TeraBlaze\Database\Schema\ForeignKey;
 use TeraBlaze\Database\Schema\SchemaInterface;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
 
 abstract class AbstractBuilder implements BuilderInterface
@@ -403,7 +404,9 @@ abstract class AbstractBuilder implements BuilderInterface
                     if (is_array($references)) {
                         $references = implode('`, `', $references);
                     }
-                    $query = "ADD CONSTRAINT `$foreign->name` " .
+                    $foreignKeyName = $foreign->name ??
+                        "FK_{$this->schema->getTable()}_" . implode('_', ArrayMethods::wrap($foreign->column));
+                    $query = "ADD CONSTRAINT `$foreignKeyName` " .
                         "FOREIGN KEY (`$columns`) REFERENCES `$foreign->referenceTable`(`$references`)";
                     if (isset($foreign->onDelete)) {
                         $query .= " ON DELETE $foreign->onDelete";
