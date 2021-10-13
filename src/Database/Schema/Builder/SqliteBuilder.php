@@ -258,7 +258,7 @@ class SqliteBuilder extends AbstractBuilder
     protected function buildEnum(string $prefix, EnumField $field): string
     {
         $template = "$prefix \"$field->column\" CHECK (\"$field->column\" " .
-            "IN(" . implode('", "', $field->enumValues) . "))";
+            "IN(\"" . implode('", "', $field->enumValues) . "\"))";
 
         if (!$field->nullable) {
             $template .= " NOT NULL";

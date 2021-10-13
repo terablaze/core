@@ -197,7 +197,7 @@ abstract class AbstractBuilder implements BuilderInterface
 
     protected function buildEnum(string $prefix, EnumField $field): string
     {
-        $template = "$prefix `$field->column` ENUM(" . implode('", "', $field->enumValues) . ")";
+        $template = "$prefix `$field->column` ENUM(\"" . implode('", "', $field->enumValues) . "\")";
 
         if (!$field->nullable) {
             $template .= " NOT NULL";
