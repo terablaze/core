@@ -9,10 +9,6 @@ class MinRule extends Rule implements RuleInterface
 {
     public function validate($data, string $field, array $params)
     {
-        if (empty($data)) {
-            return true;
-        }
-
         if (empty($params[0])) {
             throw new InvalidArgumentException('specify a min length');
         }

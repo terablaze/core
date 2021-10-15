@@ -6,7 +6,7 @@ class NumericRule extends Rule implements RuleInterface
 {
     public function validate($data, string $field, array $params)
     {
-        return is_int($data);
+        return is_numeric($data);
     }
 
     public function getMessage($data, string $field, array $params)

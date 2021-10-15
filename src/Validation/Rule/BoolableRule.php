@@ -11,6 +11,6 @@ class BoolableRule extends Rule implements RuleInterface
 
     public function getMessage($data, string $field, array $params)
     {
-        return $this->message ?? "{$field} must be a boolean";
+        return $this->message ?? "{$field} must be a resolvable to a boolean";
     }
 }
