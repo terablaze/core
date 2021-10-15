@@ -2,15 +2,15 @@
 
 namespace TeraBlaze\Validation\Rule;
 
-class RequiredRule extends Rule implements RuleInterface
+class BoolableRule extends Rule implements RuleInterface
 {
     public function validate($data, string $field, array $params)
     {
-        return !empty($data);
+        return filter_var($data, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
 
     public function getMessage($data, string $field, array $params)
     {
-        return $this->message ?? "{$field} is required";
+        return $this->message ?? "{$field} must be a boolean";
     }
 }

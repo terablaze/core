@@ -3,12 +3,13 @@
 namespace TeraBlaze\Validation\Rule;
 
 use InvalidArgumentException;
+use TeraBlaze\Support\StringMethods;
 
 class MinRule extends Rule implements RuleInterface
 {
-    public function validate(array $data, string $field, array $params)
+    public function validate($data, string $field, array $params)
     {
-        if (empty($data[$field])) {
+        if (empty($data)) {
             return true;
         }
 
@@ -18,10 +19,10 @@ class MinRule extends Rule implements RuleInterface
 
         $length = (int) $params[0];
 
-        return strlen($data[$field]) >= $length;
+        return StringMethods::length($data) >= $length;
     }
 
-    public function getMessage(array $data, string $field, array $params)
+    public function getMessage($data, string $field, array $params)
     {
         $length = (int) $params[0];
 

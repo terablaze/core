@@ -2,15 +2,9 @@
 
 namespace TeraBlaze\View;
 
-use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\View\Engine\AdvancedEngine;
-use TeraBlaze\View\Engine\BasicEngine;
 use TeraBlaze\View\Engine\EngineInterface;
-use TeraBlaze\View\Engine\LiteralEngine;
-use TeraBlaze\View\Engine\PhaEngine;
-use TeraBlaze\View\Engine\PhpEngine;
 
 class ViewParcel extends Parcel implements ParcelInterface
 {
@@ -19,7 +13,7 @@ class ViewParcel extends Parcel implements ParcelInterface
         $config = loadConfigArray('views');
 
         /** @var View $manager */
-        $manager = $this->container->make(View::class);
+        $manager = $this->container->make('view', ['class' => View::class]);
         $manager->setCachePath($config['cache_path'] ?? '');
 
         $this->bindPaths($manager, $config['paths'] ?? []);

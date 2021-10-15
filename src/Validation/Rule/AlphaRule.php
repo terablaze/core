@@ -2,15 +2,15 @@
 
 namespace TeraBlaze\Validation\Rule;
 
-class RequiredRule extends Rule implements RuleInterface
+class AlphaRule extends Rule implements RuleInterface
 {
     public function validate($data, string $field, array $params)
     {
-        return !empty($data);
+        return ctype_alpha($data);
     }
 
     public function getMessage($data, string $field, array $params)
     {
-        return $this->message ?? "{$field} is required";
+        return $this->message ?? "{$field} must contain only alphabets";
     }
 }

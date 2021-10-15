@@ -404,15 +404,11 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $parcels = loadConfigArray('parcels');
         foreach ($parcels as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
-                if ($this->container->has($class)) {
-                    yield $this->container->get($class);
-                    continue;
-                }
                 if (!class_exists($class)) {
                     throw new Exception("Parcel with class name: {$class} not found");
                 }
                 /** @var ParcelInterface $class */
-                yield new $class();
+                yield $this->container->make($class);
             }
         }
     }

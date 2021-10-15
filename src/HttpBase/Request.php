@@ -26,11 +26,66 @@ class Request extends Psr7ServerRequest
 {
     use UriTrait;
 
+    public const HEADER_FORWARDED = 0b000001; // When using RFC 7239
+    public const HEADER_X_FORWARDED_FOR = 0b000010;
+    public const HEADER_X_FORWARDED_HOST = 0b000100;
+    public const HEADER_X_FORWARDED_PROTO = 0b001000;
+    public const HEADER_X_FORWARDED_PORT = 0b010000;
+    public const HEADER_X_FORWARDED_PREFIX = 0b100000;
+
+    private const FORWARDED_PARAMS = [
+        self::HEADER_X_FORWARDED_FOR => 'for',
+        self::HEADER_X_FORWARDED_HOST => 'host',
+        self::HEADER_X_FORWARDED_PROTO => 'proto',
+        self::HEADER_X_FORWARDED_PORT => 'host',
+    ];
+
+    /**
+     * Names for headers that can be trusted when
+     * using trusted proxies.
+     *
+     * The FORWARDED header is the standard as of rfc7239.
+     *
+     * The other headers are non-standard, but widely used
+     * by popular reverse proxies (like Apache mod_proxy or Amazon EC2).
+     */
+    private const TRUSTED_HEADERS = [
+        self::HEADER_FORWARDED => 'FORWARDED',
+        self::HEADER_X_FORWARDED_FOR => 'X_FORWARDED_FOR',
+        self::HEADER_X_FORWARDED_HOST => 'X_FORWARDED_HOST',
+        self::HEADER_X_FORWARDED_PROTO => 'X_FORWARDED_PROTO',
+        self::HEADER_X_FORWARDED_PORT => 'X_FORWARDED_PORT',
+        self::HEADER_X_FORWARDED_PREFIX => 'X_FORWARDED_PREFIX',
+    ];
+
+    /**
+     * @var string[]
+     */
+    protected static array $trustedProxies = [];
+
+    /**
+     * @var string[]
+     */
+    protected static array $trustedHostPatterns = [];
+
+    /**
+     * @var string[]
+     */
+    protected static array $trustedHosts = [];
+
+    protected static bool $httpMethodParameterOverride = false;
+
+    private static int $trustedHeaderSet = -1;
+
+    private bool $isHostValid = true;
+    private bool $isForwardedValid = true;
+
     public bool $expectsJson = false;
-    private $pathInfo;
-    private $requestUri;
-    private $baseUrl;
-    private $basePath;
+
+    private ?string $pathInfo = null;
+    private ?string $requestUri = null;
+    private ?string $baseUrl = null;
+    private ?string $basePath = null;
 
     /**
      * Commented out code allows previous output before this emit display without raising exception
@@ -120,6 +175,21 @@ class Request extends Psr7ServerRequest
         return $this;
     }
 
+    /**
+     * Returns true if the request is a XMLHttpRequest.
+     *
+     * It works if your JavaScript library sets an X-Requested-With HTTP header.
+     * It is known to work with common JavaScript frameworks:
+     *
+     * @see https://wikipedia.org/wiki/List_of_Ajax_frameworks#JavaScript
+     *
+     * @return bool true if the request is an XMLHttpRequest, false otherwise
+     */
+    public function isXmlHttpRequest()
+    {
+        return 'XMLHttpRequest' == $this->getHeaderLine('X-Requested-With');
+    }
+
     public function getSession(): ?SessionInterface
     {
         return $this->getAttribute(SessionMiddleware::SESSION_ATTRIBUTE)
@@ -152,77 +222,6 @@ class Request extends Psr7ServerRequest
     {
         return $this->getCsrf() != null;
     }
-
-
-    public const HEADER_FORWARDED = 0b000001; // When using RFC 7239
-    public const HEADER_X_FORWARDED_FOR = 0b000010;
-    public const HEADER_X_FORWARDED_HOST = 0b000100;
-    public const HEADER_X_FORWARDED_PROTO = 0b001000;
-    public const HEADER_X_FORWARDED_PORT = 0b010000;
-    public const HEADER_X_FORWARDED_PREFIX = 0b100000;
-
-    /** @deprecated since Symfony 5.2, use either "HEADER_X_FORWARDED_FOR | HEADER_X_FORWARDED_HOST | HEADER_X_FORWARDED_PORT | HEADER_X_FORWARDED_PROTO" or "HEADER_X_FORWARDED_AWS_ELB" or "HEADER_X_FORWARDED_TRAEFIK" constants instead. */
-    public const HEADER_X_FORWARDED_ALL = 0b1011110; // All "X-Forwarded-*" headers sent by "usual" reverse proxy
-    public const HEADER_X_FORWARDED_AWS_ELB = 0b0011010; // AWS ELB doesn't send X-Forwarded-Host
-    public const HEADER_X_FORWARDED_TRAEFIK = 0b0111110; // All "X-Forwarded-*" headers sent by Traefik reverse proxy
-
-    public const METHOD_HEAD = 'HEAD';
-    public const METHOD_GET = 'GET';
-    public const METHOD_POST = 'POST';
-    public const METHOD_PUT = 'PUT';
-    public const METHOD_PATCH = 'PATCH';
-    public const METHOD_DELETE = 'DELETE';
-    public const METHOD_PURGE = 'PURGE';
-    public const METHOD_OPTIONS = 'OPTIONS';
-    public const METHOD_TRACE = 'TRACE';
-    public const METHOD_CONNECT = 'CONNECT';
-
-    /**
-     * @var string[]
-     */
-    protected static array $trustedProxies = [];
-
-    /**
-     * @var string[]
-     */
-    protected static array $trustedHostPatterns = [];
-
-    /**
-     * @var string[]
-     */
-    protected static array $trustedHosts = [];
-
-    protected static bool $httpMethodParameterOverride = false;
-
-    private static int $trustedHeaderSet = -1;
-
-    private const FORWARDED_PARAMS = [
-        self::HEADER_X_FORWARDED_FOR => 'for',
-        self::HEADER_X_FORWARDED_HOST => 'host',
-        self::HEADER_X_FORWARDED_PROTO => 'proto',
-        self::HEADER_X_FORWARDED_PORT => 'host',
-    ];
-
-    /**
-     * Names for headers that can be trusted when
-     * using trusted proxies.
-     *
-     * The FORWARDED header is the standard as of rfc7239.
-     *
-     * The other headers are non-standard, but widely used
-     * by popular reverse proxies (like Apache mod_proxy or Amazon EC2).
-     */
-    private const TRUSTED_HEADERS = [
-        self::HEADER_FORWARDED => 'FORWARDED',
-        self::HEADER_X_FORWARDED_FOR => 'X_FORWARDED_FOR',
-        self::HEADER_X_FORWARDED_HOST => 'X_FORWARDED_HOST',
-        self::HEADER_X_FORWARDED_PROTO => 'X_FORWARDED_PROTO',
-        self::HEADER_X_FORWARDED_PORT => 'X_FORWARDED_PORT',
-        self::HEADER_X_FORWARDED_PREFIX => 'X_FORWARDED_PREFIX',
-    ];
-
-    private bool $isHostValid = true;
-    private bool $isForwardedValid = true;
 
     /**
      * Determine if the current request URI matches a pattern.
@@ -261,122 +260,6 @@ class Request extends Psr7ServerRequest
     public function decodedPath()
     {
         return rawurldecode($this->path());
-    }
-
-    /**
-     * Sets a list of trusted proxies.
-     *
-     * You should only list the reverse proxies that you manage directly.
-     *
-     * @param string[] $proxies A list of trusted proxies, the string 'REMOTE_ADDR'
-     *                                  will be replaced with $_SERVER['REMOTE_ADDR']
-     * @param int $trustedHeaderSet A bit field of Request::HEADER_*, to set which
-     *                                  headers to trust from your proxies
-     */
-    public static function setTrustedProxies(array $proxies, int $trustedHeaderSet): void
-    {
-        self::$trustedProxies = array_reduce($proxies, function ($proxies, $proxy) {
-            if ('REMOTE_ADDR' !== $proxy) {
-                $proxies[] = $proxy;
-            } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-                $proxies[] = $_SERVER['REMOTE_ADDR'];
-            }
-
-            return $proxies;
-        }, []);
-        self::$trustedHeaderSet = $trustedHeaderSet;
-    }
-
-    /**
-     * Gets the list of trusted proxies.
-     *
-     * @return string[] An array of trusted proxies
-     */
-    public static function getTrustedProxies(): array
-    {
-        return self::$trustedProxies;
-    }
-
-    /**
-     * Gets the set of trusted headers from trusted proxies.
-     *
-     * @return int A bit field of Request::HEADER_* that defines which headers are trusted from your proxies
-     */
-    public static function getTrustedHeaderSet(): int
-    {
-        return self::$trustedHeaderSet;
-    }
-
-    /**
-     * Sets a list of trusted host patterns.
-     *
-     * You should only list the hosts you manage using regexs.
-     *
-     * @param string[] $hostPatterns A list of trusted host patterns
-     */
-    public static function setTrustedHosts(array $hostPatterns): void
-    {
-        self::$trustedHostPatterns = array_map(function ($hostPattern) {
-            return sprintf('{%s}i', $hostPattern);
-        }, $hostPatterns);
-        // we need to reset trusted hosts on trusted host patterns change
-        self::$trustedHosts = [];
-    }
-
-    /**
-     * Gets the list of trusted host patterns.
-     *
-     * @return string[] An array of trusted host patterns
-     */
-    public static function getTrustedHosts(): array
-    {
-        return self::$trustedHostPatterns;
-    }
-
-    /**
-     * Normalizes a query string.
-     *
-     * It builds a normalized query string, where keys/value pairs are alphabetized,
-     * have consistent escaping and unneeded delimiters are removed.
-     *
-     * @return string A normalized query string for the Request
-     */
-    public static function normalizeQueryString(?string $qs): string
-    {
-        if ('' === ($qs ?? '')) {
-            return '';
-        }
-
-        $qs = HeaderUtils::parseQuery($qs);
-        ksort($qs);
-
-        return http_build_query($qs, '', '&', \PHP_QUERY_RFC3986);
-    }
-
-    /**
-     * Enables support for the _method request parameter to determine the intended HTTP method.
-     *
-     * Be warned that enabling this feature might lead to CSRF issues in your code.
-     * Check that you are using CSRF tokens when required.
-     * If the HTTP method parameter override is enabled, an html-form with method "POST" can be altered
-     * and used to send a "PUT" or "DELETE" request via the _method request parameter.
-     * If these methods are not protected against CSRF, this presents a possible vulnerability.
-     *
-     * The HTTP method can only be overridden when the real HTTP method is POST.
-     */
-    public static function enableHttpMethodParameterOverride(): void
-    {
-        self::$httpMethodParameterOverride = true;
-    }
-
-    /**
-     * Checks whether support for the _method request parameter is enabled.
-     *
-     * @return bool True when the _method request parameter is enabled, false otherwise
-     */
-    public static function getHttpMethodParameterOverride(): bool
-    {
-        return self::$httpMethodParameterOverride;
     }
 
     /**
@@ -786,6 +669,27 @@ class Request extends Psr7ServerRequest
         $https = $this->getServerParam('HTTPS');
 
         return !empty($https) && 'off' !== strtolower($https);
+    }
+
+    /**
+     * Determine if the request is the result of a PJAX call.
+     *
+     * @return bool
+     */
+    public function pjax()
+    {
+        return $this->getHeader('X-PJAX') == true;
+    }
+
+    /**
+     * Determine if the request is the result of a prefetch call.
+     *
+     * @return bool
+     */
+    public function prefetch()
+    {
+        return strcasecmp($this->getServerParam('HTTP_X_MOZ') ?? '', 'prefetch') === 0 ||
+            strcasecmp($this->getHeaderLine('Purpose') ?? '', 'prefetch') === 0;
     }
 
     /**
@@ -1204,18 +1108,94 @@ class Request extends Psr7ServerRequest
         return $clientIps ? array_reverse($clientIps) : [$firstTrustedIp];
     }
 
+
     /**
-     * Returns true if the request is a XMLHttpRequest.
+     * Sets a list of trusted proxies.
      *
-     * It works if your JavaScript library sets an X-Requested-With HTTP header.
-     * It is known to work with common JavaScript frameworks:
+     * You should only list the reverse proxies that you manage directly.
      *
-     * @see https://wikipedia.org/wiki/List_of_Ajax_frameworks#JavaScript
-     *
-     * @return bool true if the request is an XMLHttpRequest, false otherwise
+     * @param string[] $proxies A list of trusted proxies, the string 'REMOTE_ADDR'
+     *                                  will be replaced with $_SERVER['REMOTE_ADDR']
+     * @param int $trustedHeaderSet A bit field of Request::HEADER_*, to set which
+     *                                  headers to trust from your proxies
      */
-    public function isXmlHttpRequest()
+    public static function setTrustedProxies(array $proxies, int $trustedHeaderSet): void
     {
-        return 'XMLHttpRequest' == $this->getHeaderLine('X-Requested-With');
+        self::$trustedProxies = array_reduce($proxies, function ($proxies, $proxy) {
+            if ('REMOTE_ADDR' !== $proxy) {
+                $proxies[] = $proxy;
+            } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+                $proxies[] = $_SERVER['REMOTE_ADDR'];
+            }
+
+            return $proxies;
+        }, []);
+        self::$trustedHeaderSet = $trustedHeaderSet;
+    }
+
+    /**
+     * Gets the list of trusted proxies.
+     *
+     * @return string[] An array of trusted proxies
+     */
+    public static function getTrustedProxies(): array
+    {
+        return self::$trustedProxies;
+    }
+
+    /**
+     * Gets the set of trusted headers from trusted proxies.
+     *
+     * @return int A bit field of Request::HEADER_* that defines which headers are trusted from your proxies
+     */
+    public static function getTrustedHeaderSet(): int
+    {
+        return self::$trustedHeaderSet;
+    }
+
+    /**
+     * Sets a list of trusted host patterns.
+     *
+     * You should only list the hosts you manage using regexs.
+     *
+     * @param string[] $hostPatterns A list of trusted host patterns
+     */
+    public static function setTrustedHosts(array $hostPatterns): void
+    {
+        self::$trustedHostPatterns = array_map(function ($hostPattern) {
+            return sprintf('{%s}i', $hostPattern);
+        }, $hostPatterns);
+        // we need to reset trusted hosts on trusted host patterns change
+        self::$trustedHosts = [];
+    }
+
+    /**
+     * Gets the list of trusted host patterns.
+     *
+     * @return string[] An array of trusted host patterns
+     */
+    public static function getTrustedHosts(): array
+    {
+        return self::$trustedHostPatterns;
+    }
+
+    /**
+     * Normalizes a query string.
+     *
+     * It builds a normalized query string, where keys/value pairs are alphabetized,
+     * have consistent escaping and unneeded delimiters are removed.
+     *
+     * @return string A normalized query string for the Request
+     */
+    public static function normalizeQueryString(?string $qs): string
+    {
+        if ('' === ($qs ?? '')) {
+            return '';
+        }
+
+        $qs = HeaderUtils::parseQuery($qs);
+        ksort($qs);
+
+        return http_build_query($qs, '', '&', \PHP_QUERY_RFC3986);
     }
 }
