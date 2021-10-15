@@ -13,6 +13,7 @@ use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Routing\RouterInterface;
 use TeraBlaze\Support\StringMethods;
+use TeraBlaze\Validation\ValidatorInterface;
 
 if (!function_exists('container')) {
     /**
@@ -673,5 +674,24 @@ if (!function_exists('isWindowsOs')) {
     function isWindowsOs()
     {
         return PHP_OS_FAMILY === 'Windows';
+    }
+}
+
+if (!function_exists('validator')) {
+    function validator(): ValidatorInterface
+    {
+        /** @var ValidatorInterface $validator */
+        static $validator;
+        if (!$validator) {
+            $validator = container()->get(ValidatorInterface::class);
+        }
+        return $validator;
+    }
+}
+
+if (!function_exists('validate')) {
+    function validate(array $data, array $rules, ?string $sessionName = null): array
+    {
+        return validator()->validate($data, $rules, $sessionName);
     }
 }
