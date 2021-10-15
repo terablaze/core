@@ -8,5 +8,5 @@ interface ValidatorInterface
 {
     public function addRule(string $alias, RuleInterface $rule): \TeraBlaze\Validation\Validator;
 
-    public function validate(array $data, array $rules, ?string $sessionName = null): array;
+    public function validate(array $data, array $rules, array $messages = []): array;
 }

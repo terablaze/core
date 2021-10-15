@@ -690,8 +690,8 @@ if (!function_exists('validator')) {
 }
 
 if (!function_exists('validate')) {
-    function validate(array $data, array $rules, ?string $sessionName = null): array
+    function validate(array $data, array $rules, array $messages = []): array
     {
-        return validator()->validate($data, $rules, $sessionName);
+        return validator()->validate($data, $rules, $messages);
     }
 }

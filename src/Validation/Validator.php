@@ -32,9 +32,9 @@ class Validator implements ValidatorInterface
         return $this;
     }
 
-    public function validate(array $data, array $rules, ?string $sessionName = null): array
+    public function validate(array $data, array $rules, array $messages = []): array
     {
-        $sessionName = $sessionName ?? static::$sessionName;
+        $sessionName = static::$sessionName;
         $errors = [];
 
         foreach ($rules as $field => $rulesForField) {
@@ -42,6 +42,9 @@ class Validator implements ValidatorInterface
                 $rulesForField = explode("|", $rulesForField);
             }
             $bail = reset($rulesForField) == "bail";
+            if ($bail) {
+                array_shift($rulesForField);
+            }
             foreach ($rulesForField as $rule) {
                 $name = $rule;
                 $params = [];
@@ -61,7 +64,7 @@ class Validator implements ValidatorInterface
                         $errors[$field] = [];
                     }
 
-                    array_push($errors[$field], $processor->getMessage($data[$field], $field, $params));
+                    $errors[$field][$name] = $messages[$field][$name] ?? $processor->getMessage($data[$field], $field, $params);
                     if ($bail) {
                         break;
                     }
