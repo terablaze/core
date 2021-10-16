@@ -134,10 +134,20 @@ abstract class Model implements ModelInterface
         $data = [];
         $params = [];
         foreach ($this->_getClassMetadata()->getAllMappings() as $property => $mapping) {
+            $type = $mapping['type'] ?? '';
+            if (is_int($type) && $mapping['type'] & ClassMetadata::TO_MANY) {
+                continue;
+            }
             $queryName = $this->_getClassMetadata()->getColumnForProperty($property);
             if (false == ($mapping['id'] ?? false)) {
-                $datum = $this->saveDatum($property, $mapping);
-                if (is_null($datum) && $mapping['nullable'] == false) {
+                if (!isset($this->$property)) {
+                    continue;
+                }
+                $datum = $this->resolveDatum($property, $mapping);
+                if (
+                    is_null($datum) &&
+                    ($mapping['nullable'] ?? $mapping['joinColumns'][0]['nullable'] ?? true == false)
+                ) {
                     continue;
                 }
                 $data[$queryName] = ":$queryName";
@@ -155,12 +165,28 @@ abstract class Model implements ModelInterface
         return $result !== false;
     }
 
+    private function resolveDatum(string $property, array $mapping)
+    {
+        $datum = $this->getSaveDatum($property, $mapping);
+        if ($datum instanceof Model) {
+            $mappingColumn = $this->_getClassMetadata()->getSingleAssociationReferencedJoinColumnName($property);
+            $mappingProperty = $datum->_getClassMetadata()->getPropertyForColumn($mappingColumn);
+            if (isset($datum->$mappingProperty)) {
+                $datum = $datum->$mappingProperty;
+            } else {
+                $datum->save();
+                $datum = $datum->$mappingProperty;
+            }
+        }
+        return $datum;
+    }
+
     /**
      * @param string $prop
      * @param string[] $column
      * @return DateTime|int|mixed|string|null
      */
-    private function saveDatum(string $prop, array $column)
+    private function getSaveDatum(string $prop, array $column)
     {
         if (in_array(strtolower($column['type']), self::DATE_TYPES)) {
             $datum = $this->$prop ?? null;
@@ -224,8 +250,7 @@ abstract class Model implements ModelInterface
         $limit = null,
         $offset = null,
         $page = null
-    ): ?EntityCollection
-    {
+    ): ?EntityCollection {
         $model = new static();
         if (empty($fields)) {
             $fields = ['*'];
@@ -462,6 +487,9 @@ abstract class Model implements ModelInterface
             }
             if ($associationMapping['type'] & ClassMetadata::TO_ONE) {
                 $column = $this->_getClassMetadata()->getColumnForProperty($property);
+                if (!array_key_exists($column, $initData)) {
+                    continue;
+                }
                 $initDatum = $initData[$column];
                 $storedInstance = ModelStore::retrieve($type, $initDatum);
                 if (isset($this->$property) && ($this->$property == $storedInstance)) {
@@ -480,7 +508,13 @@ abstract class Model implements ModelInterface
 
                 $column = (new $type())->_getClassMetadata()->getColumnForProperty($mappedProperty);
                 /** @var EntityCollection $many */
-                $many = $type::all("$column = ?", [$this->$primaryProperty]);
+                $many = $type::all(
+                    "$column = ?",
+                    [$this->$primaryProperty],
+                    ['*'],
+                    $associationMapping['orderBy'] ?? [],
+                    $associationMapping['limit'] ?? null
+                );
 
                 $this->$property = $many;
             }

@@ -95,6 +95,9 @@ class HandleExceptions
      */
     public function handleException(Throwable $e)
     {
+        if (ob_get_level() > 0) {
+            ob_get_clean();
+        }
         try {
             self::$reservedMemory = null;
 

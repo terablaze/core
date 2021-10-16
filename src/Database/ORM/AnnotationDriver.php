@@ -406,6 +406,10 @@ class AnnotationDriver
                     $mapping['orderBy'] = $orderByAnnot->value;
                 }
 
+                if ($limitAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Limit::class)) {
+                    $mapping['limit'] = $limitAnnot->value;
+                }
+
                 $metadata->mapOneToMany($mapping);
             } elseif ($manyToOneAnnot = $this->reader->getPropertyAnnotation($property, Mapping\ManyToOne::class)) {
                 if ($idAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Id::class)) {
@@ -448,6 +452,10 @@ class AnnotationDriver
 
                 if ($orderByAnnot = $this->reader->getPropertyAnnotation($property, Mapping\OrderBy::class)) {
                     $mapping['orderBy'] = $orderByAnnot->value;
+                }
+
+                if ($limitAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Limit::class)) {
+                    $mapping['limit'] = $limitAnnot->value;
                 }
 
                 $metadata->mapManyToMany($mapping);
