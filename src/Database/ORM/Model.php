@@ -106,7 +106,7 @@ abstract class Model implements ModelInterface
      * @param array<int|string, mixed> $initData
      * return $this|null
      */
-    public static function create(array $initData = []): ?self
+    public static function create(array $initData = [])
     {
         $model = new static();
         if (is_array($initData) && (!empty($initData))) {
@@ -292,13 +292,19 @@ abstract class Model implements ModelInterface
         return new EntityCollection($objectRows, static::class);
     }
 
+    /**
+     * @param string $where
+     * @param array $parameters
+     * @param string[] $fields
+     * @param array $order
+     * @return $this|null
+     */
     public static function first(
         $where = '',
         $parameters = [],
         $fields = ["*"],
         $order = []
-    ): ?self
-    {
+    ) {
         $model = new static();
         if (empty($fields)) {
             $fields = ['*'];
@@ -306,13 +312,19 @@ abstract class Model implements ModelInterface
         return $model->_first($where, $parameters, $fields, $order);
     }
 
+    /**
+     * @param string $where
+     * @param array $parameters
+     * @param string[] $fields
+     * @param array $orderList
+     * @return $this|null
+     */
     protected function _first(
         $where = '',
         $parameters = [],
         $fields = ["*"],
         $orderList = []
-    ): ?self
-    {
+    ) {
         if (is_string($fields)) {
             $fields = [$fields];
         }
@@ -332,7 +344,7 @@ abstract class Model implements ModelInterface
         return null;
     }
 
-    public static function find($modelId): ?self
+    public static function find($modelId)
     {
         $model = new static();
         $primaryKey = $model->_getClassMetadata()->getSingleIdentifierColumnName();

@@ -18,7 +18,7 @@ interface ModelInterface
 
     /**
      * @param int|string $modelId
-     * @return static|null
+     * @return $this|null
      */
-    public static function find($modelId): ?self;
+    public static function find($modelId);
 }
