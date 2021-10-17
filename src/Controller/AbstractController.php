@@ -5,11 +5,13 @@ namespace TeraBlaze\Controller;
 use ReflectionException;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
+use TeraBlaze\HttpBase\JsonResponse;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Container\ContainerAwareTrait;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\RouterInterface;
 use TeraBlaze\Session\Traits\SessionAwareTrait;
+use TeraBlaze\View\Template;
 use TeraBlaze\View\View;
 
 /**
@@ -35,13 +37,13 @@ abstract class AbstractController implements ControllerInterface
     /**
      * Returns a rendered view.
      *
-     * @param string $view
+     * @param string $viewFile
      * @param array $parameters
      * @param bool $asString
-     * @return mixed
+     * @return string|Template
      * @throws ReflectionException
      */
-    protected function renderView(string $view, array $parameters = [], bool $asString = true)
+    protected function renderView(string $viewFile, array $parameters = [], bool $asString = true)
     {
         if (!$this->container->has(View::class)) {
             throw new \LogicException(
@@ -50,13 +52,16 @@ abstract class AbstractController implements ControllerInterface
             );
         }
 
-        $view = $this->container->get(View::class)->render($view, $parameters);
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+
+        $template = $view->render($viewFile, $parameters);
 
         if ($asString) {
-            return $view->render();
+            return $template->render();
         }
 
-        return $view;
+        return $template;
     }
 
     /**
@@ -77,11 +82,12 @@ abstract class AbstractController implements ControllerInterface
         int $responseCode = 200,
         array $headers = ['Content-Type' => 'application/json'],
         $jsonOptions = null
-    ): Response {
-        if (is_array($data) || is_object($data)) {
-            $data = json_encode($data, $jsonOptions);
+    ): JsonResponse {
+        $response = new JsonResponse($data, $responseCode, $headers);
+        if ($jsonOptions) {
+            $response = $response->setEncodingOptions($jsonOptions);
         }
-        return new Response($data, $responseCode, $headers);
+        return $response;
     }
 
     /**
