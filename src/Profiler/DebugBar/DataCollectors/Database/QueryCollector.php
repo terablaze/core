@@ -171,7 +171,7 @@ class QueryCollector extends DataCollector implements Renderable, AssetProvider
 
     public function getName()
     {
-        return 'Database(database)';
+        return 'Database(query)';
     }
 
     public function getWidgets()
