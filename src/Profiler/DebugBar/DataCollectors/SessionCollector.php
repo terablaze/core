@@ -5,58 +5,55 @@ namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\Renderable;
+use TeraBlaze\Session\SessionInterface;
 
-/**
- * Class SessionCollector
- */
 class SessionCollector extends DataCollector implements DataCollectorInterface, Renderable
 {
+    /** @var SessionInterface $session */
+    protected $session;
 
     /**
-     * Called by the DebugBar when data needs to be collected
+     * Create a new SessionCollector
      *
-     * @return array Collected data
+     * @param SessionInterface $session
      */
-    function collect()
+    public function __construct(SessionInterface $session)
     {
-        return $this->getSession();
+        $this->session = $session;
     }
 
     /**
-     * Returns the unique name of the collector
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    function getName()
+    public function collect()
+    {
+        $data = [];
+        foreach ($this->session->toArray() as $key => $value) {
+            $data[$key] = is_string($value) ? $value : $this->getDataFormatter()->formatVar($value);
+        }
+        return $data;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getName()
     {
         return 'session';
     }
 
     /**
-     * Returns a hash where keys are control names and their values
-     * an array of options as defined in {@see \DebugBar\JavascriptRenderer::addControl()}
-     *
-     * @return array
+     * {@inheritDoc}
      */
-    function getWidgets()
+    public function getWidgets()
     {
-        $name = $this->getName();
-
         return [
-            "$name" => [
-                'icon' => 'archive',
-                'widget' => 'PhpDebugBar.Widgets.VariableListWidget',
-                'map' => 'session',
-                "default" => '[]',
-            ],
+            "session" => [
+                "icon" => "archive",
+                "widget" => "PhpDebugBar.Widgets.VariableListWidget",
+                "map" => "session",
+                "default" => "{}"
+            ]
         ];
-    }
-
-    /**
-     * @return mixed
-     */
-    private function getSession()
-    {
-        return $GLOBALS['TSFE']->fe_user->getSession();
     }
 }

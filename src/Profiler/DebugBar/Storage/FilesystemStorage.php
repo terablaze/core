@@ -94,7 +94,6 @@ class FilesystemStorage implements StorageInterface
         // Loop through .json files, filter the metadata and stop when max is found.
         $i = 0;
         $results = [];
-        $historyFiles = glob($this->dirname . '*.json');
         foreach (Finder::create()->files()->name('*.json')->in($this->dirname)->sort($sort) as $file) {
             if ($i++ < $offset && empty($filters)) {
                 $results[] = null;

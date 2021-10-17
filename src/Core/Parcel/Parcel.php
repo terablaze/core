@@ -156,7 +156,11 @@ abstract class Parcel implements ParcelInterface
     public function loadConfig(string $context, ?string $prefix = null, array $paths = []): Config
     {
         if (empty($paths)) {
-            $paths = [$this->getKernel()->getEnvConfigDir(), $this->getKernel()->getConfigDir()];
+            $paths = [
+                $this->getKernel()->getEnvConfigDir(),
+                $this->getKernel()->getConfigDir(),
+                $this->getPath() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR
+            ];
         }
         $config = new Config(
             $context,

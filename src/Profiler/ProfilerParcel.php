@@ -8,10 +8,12 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 use ReflectionException;
 use TeraBlaze\Config\ConfigInterface;
 use TeraBlaze\Config\Exception\InvalidContextException;
+use TeraBlaze\Console\Application;
 use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\EventDispatcher\ListenerProvider;
+use TeraBlaze\Profiler\Console\Command\ClearCommand;
 use TeraBlaze\Profiler\DebugBar\DebugbarMiddleware;
 use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
 
@@ -81,5 +83,10 @@ class ProfilerParcel extends Parcel implements ParcelInterface
             );
         }
         $this->container->registerServiceInstance('debugbar', $this->debugbar);
+    }
+
+    public function registerCommands(Application $application)
+    {
+        $application->add($this->container->make(ClearCommand::class));
     }
 }

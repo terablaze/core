@@ -27,13 +27,16 @@ use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Log\Events\MessageLogged;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\Database\QueryCollector;
+use TeraBlaze\Profiler\DebugBar\DataCollectors\EventCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\PhpInfoCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RequestCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RouteCollector;
+use TeraBlaze\Profiler\DebugBar\DataCollectors\SessionCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\TeraBlazeCollector;
 use TeraBlaze\Profiler\DebugBar\DataFormatter\QueryFormatter;
 use TeraBlaze\Profiler\DebugBar\Storage\FilesystemStorage;
 use TeraBlaze\Routing\Router;
+use TeraBlaze\Session\SessionInterface;
 
 class TeraBlazeDebugbar extends DebugBar
 {
@@ -424,6 +427,24 @@ class TeraBlazeDebugbar extends DebugBar
 //            }
 //        }
 
+        if ($this->shouldCollect('events', false) && isset($this->dispatcher)) {
+            try {
+                $startTime = \request()->getServerParam('REQUEST_TIME_FLOAT');
+                $eventCollector = new EventCollector($startTime);
+                $this->addCollector($eventCollector);
+                $eventCollector->subscribe($this->dispatcher);
+
+            } catch (\Exception $e) {
+                $this->addThrowable(
+                    new Exception(
+                        'Cannot add EventCollector to Laravel Debugbar: ' . $e->getMessage(),
+                        $e->getCode(),
+                        $e
+                    )
+                );
+            }
+        }
+
         $renderer = $this->getJavascriptRenderer();
         $renderer->setIncludeVendors(getConfig('profiler.debugbar.include_vendors', true));
         $renderer->setBindAjaxHandlerToFetch(getConfig('profiler.debugbar.capture_ajax', true));
@@ -571,6 +592,44 @@ class TeraBlazeDebugbar extends DebugBar
 
         $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
 
+        if ($this->shouldCollect('config', false)) {
+            try {
+                $configCollector = new ConfigCollector();
+                $configCollector->setData($this->kernel->getConfig()->toArray());
+                $this->addCollector($configCollector);
+            } catch (\Exception $e) {
+                $this->addThrowable(
+                    new Exception(
+                        'Cannot add ConfigCollector to Laravel Debugbar: ' . $e->getMessage(),
+                        $e->getCode(),
+                        $e
+                    )
+                );
+            }
+        }
+
+        if ($request->hasSession()){
+
+            /** @var SessionInterface $session */
+            $session = $request->getSession();
+
+            if ($this->shouldCollect('session') && ! $this->hasCollector('session')) {
+                try {
+                    $this->addCollector(new SessionCollector($session));
+                } catch (\Exception $e) {
+                    $this->addThrowable(
+                        new Exception(
+                            'Cannot add SessionCollector to Laravel Debugbar: ' . $e->getMessage(),
+                            $e->getCode(),
+                            $e
+                        )
+                    );
+                }
+            }
+        } else {
+            $session = null;
+        }
+
         if ($this->shouldCollect('request', true)) {
             $this->addCollector(new RequestCollector($request, $response));
         }
@@ -599,22 +658,6 @@ class TeraBlazeDebugbar extends DebugBar
         // Show the Http Response Exception in the Debugbar, when available
         if (isset($response->exception)) {
             $this->addThrowable($response->exception);
-        }
-
-        if ($this->shouldCollect('config', false)) {
-            try {
-                $configCollector = new ConfigCollector();
-                $configCollector->setData($this->kernel->getConfig()->toArray());
-                $this->addCollector($configCollector);
-            } catch (Exception $e) {
-                $this->addThrowable(
-                    new Exception(
-                        'Cannot add ConfigCollector to TeraBlaze Debugbar: ' . $e->getMessage(),
-                        $e->getCode(),
-                        $e
-                    )
-                );
-            }
         }
 
         if ($response->isRedirection()) {
@@ -864,7 +907,9 @@ class TeraBlazeDebugbar extends DebugBar
                         'profiler.debugbar.storage.path',
                         $this->kernel->getCacheDir() . "profiler" . DIRECTORY_SEPARATOR . "debugbar"
                     );
-                    $storage = new FilesystemStorage($path);
+                    $storage = $this->container->make(FilesystemStorage::class, [
+                        'arguments' => ['dirname' => $path],
+                    ]);
                     break;
             }
 

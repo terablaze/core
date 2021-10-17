@@ -6,6 +6,7 @@ use DebugBar\DataCollector\TimeDataCollector;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\EventDispatcher\ListenerProvider;
 use TeraBlaze\Profiler\DebugBar\DataFormatter\SimpleFormatter;
+use TeraBlaze\Support\StringMethods;
 
 class EventCollector extends TimeDataCollector
 {
@@ -54,7 +55,7 @@ class EventCollector extends TimeDataCollector
                 }
 
                 // Format the closure to a readable format
-                $filename = ltrim(str_replace(base_path(), '', $reflector->getFileName()), '/');
+                $filename = ltrim(str_replace(kernel()->getProjectDir(), '', $reflector->getFileName()), '/');
                 $listener = $reflector->getName() . ' (' . $filename . ':' . $reflector->getStartLine() . '-' . $reflector->getEndLine() . ')';
             } else {
                 // Not sure if this is possible, but to prevent edge cases
@@ -77,7 +78,7 @@ class EventCollector extends TimeDataCollector
     {
         $data = [];
         foreach ($params as $key => $value) {
-            if (is_object($value) && Str::is('Illuminate\*\Events\*', get_class($value))) {
+            if (is_object($value) && StringMethods::is('TeraBlaze\*\Events\*', get_class($value))) {
                 $value =  $this->prepareParams(get_object_vars($value));
             }
             $data[$key] = htmlentities($this->getDataFormatter()->formatVar($value), ENT_QUOTES, 'UTF-8', false);

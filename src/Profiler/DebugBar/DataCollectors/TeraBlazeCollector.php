@@ -12,7 +12,7 @@ use TeraBlaze\Core\Kernel\KernelInterface;
 /**
  * Class TeraBlazeCollector
  *
- * @package TeraBlaze\Profiler\Debugbar\DataCollectors
+ * @package TeraBlaze\Profiler\DebugBar\DataCollectors
  * @author Tomiwa Ibiwoye <tomiwa@teraboxx.com>
  */
 class TeraBlazeCollector extends DataCollector implements DataCollectorInterface, Renderable
