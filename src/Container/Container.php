@@ -468,7 +468,10 @@ class Container implements ContainerInterface
 
         // Loops through the details of reflectionParameters
         foreach ($reflectionParameters as $reflectionParameter) {
+            // Get argument name
             $name = $reflectionParameter->getName();
+
+            // Get argument type[s]
             $types = $this->getAllReflectionTypes($reflectionParameter);
             if (count($types) > 1) {
                 foreach ($types as $aType) {
@@ -489,7 +492,9 @@ class Container implements ContainerInterface
             if ($reflectionParameter->isDefaultValueAvailable()) {
                 $defaultValue = $reflectionParameter->getDefaultValue();
             }
-
+            if (is_null($resolvedType) && $this->hasParameter($name)) {
+                $resolvedType = $this->getParameter($name);
+            }
             $resolvedArgument = $resolvedType ?? $defaultValue;
             foreach ($arguments as $key => $argument) {
                 if (is_a($typeName, ModelInterface::class, true)) {
@@ -513,6 +518,7 @@ class Container implements ContainerInterface
                     break;
                 }
             }
+
             $resolvedArguments[] = $resolvedArgument;
         }
 
