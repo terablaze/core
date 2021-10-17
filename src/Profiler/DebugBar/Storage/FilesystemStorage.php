@@ -2,8 +2,9 @@
 
 namespace TeraBlaze\Profiler\DebugBar\Storage;
 
-use DateTime;
 use DebugBar\Storage\StorageInterface;
+use Symfony\Component\Finder\Finder;
+use TeraBlaze\Filesystem\Files;
 
 /**
  * Stores collected data into files
@@ -11,14 +12,16 @@ use DebugBar\Storage\StorageInterface;
 class FilesystemStorage implements StorageInterface
 {
     protected $dirname;
+    protected $files;
     protected $gc_lifetime = 24;     // Hours to keep collected data;
     protected $gc_probability = 5;   // Probability of GC being run on a save request. (5/100)
 
     /**
      * @param string $dirname Directories where to store files
      */
-    public function __construct($dirname)
+    public function __construct(Files $files, string $dirname)
     {
+        $this->files = $files;
         $this->dirname = rtrim($dirname, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
@@ -27,16 +30,16 @@ class FilesystemStorage implements StorageInterface
      */
     public function save($id, $data)
     {
-        if (!is_dir($this->dirname)) {
-            if (makeDir($this->dirname)) {
-                file_put_contents($this->dirname . '.gitignore', "*\n!.gitignore\n");
+        if (!$this->files->isDirectory($this->dirname)) {
+            if ($this->files->makeDirectory($this->dirname, 0777, true)) {
+                $this->files->put($this->dirname . '.gitignore', "*\n!.gitignore\n");
             } else {
                 throw new \Exception("Cannot create directory '$this->dirname'..");
             }
         }
 
         try {
-            file_put_contents($this->makeFilename($id), json_encode($data, JSON_PRETTY_PRINT));
+            $this->files->put($this->makeFilename($id), json_encode($data));
         } catch (\Exception $e) {
             //TODO; error handling
         }
@@ -63,15 +66,10 @@ class FilesystemStorage implements StorageInterface
      */
     protected function garbageCollect()
     {
-        $historyFiles = glob($this->dirname . '*.json');
-        foreach ($historyFiles as $historyFile) {
-            $file = new \SplFileInfo($historyFile);
-            if (!$file->isFile()) {
-                continue;
-            }
-            if ($file->getMTime() < (new DateTime($this->gc_lifetime . ' hour ago'))->getTimestamp()) {
-                @unlink($file->getRealPath());
-            }
+        foreach (Finder::create()->files()->name('*.json')->date('< ' . $this->gc_lifetime . ' hour ago')->in(
+            $this->dirname
+        ) as $file) {
+            $this->files->delete($file->getRealPath());
         }
     }
 
@@ -80,7 +78,7 @@ class FilesystemStorage implements StorageInterface
      */
     public function get($id)
     {
-        return json_decode(file_get_contents($this->makeFilename($id)), true);
+        return json_decode($this->files->get($this->makeFilename($id)), true);
     }
 
     /**
@@ -97,12 +95,12 @@ class FilesystemStorage implements StorageInterface
         $i = 0;
         $results = [];
         $historyFiles = glob($this->dirname . '*.json');
-        foreach ($historyFiles as $historyFile) {
+        foreach (Finder::create()->files()->name('*.json')->in($this->dirname)->sort($sort) as $file) {
             if ($i++ < $offset && empty($filters)) {
                 $results[] = null;
                 continue;
             }
-            $data = json_decode((string) file_get_contents($historyFile), true);
+            $data = json_decode($file->getContents(), true);
             $meta = $data['__meta'];
             unset($data);
             if ($this->filter($meta, $filters)) {
@@ -137,10 +135,8 @@ class FilesystemStorage implements StorageInterface
      */
     public function clear()
     {
-        $historyFiles = glob($this->dirname . '*.json');
-        foreach ($historyFiles as $historyFile) {
-            $file = new \SplFileInfo($historyFile);
-            @unlink($file->getRealPath());
+        foreach (Finder::create()->files()->name('*.json')->in($this->dirname) as $file) {
+            $this->files->delete($file->getRealPath());
         }
     }
 }
