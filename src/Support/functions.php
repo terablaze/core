@@ -90,6 +90,31 @@ if (!function_exists('flash')) {
     }
 }
 
+if (!function_exists('addFlash')) {
+    function addFlash($key, $value = null): void
+    {
+        if (is_array($key)) {
+            foreach ($key as $sessionKey => $sessionValue) {
+                addFlash($sessionKey, $sessionValue);
+            }
+            return;
+        }
+        flash()->flash($key, $value);
+    }
+}
+if (!function_exists('addFlashNow')) {
+    function addFlashNow($key, $value = null): void
+    {
+        if (is_array($key)) {
+            foreach ($key as $sessionKey => $sessionValue) {
+                addFlashNow($sessionKey, $sessionValue);
+            }
+            return;
+        }
+        flash()->flashNow($key, $value);
+    }
+}
+
 if (!function_exists('csrf')) {
     function csrf()
     {
