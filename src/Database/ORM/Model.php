@@ -9,7 +9,6 @@ use TeraBlaze\Database\ORM\Exception\MappingException;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\PolymorphismTrait;
 use TeraBlaze\Container\Container;
-use TeraBlaze\Inspector;
 use TeraBlaze\Database\Connection\ConnectionInterface;
 use TeraBlaze\Database\Query\QueryBuilderInterface;
 use TeraBlaze\Database\ORM\Exception\PropertyException;
