@@ -406,6 +406,9 @@ abstract class Connection implements ConnectionInterface
     private function fixSqlAndParams(string $sql, array $params): array
     {
         foreach ($params as $key => $values) {
+            if (is_bool($values)) {
+                $params[$key] = (int)$values;
+            }
             if (is_array($values)) {
                 // get placeholder from array, e.g. ids => [7,12,3] would be ':ids'
                 $oldPlaceholder = ':' . $key;
