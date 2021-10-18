@@ -16,6 +16,6 @@ trait SessionAwareTrait
 
     public function getFlash(string $key, $default = null)
     {
-        flash()->getFlash($key, $default);
+        return flash()->getFlash($key, $default);
     }
 }
