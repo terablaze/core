@@ -126,12 +126,12 @@ class PhaEngine implements EngineInterface
     public function compileIfs($code)
     {
         // replace `{% if %}` with `if(...):`
-        $code = preg_replace_callback('#{% ?if\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
+        $code = preg_replace_callback('#{% ?if ?\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
             return '<?php if(' . $matches[1] . '): ?>';
         }, $code);
 
         // replace `{% elseif %}` with `elseif(...):`
-        $code = preg_replace_callback('#{% ?elseif\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
+        $code = preg_replace_callback('#{% ?elseif ?\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
             return '<?php elseif(' . $matches[1] . '): ?>';
         }, $code);
 
@@ -151,7 +151,7 @@ class PhaEngine implements EngineInterface
     public function compileLoops($code)
     {
         // replace `{% foreach %}` with `foreach(...):`
-        $code = preg_replace_callback('#{% ?foreach\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
+        $code = preg_replace_callback('#{% ?foreach ?\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
             return '<?php foreach(' . $matches[1] . '): ?>';
         }, $code);
 
