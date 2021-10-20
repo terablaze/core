@@ -1,6 +1,7 @@
 <?php
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
@@ -606,8 +607,12 @@ if (!function_exists('logger')) {
     {
         /** @var LoggerInterface $logger */
         static $logger;
-        if (!$logger) {
-            $logger = container()->get(LoggerInterface::class);
+        if (!$logger || $logger instanceof NullLogger) {
+            try {
+                $logger = container()->get(LoggerInterface::class);
+            } catch (\Exception $exception) {
+                $logger = new NullLogger();
+            }
         }
         return $logger;
     }
