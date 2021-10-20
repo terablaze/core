@@ -1,5 +1,6 @@
 <?php
 
+use Psr\Log\LoggerInterface;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
@@ -597,6 +598,18 @@ if (!function_exists('setConfig')) {
             $config = kernel()->getConfig();
         }
         return $config->set($key, $value);
+    }
+}
+
+if (!function_exists('logger')) {
+    function logger(): LoggerInterface
+    {
+        /** @var LoggerInterface $logger */
+        static $logger;
+        if (!$logger) {
+            $logger = container()->get(LoggerInterface::class);
+        }
+        return $logger;
     }
 }
 
