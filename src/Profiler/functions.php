@@ -1,14 +1,16 @@
 <?php
 
+use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
+
 if (!function_exists('debugbar')) {
     /**
      * Get the DebugBar instance
      *
-     * @return \TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar
+     * @return TeraBlazeDebugbar
      */
-    function debugbar(): \TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar
+    function debugbar(): TeraBlazeDebugbar
     {
-        return container()->get(\TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar::class);
+        return container()->get(TeraBlazeDebugbar::class);
     }
 }
 
@@ -28,32 +30,32 @@ if (!function_exists('debug')) {
     }
 }
 
-if (!function_exists('start_measure')) {
+if (!function_exists('startMeasure')) {
     /**
      * Starts a measure
      *
      * @param string $name Internal name, used to stop the measure
      * @param string $label Public name
      */
-    function start_measure($name, $label = null)
+    function startMeasure($name, $label = null)
     {
         debugbar()->startMeasure($name, $label);
     }
 }
 
-if (!function_exists('stop_measure')) {
+if (!function_exists('stopMeasure')) {
     /**
      * Stop a measure
      *
      * @param string $name Internal name, used to stop the measure
      */
-    function stop_measure($name)
+    function stopMeasure($name)
     {
         debugbar()->stopMeasure($name);
     }
 }
 
-if (!function_exists('add_measure')) {
+if (!function_exists('addMeasure')) {
     /**
      * Adds a measure
      *
@@ -61,7 +63,7 @@ if (!function_exists('add_measure')) {
      * @param float $start
      * @param float $end
      */
-    function add_measure($label, $start, $end)
+    function addMeasure($label, $start, $end)
     {
         debugbar()->addMeasure($label, $start, $end);
     }

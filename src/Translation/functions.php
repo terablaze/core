@@ -21,7 +21,7 @@ if (! function_exists('trans')) {
     }
 }
 
-if (! function_exists('trans_choice')) {
+if (! function_exists('transChoice')) {
     /**
      * Translates the given message based on a count.
      *
@@ -31,7 +31,7 @@ if (! function_exists('trans_choice')) {
      * @param  string|null  $locale
      * @return string
      */
-    function trans_choice($key, $number, array $replace = [], $locale = null)
+    function transChoice($key, $number, array $replace = [], $locale = null)
     {
         return container()->get('translator')->choice($key, $number, $replace, $locale);
     }
@@ -53,5 +53,20 @@ if (! function_exists('__')) {
         }
 
         return trans($key, $replace, $locale);
+    }
+}
+
+if (! function_exists('___')) {
+    /**
+     * Translates the given message based on a count.
+     *
+     * @param $key
+     * @param $number
+     * @param array $replace
+     * @param null $locale
+     * @return array|string|Translator|null
+     */
+    function ___($key, $number, array $replace = [], $locale = null)
+    {return transChoice($key, $number, $replace, $locale);
     }
 }
