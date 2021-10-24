@@ -182,14 +182,15 @@ class UrlGenerator implements UrlGeneratorInterface
     private function resolveReference(string $url, string $referenceType): string
     {
         $port = $this->request->getUri()->getPort() ? ':' . $this->request->getUri()->getPort() : '';
+        $path = $this->request->getBaseUrl() . '/' . $url;
+        $hostPortPath = $this->request->getUri()->getHost() . $port . $path;
         switch ($referenceType) {
             case self::ABSOLUTE_URL:
-                return $this->request->getUri()->getScheme() . '://' .
-                    $this->request->getUri()->getHost() . $port . $this->request->getBaseUrl() . '/' . $url;
+                return $this->request->getUri()->getScheme() . '://' . $hostPortPath;
             case self::ABSOLUTE_PATH:
-                return $this->request->getBaseUrl() . '/' . $url;
+                return $path;
             case self::NETWORK_PATH:
-                return '//' . $this->request->getUri()->getHost() . $port . $this->request->getBaseUrl() . '/' . $url;
+                return '//' . $hostPortPath;
             default:
                 return $url;
         }

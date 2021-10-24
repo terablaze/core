@@ -293,6 +293,20 @@ if (!function_exists('route')) {
     }
 }
 
+if (!function_exists('absoluteRoute')) {
+    /**
+     * Generate the absolute URL to a named route.
+     *
+     * @param string $path
+     * @param array $parameters
+     * @param string|null $locale
+     * @return string
+     */
+    function absoluteRoute(string $path = '', array $parameters = [], ?string $locale = null) {
+        return route($path, $parameters, UrlGeneratorInterface::ABSOLUTE_URL, $locale);
+    }
+}
+
 if (!function_exists('asset')) {
     function asset(string $uri = '', int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH)
     {
