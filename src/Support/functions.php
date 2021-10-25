@@ -2,6 +2,8 @@
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use TeraBlaze\Container\Exception\ContainerException;
+use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
@@ -26,6 +28,31 @@ if (!function_exists('container')) {
     function container(array $services = [], array $parameters = [])
     {
         return Container::getContainer($services, $parameters);
+    }
+}
+
+if (!function_exists('service')) {
+    /**
+     * @param string $service
+     * @return mixed|object
+     * @throws ReflectionException
+     */
+    function service(string $serviceId)
+    {
+        return container()->get($serviceId);
+    }
+}
+
+if (!function_exists('parameter')) {
+    /**
+     * @param $parameterName
+     * @return mixed|mixed[]
+     * @throws ContainerException
+     * @throws ParameterNotFoundException
+     */
+    function parameter($parameterName)
+    {
+        return container()->getParameter($parameterName);
     }
 }
 
