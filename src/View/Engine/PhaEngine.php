@@ -107,6 +107,7 @@ class PhaEngine implements EngineInterface
     public function compileYield($code)
     {
         foreach ($this->blocks as $block => $value) {
+            $value = addcslashes($value, '\\$');
             $code = preg_replace('#{% ?yield ?' . $block . ' ?%}#', $value, $code);
         }
         $code = preg_replace('#{% ?yield ?(.*?) ?%}#i', '', $code);
