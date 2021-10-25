@@ -402,6 +402,10 @@ class AnnotationDriver
                 $mapping['orphanRemoval'] = $oneToManyAnnot->orphanRemoval;
                 $mapping['fetch'] = $this->getFetchMode($className, $oneToManyAnnot->fetch);
 
+                if ($whereAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Where::class)) {
+                    $mapping['where'] = $whereAnnot->value;
+                }
+
                 if ($orderByAnnot = $this->reader->getPropertyAnnotation($property, Mapping\OrderBy::class)) {
                     $mapping['orderBy'] = $orderByAnnot->value;
                 }
@@ -449,6 +453,10 @@ class AnnotationDriver
                 $mapping['indexBy'] = $manyToManyAnnot->indexBy;
                 $mapping['orphanRemoval'] = $manyToManyAnnot->orphanRemoval;
                 $mapping['fetch'] = $this->getFetchMode($className, $manyToManyAnnot->fetch);
+
+                if ($whereAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Where::class)) {
+                    $mapping['where'] = $whereAnnot->value;
+                }
 
                 if ($orderByAnnot = $this->reader->getPropertyAnnotation($property, Mapping\OrderBy::class)) {
                     $mapping['orderBy'] = $orderByAnnot->value;

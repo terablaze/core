@@ -517,11 +517,20 @@ abstract class Model implements ModelInterface
             } elseif ($associationMapping['type'] == ClassMetadata::ONE_TO_MANY) {
                 $mappedProperty = $this->_getClassMetadata()->getAssociationMappedByTargetProperty($property);
 
-                $column = (new $type())->_getClassMetadata()->getColumnForProperty($mappedProperty);
+                $typeInstance = (new $type());
+                $column = $typeInstance->_getClassMetadata()->getColumnForProperty($mappedProperty);
+
+                $inverseColumn = $typeInstance->_getClassMetadata()->getSingleAssociationReferencedJoinColumnName($mappedProperty);
+                $inverseProperty = $this->_getClassMetadata()->getPropertyForColumn($inverseColumn);
                 /** @var EntityCollection $many */
+                $annotWhere = $associationMapping['where'] ?? '';
+                $where = "$column = ?";
+                if (!empty($annotWhere)) {
+                    $where .= " AND ($annotWhere)";
+                }
                 $many = $type::all(
-                    "$column = ?",
-                    [$this->$primaryProperty],
+                    $where,
+                    [$this->$inverseProperty],
                     ['*'],
                     $associationMapping['orderBy'] ?? [],
                     $associationMapping['limit'] ?? null
