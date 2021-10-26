@@ -161,6 +161,26 @@ class PhaEngine implements EngineInterface
             return '<?php endforeach; ?>';
         }, $code);
 
+        // replace `{% for %}` with `for(...):`
+        $code = preg_replace_callback('#{% ?for ?\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
+            return '<?php for(' . $matches[1] . '): ?>';
+        }, $code);
+
+        // replace `{% endfor %}` with `endfor;`
+        $code = preg_replace_callback('#{% ?endfor ?%}#', function ($matches) {
+            return '<?php endfor; ?>';
+        }, $code);
+
+        // replace `{% while %}` with `while(...):`
+        $code = preg_replace_callback('#{% ?while ?\(((?<=\().*(?=\)))\) ?%}#', function ($matches) {
+            return '<?php while(' . $matches[1] . '): ?>';
+        }, $code);
+
+        // replace `{% endwhile %}` with `endwhile;`
+        $code = preg_replace_callback('#{% ?endwhile ?%}#', function ($matches) {
+            return '<?php endwhile; ?>';
+        }, $code);
+
         return $code;
     }
 
