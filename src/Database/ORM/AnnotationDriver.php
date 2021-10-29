@@ -371,6 +371,10 @@ class AnnotationDriver
                     $mapping['id'] = true;
                 }
 
+                if ($encrypt = $this->reader->getPropertyAnnotation($property, Mapping\Encrypt::class)) {
+                    $mapping['encrypt'] = true;
+                }
+
                 if (
                     $generatedValueAnnot =
                         $this->reader->getPropertyAnnotation($property, Mapping\GeneratedValue::class)

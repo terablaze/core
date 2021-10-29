@@ -6,6 +6,7 @@ use DateTime;
 use Exception;
 use TeraBlaze\Database\Exception\ConnectionException;
 use TeraBlaze\Database\ORM\Exception\MappingException;
+use TeraBlaze\Encryption\Encrypter;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\PolymorphismTrait;
 use TeraBlaze\Container\Container;
@@ -29,7 +30,7 @@ abstract class Model implements ModelInterface
      *
      * @param array<string, mixed> $initData
      */
-    protected function initData(array $initData): void
+    protected function initExternalData(array $initData): void
     {
         if (empty($initData)) {
             return;
@@ -42,6 +43,36 @@ abstract class Model implements ModelInterface
                 // TODO: Add a logger to log the exception
                 unset($prop);
                 continue;
+            }
+            $this->_setPropertyValue($prop, $value);
+        }
+    }
+
+    /**
+     * Maps associative array to object properties
+     *
+     * @param array<string, mixed> $initData
+     */
+    protected function initInternalData(array $initData): void
+    {
+        if (empty($initData)) {
+            return;
+        }
+
+        foreach ($initData as $key => $value) {
+            try {
+                $prop = $this->_getInitProp($key);
+            } catch (PropertyException $propertyException) {
+                // TODO: Add a logger to log the exception
+                unset($prop);
+                continue;
+            }
+            try {
+                if ($this->_getClassMetadata()->getPropertyMapping($prop)['encrypt'] ?? false) {
+                    $value = $this->_getEncrypter()->decryptString((string)$value);
+                }
+            } catch (MappingException $exception) {
+
             }
             $this->_setPropertyValue($prop, $value);
         }
@@ -109,7 +140,7 @@ abstract class Model implements ModelInterface
     {
         $model = new static();
         if (is_array($initData) && (!empty($initData))) {
-            $model->initData($initData);
+            $model->initExternalData($initData);
         }
         if ($model->save()) {
             $model->_loadAssociations($initData);
@@ -148,6 +179,9 @@ abstract class Model implements ModelInterface
                     ($mapping['nullable'] ?? $mapping['joinColumns'][0]['nullable'] ?? true == false)
                 ) {
                     continue;
+                }
+                if ($mapping['encrypt'] ?? false) {
+                    $datum = $this->_getEncrypter()->encryptString((string) $datum);
                 }
                 $data[$queryName] = ":$queryName";
                 $params[$queryName] = $datum;
@@ -283,7 +317,7 @@ abstract class Model implements ModelInterface
         // $primaryKeys = array_column($rows, $primaryKey);
         foreach ($rows as $row) {
             $object = clone $this;
-            $object->initData($row);
+            $object->initInternalData($row);
             $object->_loadAssociations($row);
             $objectRows[] = $object;
             $object = null;
@@ -336,7 +370,7 @@ abstract class Model implements ModelInterface
         $this->buildOrderQuery($orderList, $query);
         $first = $query->first();
         if ($first) {
-            $this->initData($first);
+            $this->initInternalData($first);
             $this->_loadAssociations($first);
             return $this;
         }
@@ -378,6 +412,11 @@ abstract class Model implements ModelInterface
     private function _getContainer(): Container
     {
         return Container::getContainer();
+    }
+
+    private function _getEncrypter(): Encrypter
+    {
+        return $this->_getContainer()->get(Encrypter::class);
     }
 
     public function _getTable()
