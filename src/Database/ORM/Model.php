@@ -503,7 +503,7 @@ abstract class Model implements ModelInterface
                 }
                 $initDatum = $initData[$column];
                 $storedInstance = ModelStore::retrieve($type, $initDatum);
-                if (isset($this->$property) && ($this->$property == $storedInstance)) {
+                if (isset($this->$property) && ($this->$property === $storedInstance)) {
                     continue;
                 }
                 if (ModelStore::has($type, $initDatum)) {
