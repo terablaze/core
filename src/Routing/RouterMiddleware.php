@@ -15,7 +15,7 @@ class RouterMiddleware implements MiddlewareInterface
     private Container $container;
     private Router $router;
 
-    public function __construct(Container $container, Router $router)
+    public function __construct(Container $container, RouterInterface $router)
     {
         $this->container = $container;
         $this->router = $router;
