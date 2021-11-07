@@ -15,6 +15,11 @@ class RoutingParcel extends Parcel implements ParcelInterface
      */
     public function boot(): void
     {
+        $this->container->make(RouterInterface::class, [
+            'class' => Router::class,
+            'alias' => 'routing'
+        ]);
+
         $routes = loadConfigArray('routes');
 
         $this->initialize($routes);
