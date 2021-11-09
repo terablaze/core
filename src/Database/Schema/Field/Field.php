@@ -22,6 +22,10 @@ abstract class Field
 
     public bool $alter = false;
 
+    public ?string $after = null;
+
+    public ?string $before = null;
+
     public function __construct(string $column, string $type = "", int $length = 0)
     {
         $this->column = $column;
@@ -84,6 +88,18 @@ abstract class Field
     public function fullText(?string $name = null)
     {
         $this->fullText[$name ?? "fulltext_" . $this->column] = $this->column;
+        return $this;
+    }
+
+    public function after(string $after)
+    {
+        $this->after = $after;
+        return $this;
+    }
+
+    public function before(string $before)
+    {
+        $this->before = $before;
         return $this;
     }
 }

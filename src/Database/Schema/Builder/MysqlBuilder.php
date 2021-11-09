@@ -3,13 +3,23 @@
 namespace TeraBlaze\Database\Schema\Builder;
 
 use TeraBlaze\Database\Exception\MigrationException;
+use TeraBlaze\Database\Schema\Field\Field;
 
 class MysqlBuilder extends AbstractBuilder
 {
     public function build(): void
     {
         $query = "";
-        $fields = array_map(fn($field) => $this->stringForField($field), $this->schema->getFields());
+        $fields = array_map(function (Field $field) {
+            $stringForField = $this->stringForField($field);
+            if (!is_null($field->after)) {
+                return "$stringForField AFTER `$field->after`";
+            }
+            if (!is_null($field->before)) {
+                return "$stringForField BEFORE `$field->before`";
+            }
+            return $stringForField;
+        }, $this->schema->getFields());
 
         $primaryKeys = $this->getPrimaryKeys();
 
