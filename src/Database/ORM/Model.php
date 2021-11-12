@@ -163,20 +163,21 @@ abstract class Model implements ModelInterface
         }
         $data = [];
         $params = [];
-        foreach ($this->_getClassMetadata()->getAllMappings() as $property => $mapping) {
+        $allMappings = $this->_getClassMetadata()->getAllMappings();
+        foreach ($allMappings as $property => $mapping) {
             $type = $mapping['type'] ?? '';
             if (is_int($type) && $mapping['type'] & ClassMetadata::TO_MANY) {
                 continue;
             }
             $queryName = $this->_getClassMetadata()->getColumnForProperty($property);
             if (false == ($mapping['id'] ?? false)) {
-                if (!isset($this->$property)) {
+                if (!property_exists($this, $property)) {
                     continue;
                 }
                 $datum = $this->resolveDatum($property, $mapping);
                 if (
                     is_null($datum) &&
-                    ($mapping['nullable'] ?? $mapping['joinColumns'][0]['nullable'] ?? true == false)
+                    (($mapping['nullable'] ?? $mapping['joinColumns'][0]['nullable'] ?? true) == false)
                 ) {
                     continue;
                 }
