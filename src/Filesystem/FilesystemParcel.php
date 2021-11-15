@@ -2,11 +2,11 @@
 
 namespace TeraBlaze\Filesystem;
 
-use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Parcel\Parcel;
 use TeraBlaze\Core\Parcel\ParcelInterface;
 use TeraBlaze\Filesystem\Driver\FileDriverInterface;
 use TeraBlaze\Filesystem\Driver\LocalFileDriver;
+use TeraBlaze\Filesystem\Driver\S3FileDriver;
 use TeraBlaze\Filesystem\Exception\DriverException;
 
 class FilesystemParcel extends Parcel implements ParcelInterface
@@ -32,6 +32,9 @@ class FilesystemParcel extends Parcel implements ParcelInterface
         switch ($type) {
             case 'local':
                 $driver = new LocalFileDriver($conf);
+                break;
+            case 's3':
+                $driver = new S3FileDriver($conf);
                 break;
             default:
                 throw new DriverException(sprintf("Invalid or unimplemented filesystem type: %s", $type));
