@@ -26,8 +26,10 @@ class LocalFileDriver extends FileDriver implements FileDriverInterface
                 'private' => $this->config['permission']['file']['private'] ?? 0604,
             ],
             'dir' => [
-                'public' => $this->config['permission']['directory']['public'] ?? $this->config['dir']['public'] ?? 0740,
-                'private' => $this->config['permission']['directory']['private'] ?? $this->config['dir']['private'] ?? 7604,
+                'public' => $this->config['permission']['directory']['public'] ??
+                    $this->config['permission']['dir']['public'] ?? 0740,
+                'private' => $this->config['permission']['directory']['private'] ??
+                    $this->config['permission']['dir']['private'] ?? 7604,
             ],
         ], $this->config['visibility'] ?? Visibility::PRIVATE);
 
