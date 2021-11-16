@@ -22,12 +22,12 @@ class LocalFileDriver extends FileDriver implements FileDriverInterface
 
         $visibility = PortableVisibilityConverter::fromArray([
             'file' => [
-                'public' => $this->config['file']['public'] ?? 0640,
-                'private' => $this->config['file']['private'] ?? 0604,
+                'public' => $this->config['permission']['file']['public'] ?? 0640,
+                'private' => $this->config['permission']['file']['private'] ?? 0604,
             ],
             'dir' => [
-                'public' => $this->config['directory']['public'] ?? $this->config['dir']['public'] ?? 0740,
-                'private' => $this->config['directory']['private'] ?? $this->config['dir']['private'] ?? 7604,
+                'public' => $this->config['permission']['directory']['public'] ?? $this->config['dir']['public'] ?? 0740,
+                'private' => $this->config['permission']['directory']['private'] ?? $this->config['dir']['private'] ?? 7604,
             ],
         ], $this->config['visibility'] ?? Visibility::PRIVATE);
 
