@@ -2,7 +2,7 @@
 
 return [
     'debugbar' => [
-        'enabled' => env('DEBUGBAR_ENABLED', true),
+        'enabled' => true,
         'exclude' => [
         ],
         'storage' => [

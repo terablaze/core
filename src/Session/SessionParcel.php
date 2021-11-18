@@ -46,7 +46,7 @@ class SessionParcel extends Parcel
                     $this->container->get($sessionCache),
                     $config->get(
                         'session.cookie.name',
-                        StringMethods::slug(env('APP_NAME', 'terablaze'), '_') . '_session'
+                        StringMethods::slug(getConfig('app.name', 'terablaze'), '_') . '_session'
                     ),
                     $config->get('session.cookie.path', '/'),
                     $config->get('session.limiter', 'nocache'),
