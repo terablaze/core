@@ -56,7 +56,9 @@ trait ConfirmableTrait
     {
         return function () {
             return $this->getKernel()->getEnvironment() === 'production'
-                || $this->getKernel()->getEnvironment() === 'prod';
+                || $this->getKernel()->getEnvironment() === 'prod'
+                || $this->getKernel()->getEnvironment() === 'live'
+                || $this->getKernel()->getEnvironment() === 'master';
         };
     }
 }
