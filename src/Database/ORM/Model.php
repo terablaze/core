@@ -134,7 +134,7 @@ abstract class Model implements ModelInterface
 
     /**
      * @param array<int|string, mixed> $initData
-     * return $this|null
+     * @return static|null
      */
     public static function create(array $initData = [])
     {
@@ -331,7 +331,7 @@ abstract class Model implements ModelInterface
      * @param array $parameters
      * @param string[] $fields
      * @param array $order
-     * @return $this|null
+     * @return static|null
      */
     public static function first(
         $where = '',
@@ -351,7 +351,7 @@ abstract class Model implements ModelInterface
      * @param array $parameters
      * @param string[] $fields
      * @param array $orderList
-     * @return $this|null
+     * @return static|null
      */
     protected function _first(
         $where = '',
