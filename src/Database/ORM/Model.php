@@ -378,6 +378,11 @@ abstract class Model implements ModelInterface
         return null;
     }
 
+    /**
+     * @param int|string $modelId
+     * @return static|null
+     * @throws MappingException
+     */
     public static function find($modelId)
     {
         $model = new static();
