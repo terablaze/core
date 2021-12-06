@@ -64,7 +64,8 @@ class Validator implements ValidatorInterface
                         $errors[$field] = [];
                     }
 
-                    $errors[$field][$name] = $messages[$field][$name] ?? $processor->getMessage($data[$field], $field, $params);
+                    $errors[$field][$name] = $messages[$field][$name]
+                        ?? $processor->getMessage($data[$field], $field, $params);
                     if ($bail) {
                         break;
                     }
