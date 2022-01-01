@@ -21,6 +21,7 @@ class RequiredIfRule extends Rule implements RuleInterface
     {
         $dependant = $this->params[0];
         $dependantValue = $this->params[1];
-        return ":field is required if $dependant equals $dependantValue";
+
+        return $this->message ?? ":field is required if $dependant equals $dependantValue";
     }
 }

@@ -7,21 +7,24 @@ use TeraBlaze\Support\StringMethods;
 
 class MinRule extends Rule implements RuleInterface
 {
+    use SizeAwareTrait;
+
     public function validate(): bool
     {
         if (empty($this->params[0])) {
-            throw new InvalidArgumentException('specify a min length');
+            throw new InvalidArgumentException('specify a min size/length');
         }
 
-        $length = (int) $this->params[0];
+        $min = (int) $this->params[0];
 
-        return StringMethods::length($this->value) >= $length;
+        return $this->getSize() >= $min;
     }
 
     public function getMessage(): string
     {
         $length = (int) $this->params[0];
 
-        return ":field should be at least {$length} characters";
+        return $this->message ??
+            trim(":field should {$this->messageModifier['presence']} at least $length {$this->messageModifier['unit']}");
     }
 }

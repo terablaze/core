@@ -26,6 +26,6 @@ class UniqueRule extends Rule implements RuleInterface
 
     public function getMessage(): string
     {
-        return "The value ('$this->value') submitted for :field must be unique in the database";
+        return $this->message ?? "The value ('$this->value') submitted for :field must be unique in the database";
     }
 }

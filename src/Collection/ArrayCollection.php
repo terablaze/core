@@ -3,6 +3,7 @@
 namespace TeraBlaze\Collection;
 
 use ArrayIterator;
+use TeraBlaze\Collection\Exceptions\InvalidTypeException;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 
@@ -62,7 +63,7 @@ class ArrayCollection implements CollectionInterface
                 $message = "The data type you required is invalid. " .
                     "Make sure it is a valid class or any of the built-in basic " .
                     "php data types: (" . join(', ', self::BASIC_TYPES) . ")";
-                throw new TypeException($message);
+                throw new InvalidTypeException($message);
             }
             $this->type = $type;
             $this->verifyType();

@@ -22,6 +22,6 @@ class EqualsRule extends Rule implements RuleInterface
     {
         $size = (int) $this->params[0];
 
-        return ":field should be equal to $size";
+        return $this->message ?? ":field should be equal to $size";
     }
 }

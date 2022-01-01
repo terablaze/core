@@ -22,6 +22,6 @@ class GtRule extends Rule implements RuleInterface
     {
         $size = (int) $this->params[0];
 
-        return ":field should be greater than $size";
+        return $this->message ?? ":field should be greater than $size";
     }
 }

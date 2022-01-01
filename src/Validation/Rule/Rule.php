@@ -17,7 +17,7 @@ abstract class Rule implements RuleInterface
     /** @var array<string, mixed> $params */
     protected array $params;
 
-    protected string $message = ":field is invalid";
+    protected ?string $message = null;
 
     /**
      * @param string $field
