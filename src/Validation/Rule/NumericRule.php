@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class NumericRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return is_numeric($data);
-    }
+    protected string $message = ":field must be a numeric data";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} must be a numeric data";
+        return is_numeric($this->value);
     }
 }

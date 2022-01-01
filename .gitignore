@@ -11,3 +11,4 @@ composer.lock
 ./blaze
 .env
 /public
+/tests/Local

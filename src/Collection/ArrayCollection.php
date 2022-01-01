@@ -85,9 +85,17 @@ class ArrayCollection implements CollectionInterface
     /**
      * {@inheritDoc}
      */
-    public function first()
+    public function first(callable $callback = null, $default = null)
     {
-        return reset($this->elements);
+        return ArrayMethods::first($this->elements, $callback, $default);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function last(callable $callback = null, $default = null)
+    {
+        return ArrayMethods::last($this->elements, $callback, $default);
     }
 
     /**
@@ -99,18 +107,11 @@ class ArrayCollection implements CollectionInterface
      * @param array $elements Elements.
      *
      * @return static
+     * @throws TypeException
      */
     protected function createFrom(array $elements)
     {
         return new static($elements);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function last()
-    {
-        return end($this->elements);
     }
 
     /**
@@ -419,6 +420,24 @@ class ArrayCollection implements CollectionInterface
         }
 
         return true;
+    }
+
+    /**
+     * Concatenate values of a given key as a string.
+     *
+     * @param  string  $value
+     * @param  string|null  $glue
+     * @return string
+     */
+    public function implode($value, $glue = null)
+    {
+        $first = $this->first();
+
+        if (is_array($first) || (is_object($first) && ! $first instanceof \Stringable)) {
+            return implode($glue ?? '', $this->pluck($value)->all());
+        }
+
+        return implode($value ?? '', $this->elements);
     }
 
     /**

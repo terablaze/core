@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class StringRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return is_string($data);
-    }
+    protected string $message = ":field must be a string";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} must be a string";
+        return is_string($this->value);
     }
 }

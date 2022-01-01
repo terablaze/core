@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class AlphaRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return ctype_alpha($data);
-    }
+    protected string $message = ":field must contain only alphabets";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} must contain only alphabets";
+        return ctype_alpha($this->value);
     }
 }
