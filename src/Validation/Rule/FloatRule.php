@@ -4,7 +4,7 @@ namespace TeraBlaze\Validation\Rule;
 
 class FloatRule extends Rule implements RuleInterface
 {
-    protected ?string $message = ":field must be a float";
+    protected ?string $message = ":Field must be a float";
 
     public function validate(): bool
     {

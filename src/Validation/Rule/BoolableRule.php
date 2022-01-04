@@ -4,7 +4,7 @@ namespace TeraBlaze\Validation\Rule;
 
 class BoolableRule extends Rule implements RuleInterface
 {
-    protected ?string $message = ":field must be resolvable to a boolean";
+    protected ?string $message = ":Field must be resolvable to a boolean";
 
     public function validate(): bool
     {

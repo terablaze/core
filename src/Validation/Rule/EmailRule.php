@@ -4,7 +4,7 @@ namespace TeraBlaze\Validation\Rule;
 
 class EmailRule extends Rule implements RuleInterface
 {
-    protected ?string $message = ":field should be an email";
+    protected ?string $message = ":Field should be an email";
 
     public function validate(): bool
     {

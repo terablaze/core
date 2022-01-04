@@ -622,6 +622,23 @@ class ArrayMethods
         }, $array);
     }
 
+    /**
+     * Convert a flatten "dot" notation array into an expanded array.
+     *
+     * @param  iterable  $array
+     * @return array
+     */
+    public static function undot($array)
+    {
+        $results = [];
+
+        foreach ($array as $key => $value) {
+            static::set($results, $key, $value);
+        }
+
+        return $results;
+    }
+
     public static function utf8ize($data)
     {
         if (is_string($data)) {

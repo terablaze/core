@@ -212,6 +212,26 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     public function map(callable $func);
 
     /**
+     * Run a dictionary map over the items.
+     *
+     * The callback should return an associative array with a single key/value pair.
+     *
+     * @param  callable  $callback
+     * @return static
+     */
+    public function mapToDictionary(callable $callback);
+
+    /**
+     * Run an associative map over each of the items.
+     *
+     * The callback should return an associative array with a single key/value pair.
+     *
+     * @param  callable  $callback
+     * @return static
+     */
+    public function mapWithKeys(callable $callback);
+
+    /**
      * Map a collection and flatten the result by a single level.
      *
      * @param  callable  $callback

@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\Validation\Rule;
 
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Validation\Rule\Builder\UniqueRuleBuilder;
 
 abstract class Rule implements RuleInterface
@@ -27,7 +28,7 @@ abstract class Rule implements RuleInterface
     public function __construct(string $field, array $data = [], $params = [])
     {
         $this->field = $field;
-        $this->value = $data[$field] ?? null;
+        $this->value = ArrayMethods::get($data, $field);
         $this->data = $data;
         $this->params = $params;
     }

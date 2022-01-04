@@ -21,9 +21,9 @@ class Validator
         array $data,
         array $rules,
         array $customMessages = [],
-        array $customAttributes = []
+        array $customFields = []
     ): Validation {
-        $validation = new Validation($data, $rules, $customMessages, $customAttributes);
+        $validation = new Validation($data, $rules, $customMessages, $customFields);
         $validation->setContainer($this->container);
         if ($this->translator instanceof TranslatorInterface) {
             $validation->setTranslator($this->translator);
@@ -35,9 +35,9 @@ class Validator
         array $data,
         array $rules,
         array $customMessages = [],
-        array $customAttributes = []
+        array $customFields = []
     ): array {
-        $validation = $this->make($data, $rules, $customMessages, $customAttributes);
+        $validation = $this->make($data, $rules, $customMessages, $customFields);
         return $validation->validate();
     }
 }

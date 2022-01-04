@@ -25,6 +25,6 @@ class MaxRule extends Rule implements RuleInterface
         $length = (int) $this->params[0];
 
         return $this->message ??
-            trim(":field should {$this->messageModifier['presence']} at most $length {$this->messageModifier['unit']}");
+            trim(":Field should {$this->messageModifier['presence']} at most $length {$this->messageModifier['unit']}");
     }
 }

@@ -20,8 +20,8 @@ class EqualsRule extends Rule implements RuleInterface
 
     public function getMessage(): string
     {
-        $size = (int) $this->params[0];
+        $size = (int) ($this->params[0] ?? '');
 
-        return $this->message ?? ":field should be equal to $size";
+        return $this->message ?? ":Field should be equal to $size";
     }
 }

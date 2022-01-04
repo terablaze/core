@@ -18,6 +18,7 @@ use TeraBlaze\Session\Flash\FlashMessageMiddleware;
 use TeraBlaze\Session\Flash\FlashMessagesInterface;
 use TeraBlaze\Session\SessionInterface;
 use TeraBlaze\Session\SessionMiddleware;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
 
 use function dirname;
@@ -1197,5 +1198,11 @@ class Request extends Psr7ServerRequest
         ksort($qs);
 
         return http_build_query($qs, '', '&', \PHP_QUERY_RFC3986);
+    }
+
+    public function all(): array
+    {
+        $input = ((array) $this->getParsedBody()) + $this->getQueryParams();
+        return array_replace_recursive($input, $this->getUploadedFiles());
     }
 }

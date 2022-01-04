@@ -12,7 +12,7 @@ interface ValidationInterface
     public function validate(): array;
 
     /**
-     * Get the attributes and values that were validated.
+     * Get the fields and values that were validated.
      *
      * @return array
      */

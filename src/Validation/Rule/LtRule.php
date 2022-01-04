@@ -22,6 +22,6 @@ class LtRule extends Rule implements RuleInterface
     {
         $size = (int) $this->params[0];
 
-        return $this->message ?? ":field should be less than $size";
+        return $this->message ?? ":Field should be less than $size";
     }
 }
