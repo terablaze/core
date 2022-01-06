@@ -7,6 +7,8 @@ use TeraBlaze\Config\ConfigInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Core\Parcel\ParcelInterface;
+use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
+use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use TeraBlaze\HttpBase\Request;
 
 interface KernelInterface extends HttpKernelInterface
@@ -114,4 +116,17 @@ interface KernelInterface extends HttpKernelInterface
     public function getCurrentRequest(): ?Request;
 
     public function getEventDispatcher(): EventDispatcherInterface;
+
+    /**
+     * Throw an HttpException with the given data.
+     *
+     * @param  int  $code
+     * @param  string  $message
+     * @param  string[] $headers
+     * @return void
+     *
+     * @throws HttpException
+     * @throws NotFoundHttpException
+     */
+    public function abort(int $code, string $message = '', array $headers = []): void;
 }

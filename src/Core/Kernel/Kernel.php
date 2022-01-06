@@ -18,6 +18,8 @@ use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
 use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
 use TeraBlaze\Core\Parcel\ParcelInterface;
+use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
+use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use TeraBlaze\ErrorHandler\HandleExceptions;
 use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\EventDispatcher\ListenerProvider;
@@ -510,5 +512,25 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
             $this->bootEventDispatcher();
         }
         return $this->dispatcher;
+    }
+
+    /**
+     * Throw an HttpException with the given data.
+     *
+     * @param  int  $code
+     * @param  string  $message
+     * @param  string[] $headers
+     * @return void
+     *
+     * @throws HttpException
+     * @throws NotFoundHttpException
+     */
+    public function abort(int $code, string $message = '', array $headers = []): void
+    {
+        if ($code == 404) {
+            throw new NotFoundHttpException($message);
+        }
+
+        throw new HttpException($code, $message, null, $headers);
     }
 }

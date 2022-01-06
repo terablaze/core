@@ -4,6 +4,9 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
+use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
+use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
@@ -17,7 +20,6 @@ use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Routing\RouterInterface;
 use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Validation\ValidatorInterface;
 
 if (!function_exists('container')) {
     /**
@@ -71,6 +73,73 @@ if (!function_exists('kernel')) {
             $kernel = container()->get(KernelInterface::class);
         }
         return $kernel;
+    }
+}
+
+if (! function_exists('abort')) {
+    /**
+     * Throw an HttpException with the given data.
+     *
+     * @param Response|int $code
+     * @param string $message
+     * @param array $headers
+     * @return void
+     *
+     * @throws HttpException
+     * @throws NotFoundHttpException
+     * @throws ReflectionException
+     */
+    function abort($code, string $message = '', array $headers = [])
+    {
+        if ($code instanceof Response) {
+            throw new \TeraBlaze\ErrorHandler\Exception\Http\HttpResponseException($code);
+        }
+
+        kernel()->abort($code, $message, $headers);
+    }
+}
+
+if (! function_exists('abortIf')) {
+    /**
+     * Throw an HttpException with the given data if the given condition is true.
+     *
+     * @param  bool  $boolean
+     * @param Response|int $code
+     * @param  string  $message
+     * @param  array  $headers
+     * @return void
+     *
+     * @throws HttpException
+     * @throws NotFoundHttpException
+     * @throws ReflectionException
+     */
+    function abortIf($boolean, $code, string $message = '', array $headers = [])
+    {
+        if ($boolean) {
+            abort($code, $message, $headers);
+        }
+    }
+}
+
+if (! function_exists('abortUnless')) {
+    /**
+     * Throw an HttpException with the given data unless the given condition is true.
+     *
+     * @param  bool  $boolean
+     * @param Response|int $code
+     * @param  string  $message
+     * @param  array  $headers
+     * @return void
+     *
+     * @throws HttpException
+     * @throws NotFoundHttpException
+     * @throws ReflectionException
+     */
+    function abortUnless($boolean, $code, string $message = '', array $headers = [])
+    {
+        if (! $boolean) {
+            abort($code, $message, $headers);
+        }
     }
 }
 
@@ -758,24 +827,5 @@ if (!function_exists('isWindowsOs')) {
     function isWindowsOs()
     {
         return PHP_OS_FAMILY === 'Windows';
-    }
-}
-
-if (!function_exists('validator')) {
-    function validator(): ValidatorInterface
-    {
-        /** @var ValidatorInterface $validator */
-        static $validator;
-        if (!$validator) {
-            $validator = container()->get(ValidatorInterface::class);
-        }
-        return $validator;
-    }
-}
-
-if (!function_exists('validate')) {
-    function validate(array $data, array $rules, array $messages = []): array
-    {
-        return validator()->validate($data, $rules, $messages);
     }
 }
