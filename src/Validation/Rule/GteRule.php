@@ -7,21 +7,21 @@ use TeraBlaze\Support\StringMethods;
 
 class GteRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
+    public function validate(): bool
     {
-        if (empty($params[0])) {
+        if (empty($this->params[0])) {
             throw new InvalidArgumentException('Specify a min size - 1');
         }
 
-        $size = (int) $params[0];
+        $size = (int) $this->params[0];
 
-        return $data >= $size;
+        return $this->value >= $size;
     }
 
-    public function getMessage($data, string $field, array $params)
+    public function getMessage(): string
     {
-        $size = (int) $params[0];
+        $size = (int) $this->params[0];
 
-        return $this->message ?? "$field should be greater than or equal to $size";
+        return $this->message ?? ":Field should be greater than or equal to $size";
     }
 }

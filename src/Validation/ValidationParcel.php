@@ -11,16 +11,14 @@ class ValidationParcel extends Parcel implements ParcelInterface
     {
         $config = loadConfig('validation');
 
-        Validator::$throwException = $config->get('validation.throw_exception', false);
+        Validation::$throwException = $config->get('validation.throw_exception', true);
 
         foreach ($config->get('validation.namespaces') as $namespace) {
-            Validator::$rulesNamespaces[] = $namespace;
+            Validation::$rulesNamespaces[] = $namespace;
         }
-        Validator::$rulesNamespaces[] = "TeraBlaze\Validation\Rule";
 
         $this->container->make('validator', [
             'class' => Validator::class,
-            'alias' => ValidatorInterface::class,
         ]);
     }
 }

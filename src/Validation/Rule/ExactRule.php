@@ -7,21 +7,24 @@ use TeraBlaze\Support\StringMethods;
 
 class ExactRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
+    use SizeAwareTrait;
+
+    public function validate(): bool
     {
-        if (empty($params[0])) {
-            throw new InvalidArgumentException('specify a length');
+        if (empty($this->params[0])) {
+            throw new InvalidArgumentException('specify a size/length');
         }
 
-        $length = (int) $params[0];
+        $size = (int) $this->params[0];
 
-        return StringMethods::length($data) == $length;
+        return $this->getSize() >= $size;
     }
 
-    public function getMessage($data, string $field, array $params)
+    public function getMessage(): string
     {
-        $length = (int) $params[0];
+        $length = (int) $this->params[0];
 
-        return $this->message ?? "{$field} should contain exactly {$length} characters";
+        return $this->message ??
+            trim(":Field should {$this->messageModifier['presence']} exactly $length {$this->messageModifier['unit']}");
     }
 }

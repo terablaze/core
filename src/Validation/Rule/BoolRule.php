@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class BoolRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return is_bool($data);
-    }
+    protected ?string $message = ":Field must be a boolean";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} must be a boolean";
+        return is_bool($this->value);
     }
 }

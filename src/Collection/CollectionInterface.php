@@ -133,18 +133,22 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     public function toArray();
 
     /**
-     * Sets the internal iterator to the first element in the collection and returns this element.
+     * Get the first item from the collection passing the given truth test.
      *
+     * @param  callable|null  $callback
+     * @param  mixed  $default
      * @return mixed
      */
-    public function first();
+    public function first(callable $callback = null, $default = null);
 
     /**
-     * Sets the internal iterator to the last element in the collection and returns this element.
+     * Get the last item from the collection.
      *
+     * @param  callable|null  $callback
+     * @param  mixed  $default
      * @return mixed
      */
-    public function last();
+    public function last(callable $callback = null, $default = null);
 
     /**
      * Gets the key/index of the element at the current iterator position.
@@ -206,6 +210,26 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      * @return static
      */
     public function map(callable $func);
+
+    /**
+     * Run a dictionary map over the items.
+     *
+     * The callback should return an associative array with a single key/value pair.
+     *
+     * @param  callable  $callback
+     * @return static
+     */
+    public function mapToDictionary(callable $callback);
+
+    /**
+     * Run an associative map over each of the items.
+     *
+     * The callback should return an associative array with a single key/value pair.
+     *
+     * @param  callable  $callback
+     * @return static
+     */
+    public function mapWithKeys(callable $callback);
 
     /**
      * Map a collection and flatten the result by a single level.

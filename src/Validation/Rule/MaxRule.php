@@ -3,25 +3,28 @@
 namespace TeraBlaze\Validation\Rule;
 
 use InvalidArgumentException;
+use Psr\Http\Message\UploadedFileInterface;
 use TeraBlaze\Support\StringMethods;
 
 class MaxRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
+    use SizeAwareTrait;
+
+    public function validate(): bool
     {
-        if (empty($params[0])) {
-            throw new InvalidArgumentException('specify a max length');
+        if (empty($this->params[0])) {
+            throw new InvalidArgumentException('specify a max size/length');
         }
 
-        $length = (int) $params[0];
-
-        return StringMethods::length($data) <= $length;
+        $max = (int) $this->params[0];
+        return $this->getSize() <= $max;
     }
 
-    public function getMessage($data, string $field, array $params)
+    public function getMessage(): string
     {
-        $length = (int) $params[0];
+        $length = (int) $this->params[0];
 
-        return $this->message ?? "{$field} should be at most {$length} characters";
+        return $this->message ??
+            trim(":Field should {$this->messageModifier['presence']} at most $length {$this->messageModifier['unit']}");
     }
 }

@@ -4,7 +4,11 @@ namespace TeraBlaze\Validation\Rule;
 
 interface RuleInterface
 {
-    public function validate($data, string $field, array $params);
+    public function setMessage(string $message): self;
 
-    public function getMessage($data, string $field, array $params);
+    public function setData(array $data): self;
+
+    public function getMessage(): string;
+
+    public function validate(): bool;
 }

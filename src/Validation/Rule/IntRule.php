@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class IntRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return is_int($data);
-    }
+    protected ?string $message = ":Field must be an integer";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} must be an integer";
+        return is_int($this->value);
     }
 }

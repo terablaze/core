@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class EmailRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return filter_var($data, FILTER_VALIDATE_EMAIL);
-    }
+    protected ?string $message = ":Field should be an email";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} should be an email";
+        return filter_var($this->value, FILTER_VALIDATE_EMAIL);
     }
 }

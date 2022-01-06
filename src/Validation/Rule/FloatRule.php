@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class FloatRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return is_float($data);
-    }
+    protected ?string $message = ":Field must be a float";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} must be a float";
+        return is_float($this->value);
     }
 }

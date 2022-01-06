@@ -7,8 +7,8 @@
 /vendor
 composer.lock
 /config
-/tests
 .phpcs-cache
 ./blaze
 .env
 /public
+/tests/Local

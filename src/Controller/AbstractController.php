@@ -2,6 +2,8 @@
 
 namespace TeraBlaze\Controller;
 
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use ReflectionException;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
@@ -66,6 +68,14 @@ abstract class AbstractController implements ControllerInterface
 
     /**
      * Renders a view.
+     *
+     * @param string $view
+     * @param array<string, mixed> $parameters
+     * @param int $responseCode
+     * @param array<string, string> $headers
+     *
+     * @return Response
+     * @throws ReflectionException
      */
     protected function render(
         string $view,
@@ -77,11 +87,18 @@ abstract class AbstractController implements ControllerInterface
         return new Response($content, $responseCode, $headers);
     }
 
+    /**
+     * @param mixed $data
+     * @param int $responseCode
+     * @param array<string, string> $headers
+     * @param int|null $jsonOptions
+     * @return JsonResponse
+     */
     protected function json(
         $data,
         int $responseCode = 200,
         array $headers = ['Content-Type' => 'application/json'],
-        $jsonOptions = null
+        ?int $jsonOptions = null
     ): JsonResponse {
         $response = new JsonResponse($data, $responseCode, $headers);
         if ($jsonOptions) {
@@ -94,10 +111,12 @@ abstract class AbstractController implements ControllerInterface
      * Generates a URL from the given parameters.
      *
      * @param string $routeName
-     * @param array $parameters
+     * @param array<string, mixed> $parameters
      * @param int $referenceType
      * @return string
      * @throws ReflectionException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      * @see UrlGeneratorInterface
      */
     protected function generateUrl(

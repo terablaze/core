@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class RequiredRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return !empty($data);
-    }
+    protected ?string $message = ":Field is required";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} is required";
+        return !empty($this->value);
     }
 }

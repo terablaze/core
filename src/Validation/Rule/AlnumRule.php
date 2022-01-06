@@ -4,13 +4,10 @@ namespace TeraBlaze\Validation\Rule;
 
 class AlnumRule extends Rule implements RuleInterface
 {
-    public function validate($data, string $field, array $params)
-    {
-        return ctype_alnum($data);
-    }
+    protected ?string $message = ":Field must contain only alphanumeric characters";
 
-    public function getMessage($data, string $field, array $params)
+    public function validate(): bool
     {
-        return $this->message ?? "{$field} must contain only alphanumeric characters";
+        return ctype_alnum($this->value);
     }
 }
