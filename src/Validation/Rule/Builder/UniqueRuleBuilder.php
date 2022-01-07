@@ -67,19 +67,6 @@ class UniqueRuleBuilder implements RuleBuilderInterface
         return $this;
     }
 
-    /**
-     * Ignore soft deleted models during the unique check.
-     *
-     * @param  string  $deletedAtColumn
-     * @return $this
-     */
-    public function withoutTrashed($deletedAtColumn = 'deleted_at')
-    {
-        $this->whereNull($deletedAtColumn);
-
-        return $this;
-    }
-
     public function __toString()
     {
         return rtrim(sprintf('unique:%s,%s,%s,%s',

@@ -4,7 +4,7 @@ namespace TeraBlaze\HttpBase;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use TeraBlaze\ErrorHandler\ExceptionHandler;
+use TeraBlaze\Container\Container;
 use TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
 use TeraBlaze\HttpBase\Exception\ConflictingHeadersException;
 use TeraBlaze\HttpBase\Exception\SuspiciousOperationException;
@@ -18,9 +18,10 @@ use TeraBlaze\Session\Flash\FlashMessageMiddleware;
 use TeraBlaze\Session\Flash\FlashMessagesInterface;
 use TeraBlaze\Session\SessionInterface;
 use TeraBlaze\Session\SessionMiddleware;
-use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
 
+use TeraBlaze\Validation\Validation;
+use TeraBlaze\Validation\Validator;
 use function dirname;
 
 class Request extends Psr7ServerRequest
@@ -1204,5 +1205,36 @@ class Request extends Psr7ServerRequest
     {
         $input = ((array) $this->getParsedBody()) + $this->getQueryParams();
         return array_replace_recursive($input, $this->getUploadedFiles());
+    }
+
+    protected ?Validation $validation = null;
+
+    /**
+     * @param array $rules
+     * @param array $customMessages
+     * @param array $customFields
+     * @return Validation
+     * @throws \ReflectionException
+     */
+    public function validate(array $rules, array $customMessages = [], array $customFields = []): Validation
+    {
+        /** @var Validator $validator */
+        $validator = Container::getContainer()->make(Validator::class);
+        $this->validation = $validator->make($this->all(), $rules, $customMessages, $customFields);
+
+        $this->validation->validate();
+        return $this->validation;
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function validated(): array
+    {
+        if (is_null($this->validation)) {
+            throw new \Exception('Validation not yet run. Ensure you have called Request::validate() first');
+        }
+        return $this->validation->validated();
     }
 }

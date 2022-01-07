@@ -27,6 +27,13 @@ class Validation implements ValidationInterface
     private ?Translator $translator = null;
     private Container $container;
 
+    /**
+     * Indicates if the validator should stop on the first rule failure.
+     *
+     * @var bool
+     */
+    protected $stopOnFirstFailure = false;
+
     /** @var array<string, mixed> $data */
     private array $data;
     /** @var array<string, mixed> $rules */
@@ -47,6 +54,7 @@ class Validation implements ValidationInterface
 
     /** @var array<string, string> $bails */
     protected array $bails = [];
+    protected array $rawValidated = [];
     protected array $validated = [];
     protected array $failed = [];
     protected array $errors = [];
@@ -226,30 +234,17 @@ class Validation implements ValidationInterface
 
     public function validate(): array
     {
+        $this->validated = [];
         foreach ($this->rules as $field => $rulesForField) {
+            if ($this->stopOnFirstFailure && !empty($this->errors())) {
+                break;
+            }
             $bail = reset($rulesForField) == "bail";
             if ($bail) {
                 $this->bails[$field] = array_shift($rulesForField);
             }
-            foreach ($rulesForField as $rule) {
-                if (is_a($rule, RuleBuilderInterface::class)) {
-                    $rule = $rule->__toString();
-                }
-
-                [$rule, $params] = static::parse($rule);
-
-                $ruleName = $this->parseRuleName($rule);
-
-                $processor = $this->getRule($rule, $field, $this->data, $params);
-                if (method_exists($processor, 'setDatabaseReqs')) {
-                    $processor->setDatabaseReqs($this->container);
-                }
-                if (is_null(ArrayMethods::get($this->data, $field)) && $processor instanceof NullableRule) {
-                    break;
-                }
-                if (!$this->doValidate($processor, $field, $ruleName, $params) && $bail) {
-                    break;
-                }
+            if($this->runFieldValidate($rulesForField, $field, $bail)) {
+                $this->rawValidated[$field] = ArrayMethods::get($this->data, $field);
             }
         }
 
@@ -270,6 +265,43 @@ class Validation implements ValidationInterface
     }
 
     /**
+     * @param $rulesForField
+     * @param string $field
+     * @param bool $bail
+     * @return bool
+     * @throws ReflectionException
+     * @throws RuleException
+     */
+    private function runFieldValidate(array $rulesForField, string $field, bool $bail): bool
+    {
+        $fieldPassed = false;
+        foreach ($rulesForField as $rule) {
+            if (is_a($rule, RuleBuilderInterface::class)) {
+                $rule = $rule->__toString();
+            }
+
+            [$rule, $params] = static::parse($rule);
+
+            $ruleName = $this->parseRuleName($rule);
+
+            $processor = $this->getRule($rule, $field, $this->data, $params);
+            if (method_exists($processor, 'setDatabaseReqs')) {
+                $processor->setDatabaseReqs($this->container);
+            }
+            if (is_null(ArrayMethods::get($this->data, $field)) && $processor instanceof NullableRule) {
+                break;
+            }
+            if (!$this->doValidate($processor, $field, $ruleName, $params) && $bail) {
+                break;
+            }
+        }
+        if (empty($this->errors[$this->replacePlaceholderInString($field)])) {
+            $fieldPassed = true;
+        }
+        return $fieldPassed;
+    }
+
+    /**
      * @param RuleInterface|callable $processor
      * @return bool
      */
@@ -284,11 +316,24 @@ class Validation implements ValidationInterface
     }
 
     /**
-     * Generate an array of all attributes that have messages.
+     * Instruct the validator to stop validating after the first rule failure.
+     *
+     * @param  bool  $stopOnFirstFailure
+     * @return $this
+     */
+    public function stopOnFirstFailure($stopOnFirstFailure = true)
+    {
+        $this->stopOnFirstFailure = $stopOnFirstFailure;
+
+        return $this;
+    }
+
+    /**
+     * Generate an array of all fields that have messages.
      *
      * @return array
      */
-    protected function attributesThatHaveMessages()
+    protected function fieldsThatHaveMessages()
     {
         return (new ArrayCollection($this->errors))->map(function ($message, $key) {
             return explode('.', $key)[0];
@@ -296,7 +341,7 @@ class Validation implements ValidationInterface
     }
 
     /**
-     * Get the attributes and values that were validated.
+     * Get the fields and values that were validated.
      *
      * @return array
      *
@@ -304,26 +349,19 @@ class Validation implements ValidationInterface
      */
     public function validated(): array
     {
+        if (!empty($this->validated)) {
+            return $this->validated;
+        }
         $results = [];
 
-        $missingValue = new \stdClass();
-
-        foreach ($this->getRules() as $key => $rules) {
-            $value = dataGet($this->getData(), $key, $missingValue);
-
-            if ($value !== $missingValue) {
+        foreach ($this->rawValidated as $key => $data) {
+            $value = dataGet($this->getData(), $key);
                 ArrayMethods::set($results, $key, $value);
-            }
         }
+
         $results = $this->replacePlaceholders($results);
 
-        foreach ($this->errors as $key => $error) {
-            if (ArrayMethods::get($results, $key)) {
-                ArrayMethods::forget($results, $key);
-            }
-        }
-
-        return ArrayMethods::clean($results);
+        return $this->validated = ArrayMethods::clean($results);
     }
 
     /**
@@ -639,7 +677,11 @@ class Validation implements ValidationInterface
             $this->errors[$field][$rule] = $errorMessage;
         }
 
-        $this->failed[$field][$rule] = $parameters;
+        if (in_array($rule, ['closure', 'object'])) {
+            $this->failed[$field][] = $parameters;
+        } else {
+            $this->failed[$field][$rule] = $parameters;
+        }
     }
 
 
