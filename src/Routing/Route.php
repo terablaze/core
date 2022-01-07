@@ -2,7 +2,7 @@
 
 namespace TeraBlaze\Routing;
 
-use TeraBlaze\HttpBase\Request;
+use TeraBlaze\Container\Container;
 use TeraBlaze\Support\ArrayMethods;
 
 /**
@@ -11,6 +11,8 @@ use TeraBlaze\Support\ArrayMethods;
  */
 class Route
 {
+    private Container $container;
+
     /** @var string $name */
     public string $name;
 
@@ -55,8 +57,10 @@ class Route
      * @param int|string $name
      * @param callable|array<string, mixed> $route
      */
-    public function __construct($name, $route)
+    public function __construct(Container $container, $name, $route)
     {
+        $this->container = $container;
+
         $this->name = (string)$name;
         $this->pattern = $route['pattern'] ?? '/';
         unset($route['pattern']);
@@ -208,8 +212,9 @@ class Route
         $keyPatterns = [];
         foreach ($keys[0] as $key) {
             $keysToReplace[] = "{$key}";
-            $keyParts = explode(":", trim($key, "{}"));
+            $keyParts = explode(":", trim($key, "{}"), 3);
             $keyPattern = $keyParts[1] ?? "any";
+            $keyDefault = $keyParts[2] ?? null;
             $keyPatterns[] = in_array("#(:" . $keyPattern . ")#", Router::PATTERN_KEYS) ?
                 ":" . $keyPattern : $keyPattern;
         }
@@ -262,7 +267,7 @@ class Route
     private function setLocale($locale = ''): void
     {
         if (!empty($locale)) {
-            container()->get('translator')->setLocale($locale);
+            $this->container->get('translator')->setLocale($locale);
         }
     }
 }

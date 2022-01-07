@@ -10,14 +10,11 @@ use TeraBlaze\Collection\Exceptions\TypeException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\ErrorHandler\Exception\Http\MethodNotAllowedHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Routing\Events\PostControllerEvent;
 use TeraBlaze\Routing\Events\PostDispatchEvent;
-use TeraBlaze\Routing\Events\PreControllerEvent;
 use TeraBlaze\Routing\Events\PreDispatchEvent;
 use TeraBlaze\Routing\Exception\ImplementationException;
 use TeraBlaze\Routing\Exception\MissingParametersException;
@@ -107,7 +104,7 @@ class Router implements RouterInterface
             $route['pattern'] = ($config['prefix'] ?? '') . $route['pattern'] ?? '';
             $route['expects_json'] = $route['expects_json'] ?? $config['expects_json'] ?? false;
             $route['middlewares'] = $route['middlewares'] ?? $config['middlewares'] ?? [];
-            $this->addRoute($name, new Route($name, $route));
+            $this->addRoute($name, new Route($this->container, $name, $route));
         }
         if ($nestLevel > 0) {
             $nestLevel--;
