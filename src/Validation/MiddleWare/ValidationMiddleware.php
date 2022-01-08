@@ -8,6 +8,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\HttpBase\Request;
+use TeraBlaze\HttpBase\Response;
 use TeraBlaze\HttpBase\Traits\ResponseTrait;
 use TeraBlaze\Routing\Generator\UrlGenerator;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
@@ -131,7 +132,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
      * Handle a failed validation attempt.
      *
      * @param Validation  $validation
-     * @return void
+     * @return Response|ResponseInterface
      *
      * @throws ValidationException
      */
@@ -141,6 +142,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
             $request->getSession()->flashInput($request->all());
             $request->getFlash()->flash('_validation_errors', $validation->errors());
         }
+        return $this->redirect($this->getRedirectUrl());
     }
 
     /**
@@ -159,7 +161,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
     /**
      * Handle a failed authorization attempt.
      *
-     * @return void
+     * @return Response|ResponseInterface
      *
      * @throws AuthorizationException
      */
@@ -172,6 +174,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
         if ($request->hasFlash()) {
             $request->getFlash()->flash('_authorization_errors', $authException->getMessage());
         }
+        return $this->redirect($this->getRedirectUrl());
     }
 
     /**
@@ -182,14 +185,17 @@ abstract class ValidationMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (! $this->passesAuthorization()) {
-            $this->failedAuthorization($request);
+            $response = $this->failedAuthorization($request);
         }
 
         if (!empty($request->all())) {
             $validation = $request->validate($this->rules(), $this->messages(), $this->fields());
             if ($validation->fails()) {
-                $this->failedValidation($validation, $request);
+                $response = $this->failedValidation($validation, $request);
             }
+        }
+        if (isset($response) && $response instanceof ResponseInterface) {
+            return $response;
         }
         return $handler->handle($request);
     }
