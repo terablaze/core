@@ -226,6 +226,30 @@ class Request extends Psr7ServerRequest
     }
 
     /**
+     * Retrieve an old input item.
+     *
+     * @param  string|null  $key
+     * @param  string|array|null  $default
+     * @return string|array|null
+     */
+    public function old($key = null, $default = null)
+    {
+        return $this->hasSession() ? $this->getSession()->getOldInput($key, $default) : $default;
+    }
+
+    /**
+     * Flush all of the old input from the session.
+     *
+     * @return void
+     */
+    public function flush()
+    {
+        if ($this->hasSession()) {
+            $this->getSession()->flashInput([]);
+        }
+    }
+
+    /**
      * Determine if the current request URI matches a pattern.
      *
      * @param $patterns

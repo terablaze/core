@@ -34,6 +34,10 @@ class JsonResponse extends Response
             $body = new \ArrayObject();
         }
 
+        if (empty($headers)) {
+            $this->headers = ['Content-Type' => 'application/json'];
+        }
+
         $this->statusCode = $status;
 
         $json ? $this->setJson($body) : $this->setData($body);
