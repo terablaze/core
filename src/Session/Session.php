@@ -208,4 +208,29 @@ class Session implements
     {
         return ArrayMethods::get($this->getFlash()->getFlash('_old_input', []), $key, $default);
     }
+
+    /**
+     * Determine if the session contains validation error.
+     *
+     * @param  string|null  $key
+     * @return bool
+     */
+    public function hasValidationError($key = null): bool
+    {
+        $old = $this->getValidationError($key);
+
+        return is_null($key) ? count($old) > 0 : ! is_null($old);
+    }
+
+    /**
+     * Get the requested item from the flashed validation errors.
+     *
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    public function getValidationError($key = null, $default = null)
+    {
+        return ArrayMethods::get($this->getFlash()->getFlash('_validation_errors', []), $key, $default);
+    }
 }

@@ -220,6 +220,34 @@ if (!function_exists('csrf')) {
     }
 }
 
+if (! function_exists('old')) {
+    /**
+     * Retrieve an old input item.
+     *
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    function old($key = null, $default = null)
+    {
+        return request()->old($key, $default);
+    }
+}
+
+if (! function_exists('errors')) {
+    /**
+     * Retrieve a flashed validation error
+     *
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    function error($key = null, $default = null)
+    {
+        return request()->error($key, $default);
+    }
+}
+
 if (!function_exists('getLocales')) {
     /**
      * @return string[]

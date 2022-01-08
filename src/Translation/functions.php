@@ -2,7 +2,7 @@
 
 use TeraBlaze\Translation\Translator;
 
-if (! function_exists('trans')) {
+if (!function_exists('trans')) {
     /**
      * Translate the given message.
      *
@@ -21,14 +21,14 @@ if (! function_exists('trans')) {
     }
 }
 
-if (! function_exists('transChoice')) {
+if (!function_exists('transChoice')) {
     /**
      * Translates the given message based on a count.
      *
-     * @param  string  $key
-     * @param  \Countable|int|array  $number
-     * @param  array  $replace
-     * @param  string|null  $locale
+     * @param string $key
+     * @param \Countable|int|array $number
+     * @param array $replace
+     * @param string|null $locale
      * @return string
      */
     function transChoice($key, $number, array $replace = [], $locale = null)
@@ -37,13 +37,13 @@ if (! function_exists('transChoice')) {
     }
 }
 
-if (! function_exists('__')) {
+if (!function_exists('__')) {
     /**
      * Translate the given message.
      *
-     * @param  string|null  $key
-     * @param  array  $replace
-     * @param  string|null  $locale
+     * @param string|null $key
+     * @param array $replace
+     * @param string|null $locale
      * @return string|array|null
      */
     function __($key = null, $replace = [], $locale = null)
@@ -56,7 +56,7 @@ if (! function_exists('__')) {
     }
 }
 
-if (! function_exists('___')) {
+if (!function_exists('___')) {
     /**
      * Translates the given message based on a count.
      *
@@ -67,6 +67,7 @@ if (! function_exists('___')) {
      * @return array|string|Translator|null
      */
     function ___($key, $number, array $replace = [], $locale = null)
-    {return transChoice($key, $number, $replace, $locale);
+    {
+        return transChoice($key, $number, $replace, $locale);
     }
 }

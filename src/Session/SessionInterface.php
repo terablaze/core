@@ -98,4 +98,21 @@ interface SessionInterface
      * @return mixed
      */
     public function getOldInput($key = null, $default = null);
+
+    /**
+     * Determine if the session contains validation error.
+     *
+     * @param  string|null  $key
+     * @return bool
+     */
+    public function hasValidationError($key = null): bool;
+
+    /**
+     * Get the requested item from the flashed validation errors.
+     *
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    public function getValidationError($key = null, $default = null);
 }

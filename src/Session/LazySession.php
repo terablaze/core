@@ -189,4 +189,14 @@ final class LazySession implements
     {
         return $this->getProxiedSession()->getOldInput($key, $default);
     }
+
+    public function hasValidationError($key = null): bool
+    {
+        return $this->getProxiedSession()->hasValidationError($key);
+    }
+
+    public function getValidationError($key = null, $default = null)
+    {
+        return $this->getProxiedSession()->getValidationError($key, $default);
+    }
 }

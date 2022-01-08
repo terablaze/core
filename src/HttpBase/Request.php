@@ -238,6 +238,18 @@ class Request extends Psr7ServerRequest
     }
 
     /**
+     * Retrieve validation errors from previous request
+     *
+     * @param  string|null  $key
+     * @param  string|array|null  $default
+     * @return string|array|null
+     */
+    public function error($key = null, $default = null)
+    {
+        return $this->hasSession() ? $this->getSession()->getValidationError($key, $default) : $default;
+    }
+
+    /**
      * Flush all of the old input from the session.
      *
      * @return void
@@ -1265,14 +1277,5 @@ class Request extends Psr7ServerRequest
     public function validated(): array
     {
         return $this->validation()->validated();
-    }
-
-    /**
-     * @return array
-     * @throws \Exception
-     */
-    public function errors(): array
-    {
-        return $this->validation()->errors();
     }
 }
