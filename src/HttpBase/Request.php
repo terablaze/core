@@ -1233,6 +1233,14 @@ class Request extends Psr7ServerRequest
 
     protected ?Validation $validation = null;
 
+    public function validation(): Validation
+    {
+        if (is_null($this->validation)) {
+            throw new \Exception('Validation not yet run. Ensure you have called Request::validate() first');
+        }
+        return $this->validation;
+    }
+
     /**
      * @param array $rules
      * @param array $customMessages
@@ -1256,9 +1264,15 @@ class Request extends Psr7ServerRequest
      */
     public function validated(): array
     {
-        if (is_null($this->validation)) {
-            throw new \Exception('Validation not yet run. Ensure you have called Request::validate() first');
-        }
-        return $this->validation->validated();
+        return $this->validation()->validated();
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function errors(): array
+    {
+        return $this->validation()->errors();
     }
 }
