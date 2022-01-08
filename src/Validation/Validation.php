@@ -251,8 +251,7 @@ class Validation implements ValidationInterface
         $this->validated = $this->validated();
 
         if (count($this->errors)) {
-            $exception = new ValidationException();
-            $exception->setErrors($this->errors);
+            $exception = new ValidationException($this);
             if (static::$throwException) {
                 throw $exception;
             }

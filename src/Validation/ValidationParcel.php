@@ -19,6 +19,7 @@ class ValidationParcel extends Parcel implements ParcelInterface
 
         $this->container->make('validator', [
             'class' => Validator::class,
+            'alias' => ValidatorInterface::class
         ]);
     }
 }

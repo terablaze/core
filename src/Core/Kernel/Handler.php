@@ -12,6 +12,7 @@ use RuntimeException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Routing\RouterMiddleware;
 use TeraBlaze\Support\ArrayMethods;
+use function _PHPStan_76800bfb5\RingCentral\Psr7\str;
 
 class Handler implements RequestHandlerInterface
 {
@@ -19,6 +20,7 @@ class Handler implements RequestHandlerInterface
     private $queue;
     /** @var callable $resolver */
     private $resolver;
+    private $shiftedQueue;
     /** @var ContainerInterface|Container $container */
     private ContainerInterface $container;
 
@@ -48,7 +50,7 @@ class Handler implements RequestHandlerInterface
         $entry = current($this->queue);
         $middleware = call_user_func($this->resolver, $entry);
         next($this->queue);
-        array_shift($this->queue);
+        $this->shiftedQueue[] = array_shift($this->queue);
 
         if ($middleware instanceof MiddlewareInterface) {
             return $middleware->process($request, $this);
@@ -62,7 +64,7 @@ class Handler implements RequestHandlerInterface
             return $middleware($request, $this);
         }
 
-        $middlewareString = is_object($middleware) ? get_class($middleware) : $middleware;
+        $middlewareString = is_object($middleware) ? get_class($middleware) : (string)$middleware;
 
         throw new RuntimeException(
             sprintf(
@@ -76,6 +78,11 @@ class Handler implements RequestHandlerInterface
     public function addMiddleware($middleware)
     {
         array_splice($this->queue, -1, 0, $middleware);
+    }
+
+    public function getShiftedQueue(): array
+    {
+        return $this->shiftedQueue;
     }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface

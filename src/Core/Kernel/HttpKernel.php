@@ -4,6 +4,7 @@ namespace TeraBlaze\Core\Kernel;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Controller\ControllerInterface;
 use TeraBlaze\Core\Kernel\Events\ExceptionEvent;
@@ -107,7 +108,13 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
 
         array_push($this->middlewares, [$this->container->get(HttpKernel::class), 'pass']);
 
-        $handler = new Handler($this->container, $this->middlewares);
+        /** @var Handler $handler */
+        $handler = $this->container->make(Handler::class, [
+            "alias" => RequestHandlerInterface::class,
+            "arguments" => [
+                "queue" => $this->middlewares,
+            ]
+        ]);
 
         /** @var Response $response */
         $response = $handler->handle($request);
