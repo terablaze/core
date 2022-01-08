@@ -246,7 +246,11 @@ class Request extends Psr7ServerRequest
      */
     public function error($key = null, $default = null)
     {
-        return $this->hasSession() ? $this->getSession()->getValidationError($key, $default) : $default;
+        $error = $this->hasSession() ? $this->getSession()->getValidationError($key, $default) : $default;
+        if (is_array($error)) {
+            $error = count($error) == 1 ? reset($error) : $error;
+        }
+        return $error;
     }
 
     /**

@@ -234,7 +234,7 @@ if (! function_exists('old')) {
     }
 }
 
-if (! function_exists('errors')) {
+if (! function_exists('error')) {
     /**
      * Retrieve a flashed validation error
      *
