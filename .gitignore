@@ -12,3 +12,4 @@ composer.lock
 .env
 /public
 /tests/Local
+.phpunit.result.cache
