@@ -58,4 +58,55 @@ interface UrlGeneratorInterface
      * @return string
      */
     public function generateAsset(string $uri, int $referenceType = self::ABSOLUTE_PATH): string;
+
+    /**
+     * Get the current URL for the request.
+     *
+     * @return string
+     */
+    public function current(): string;
+
+    /**
+     * Get the URL for the previous request.
+     *
+     * @param  mixed  $fallback
+     * @return string
+     */
+    public function previous($fallback = false): string;
+
+    /**
+     * Generate an absolute URL to the given path.
+     *
+     * @param  string  $path
+     * @param  mixed  $extra
+     * @param  bool|null  $secure
+     * @return string
+     */
+    public function to($path, $extra = [], $secure = null): string;
+
+    /**
+     * Format the given URL segments into a single URL.
+     *
+     * @param  string  $root
+     * @param  string  $path
+     * @return string
+     */
+    public function format($root, $path): string;
+
+    /**
+     * Get the default scheme for a raw URL.
+     *
+     * @param  bool|null  $secure
+     * @return string
+     */
+    public function formatScheme($secure = null): string;
+
+    /**
+     * Get the base URL for the request.
+     *
+     * @param  string  $scheme
+     * @param  string|null  $root
+     * @return string
+     */
+    public function formatRoot($scheme, $root = null): string;
 }

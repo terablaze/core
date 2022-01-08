@@ -68,11 +68,13 @@ class Route
         unset($route['controller']);
         $this->action = $route['action'] ?? null;
         unset($route['action']);
-        $this->method = ArrayMethods::wrap($route['method'] ?? '');
+        $this->method = ArrayMethods::wrap($route['method'] ?? $route['methods'] ?? '');
         unset($route['method']);
+        unset($route['methods']);
         $this->expectsJson = $route['expects_json'] ?? false;
         unset($route['expects_json']);
-        $this->middlewares = $route['middlewares'] ?? [];
+        $this->middlewares = ArrayMethods::wrap($route['middleware'] ?? $route['middlewares'] ?? []);
+        unset($route['middleware']);
         unset($route['middlewares']);
         foreach ($route as $callable) {
             if (is_callable($callable)) {
