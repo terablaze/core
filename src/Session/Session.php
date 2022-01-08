@@ -7,6 +7,7 @@ use TeraBlaze\Session\Csrf\CsrfGuardInterface;
 use TeraBlaze\Session\Flash\FlashMessageMiddleware;
 use TeraBlaze\Session\Flash\FlashMessagesInterface;
 
+use TeraBlaze\Support\ArrayMethods;
 use function array_key_exists;
 use function json_decode;
 use function json_encode;
@@ -176,5 +177,35 @@ class Session implements
     public function getCsrf(): CsrfGuardInterface
     {
         return request()->getCsrf();
+    }
+
+    public function flashInput(array $value): void
+    {
+        $this->getFlash()->flash('_old_input', $value);
+    }
+
+    /**
+     * Determine if the session contains old input.
+     *
+     * @param  string|null  $key
+     * @return bool
+     */
+    public function hasOldInput($key = null): bool
+    {
+        $old = $this->getOldInput($key);
+
+        return is_null($key) ? count($old) > 0 : ! is_null($old);
+    }
+
+    /**
+     * Get the requested item from the flashed input array.
+     *
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    public function getOldInput($key = null, $default = null)
+    {
+        return ArrayMethods::get($this->getFlash()->getFlash('_old_input', []), $key, $default);
     }
 }

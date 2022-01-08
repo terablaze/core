@@ -73,4 +73,29 @@ interface SessionInterface
     public function getFlash(): FlashMessagesInterface;
 
     public function getCsrf(): CsrfGuardInterface;
+
+    /**
+     * Flash an input array to the session.
+     *
+     * @param  array  $value
+     * @return void
+     */
+    public function flashInput(array $value): void;
+
+    /**
+     * Determine if the session contains old input.
+     *
+     * @param  string|null  $key
+     * @return bool
+     */
+    public function hasOldInput($key = null): bool;
+
+    /**
+     * Get the requested item from the flashed input array.
+     *
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    public function getOldInput($key = null, $default = null);
 }

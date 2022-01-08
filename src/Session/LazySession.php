@@ -174,4 +174,19 @@ final class LazySession implements
     {
         return $this->getProxiedSession()->getCsrf();
     }
+
+    public function flashInput(array $value): void
+    {
+        $this->getFlash()->flash('_old_input', $value);
+    }
+
+    public function hasOldInput($key = null): bool
+    {
+        return $this->getProxiedSession()->hasOldInput($key);
+    }
+
+    public function getOldInput($key = null, $default = null)
+    {
+        return $this->getProxiedSession()->getOldInput($key, $default);
+    }
 }
