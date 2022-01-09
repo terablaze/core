@@ -3,6 +3,8 @@
 namespace TeraBlaze\Validation\Traits;
 
 use Closure;
+use SplFileInfo;
+use TeraBlaze\Psr7\UploadedFile;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
 use TeraBlaze\Validation\Rule\RuleInterface;
@@ -11,6 +13,7 @@ use TeraBlaze\Validation\Validation;
 trait FormatsMessagesTrait
 {
     use ReplacesFieldsTrait;
+
     /**
      * Get the validation message for a field and rule.
      *
@@ -26,7 +29,7 @@ trait FormatsMessagesTrait
         // First we will retrieve the custom message for the validation rule if one
         // exists. If a custom validation message is being used we'll return the
         // custom message, otherwise we'll keep searching for a valid message.
-        if (! is_null($inlineMessage)) {
+        if (!is_null($inlineMessage)) {
             return $inlineMessage;
         }
 
@@ -43,10 +46,10 @@ trait FormatsMessagesTrait
             return $customMessage;
         }
 
-        // Finally, if no developer specified messages have been set, and no other
-        // special messages apply for this rule, we will just pull the default
-        // messages out of the translator service for this validation rule.
-        $key = "validation.{$lowerRule}";
+        // If the rule being validated is a "size" rule, we will need to gather the
+        // specific error message for the type of attribute being validated such
+        // as a number, file or string which all have different message types.
+        $key = $this->getMessageKey($rule, $field, $lowerRule);
 
         if ($key !== ($value = $this->translator->get($key))) {
             return $value;
@@ -58,21 +61,25 @@ trait FormatsMessagesTrait
     /**
      * Get the proper inline error message for standard and size rules.
      *
-     * @param  string  $field
-     * @param  string  $rule
+     * @param string $field
+     * @param string $rule
      * @return string|null
      */
     protected function getInlineMessage($field, $rule)
     {
-        return $this->getFromLocalArray($field, StringMethods::snake($rule));
+        $inlineEntry = $this->getFromLocalArray($field, StringMethods::snake($rule));
+
+        return is_array($inlineEntry) ?
+            $inlineEntry[$this->getFieldType($field)] :
+            $inlineEntry;
     }
 
     /**
      * Get the inline message for a rule if it exists.
      *
-     * @param  string  $field
-     * @param  string  $lowerRule
-     * @param  array|null  $source
+     * @param string $field
+     * @param string $lowerRule
+     * @param array|null $source
      * @return string|null
      */
     protected function getFromLocalArray($field, $lowerRule)
@@ -89,7 +96,7 @@ trait FormatsMessagesTrait
                 if (strpos($sourceKey, '*') !== false) {
                     $pattern = str_replace('\*', '([^.]*)', preg_quote($sourceKey, '#'));
 
-                    if (preg_match('#^'.$pattern.'\z#u', $key) === 1) {
+                    if (preg_match('#^' . $pattern . '\z#u', $key) === 1) {
                         return $source[$sourceKey];
                     }
 
@@ -107,7 +114,7 @@ trait FormatsMessagesTrait
     /**
      * Get the custom error message from the translator.
      *
-     * @param  string  $key
+     * @param string $key
      * @return string
      */
     protected function getCustomMessageFromTranslator($key)
@@ -124,16 +131,16 @@ trait FormatsMessagesTrait
         );
 
         return $this->getWildcardCustomMessages(ArrayMethods::dot(
-            (array) $this->translator->get('validation.custom')
+            (array)$this->translator->get('validation.custom')
         ), $shortKey, $key);
     }
 
     /**
      * Check the given messages for a wildcard key.
      *
-     * @param  array  $messages
-     * @param  string  $search
-     * @param  string  $default
+     * @param array $messages
+     * @param string $search
+     * @param string $default
      * @return string
      */
     protected function getWildcardCustomMessages($messages, $search, $default)
@@ -147,11 +154,54 @@ trait FormatsMessagesTrait
         return $default;
     }
 
+
+
+    /**
+     * @param $rule
+     * @param $field
+     * @param string $lowerRule
+     * @return string
+     */
+    protected function getMessageKey($rule, $field, string $lowerRule): string
+    {
+        if (in_array($rule, $this->sizeRules)) {
+            // There are three different types of size validations. The field may be
+            // either a number, file, or string so we will check a few things to know
+            // which type of value it is and return the correct line for that type.
+            $type = $this->getFieldType($field);
+
+            return "validation.{$lowerRule}.{$type}";
+        }
+
+        // Finally, if no developer specified messages have been set, and no other
+        // special messages apply for this rule, we will just pull the default
+        // messages out of the translator service for this validation rule.
+        return "validation.{$lowerRule}";
+    }
+
+    /**
+     * Get the data type of the given field.
+     *
+     * @param string $field
+     * @return string
+     */
+    protected function getFieldType($field)
+    {
+        if (is_numeric($this->getValue($field))) {
+            return 'numeric';
+        } elseif (is_array($this->getValue($field))) {
+            return 'array';
+        } elseif ($this->getValue($field) instanceof UploadedFile || $this->getValue($field) instanceof SplFileInfo) {
+            return 'file';
+        }
+        return 'string';
+    }
+
     /**
      * Replace all error message place-holders with actual values.
      *
-     * @param  string  $message
-     * @param  string  $field
+     * @param string $message
+     * @param string $field
      * @return string
      */
     public function makeReplacements($message, $field, $rule, $parameters)
@@ -175,7 +225,7 @@ trait FormatsMessagesTrait
     /**
      * Get the displayable name of the field.
      *
-     * @param  string  $field
+     * @param string $field
      * @return string
      */
     public function getDisplayableField($field)
@@ -183,7 +233,7 @@ trait FormatsMessagesTrait
         $primaryField = $this->getPrimaryField($field);
 
         $expectedFields = $field != $primaryField
-                    ? [$field, $primaryField] : [$field];
+            ? [$field, $primaryField] : [$field];
 
         foreach ($expectedFields as $name) {
             // The developer may dynamically specify the array of custom fields on this
@@ -214,7 +264,7 @@ trait FormatsMessagesTrait
     /**
      * Get the given field from the field translations.
      *
-     * @param  string  $name
+     * @param string $name
      * @return string
      */
     protected function getFieldFromTranslations($name)
@@ -225,8 +275,8 @@ trait FormatsMessagesTrait
     /**
      * Replace the :field placeholder in the given message.
      *
-     * @param  string  $message
-     * @param  string  $value
+     * @param string $message
+     * @param string $value
      * @return string
      */
     protected function replaceFieldPlaceholder($message, $value)
@@ -241,8 +291,8 @@ trait FormatsMessagesTrait
     /**
      * Replace the :input placeholder in the given message.
      *
-     * @param  string  $message
-     * @param  string  $field
+     * @param string $message
+     * @param string $field
      * @return string
      */
     protected function replaceInputPlaceholder($message, $field)
@@ -259,8 +309,8 @@ trait FormatsMessagesTrait
     /**
      * Get the displayable name of the value.
      *
-     * @param  string  $field
-     * @param  mixed  $value
+     * @param string $field
+     * @param mixed $value
      * @return string
      */
     public function getDisplayableValue($field, $value)
@@ -283,13 +333,13 @@ trait FormatsMessagesTrait
             return 'empty';
         }
 
-        return (string) $value;
+        return (string)$value;
     }
 
     /**
      * Transform an array of fields to their displayable form.
      *
-     * @param  array  $values
+     * @param array $values
      * @return array
      */
     protected function getFieldList(array $values)
@@ -309,14 +359,14 @@ trait FormatsMessagesTrait
     /**
      * Call a custom validator message replacer.
      *
-     * @param  string  $message
-     * @param  string  $attribute
-     * @param  string  $rule
-     * @param  array  $parameters
-     * @param  Validation  $validation
+     * @param string $message
+     * @param string $field
+     * @param string $rule
+     * @param array $parameters
+     * @param Validation $validation
      * @return string|null
      */
-    protected function callReplacer($message, $attribute, $rule, $parameters, $validation)
+    protected function callReplacer($message, $field, $rule, $parameters, $validation)
     {
         $callback = $this->replacers[$rule];
 
@@ -324,7 +374,7 @@ trait FormatsMessagesTrait
             return $callback(...func_get_args());
         }
         if (is_string($callback)) {
-            return $this->callClassBasedReplacer($callback, $message, $attribute, $rule, $parameters, $validation);
+            return $this->callClassBasedReplacer($callback, $message, $field, $rule, $parameters, $validation);
         }
         return null;
     }
@@ -332,15 +382,15 @@ trait FormatsMessagesTrait
     /**
      * Call a class based validator message replacer.
      *
-     * @param  string  $callback
-     * @param  string  $message
-     * @param  string  $attribute
-     * @param  string  $rule
-     * @param  array  $parameters
-     * @param  Validation  $validation
+     * @param string $callback
+     * @param string $message
+     * @param string $field
+     * @param string $rule
+     * @param array $parameters
+     * @param Validation $validation
      * @return string
      */
-    protected function callClassBasedReplacer($callback, $message, $attribute, $rule, $parameters, $validation)
+    protected function callClassBasedReplacer($callback, $message, $field, $rule, $parameters, $validation)
     {
         [$class, $method] = StringMethods::parseCallback($callback, 'replace');
 

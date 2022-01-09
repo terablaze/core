@@ -30,6 +30,13 @@ class Validation implements ValidationInterface
     private Container $container;
 
     /**
+     * The size related validation rules.
+     *
+     * @var string[]
+     */
+    protected $sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
+
+    /**
      * Indicates if the validator should stop on the first rule failure.
      *
      * @var bool
