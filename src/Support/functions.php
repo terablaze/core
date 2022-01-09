@@ -20,6 +20,7 @@ use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Routing\RouterInterface;
 use TeraBlaze\Support\StringMethods;
+use TeraBlaze\Validation\Validator;
 
 if (!function_exists('container')) {
     /**
@@ -894,5 +895,24 @@ if (!function_exists('isWindowsOs')) {
     function isWindowsOs()
     {
         return PHP_OS_FAMILY === 'Windows';
+    }
+}
+
+if (!function_exists('validator')) {
+    function validator(): Validator
+    {
+        /** @var Validator $validator */
+        static $validator;
+        if (!$validator) {
+            $validator = container()->make(Validator::class);
+        }
+        return $validator;
+    }
+}
+
+if (!function_exists('validate')) {
+    function validate(array $data, array $rules, array $messages = [], array $customFields = []): array
+    {
+        return validator()->make($data, $rules, $messages, $customFields)->validate();
     }
 }

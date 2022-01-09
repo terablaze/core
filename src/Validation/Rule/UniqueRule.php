@@ -2,6 +2,8 @@
 
 namespace TeraBlaze\Validation\Rule;
 
+use TeraBlaze\Validation\Rule\Traits\DatabaseRuleTrait;
+
 class UniqueRule extends Rule implements RuleInterface
 {
     use DatabaseRuleTrait;

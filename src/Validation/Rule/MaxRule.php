@@ -3,8 +3,7 @@
 namespace TeraBlaze\Validation\Rule;
 
 use InvalidArgumentException;
-use Psr\Http\Message\UploadedFileInterface;
-use TeraBlaze\Support\StringMethods;
+use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class MaxRule extends Rule implements RuleInterface
 {

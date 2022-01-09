@@ -48,6 +48,7 @@ class UrlGenerator implements UrlGeneratorInterface
     private $cachedRoot;
     private $forcedRoot;
     private $forceScheme;
+    private $cachedScheme;
 
     public function __construct(Router $router)
     {

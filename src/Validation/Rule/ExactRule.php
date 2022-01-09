@@ -3,7 +3,7 @@
 namespace TeraBlaze\Validation\Rule;
 
 use InvalidArgumentException;
-use TeraBlaze\Support\StringMethods;
+use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class ExactRule extends Rule implements RuleInterface
 {
@@ -17,7 +17,7 @@ class ExactRule extends Rule implements RuleInterface
 
         $size = (int) $this->params[0];
 
-        return $this->getSize() >= $size;
+        return $this->getSize() == $size;
     }
 
     public function getMessage(): string

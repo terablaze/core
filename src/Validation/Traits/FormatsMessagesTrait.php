@@ -1,13 +1,16 @@
 <?php
 
-namespace TeraBlaze\Validation;
+namespace TeraBlaze\Validation\Traits;
 
+use Closure;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
 use TeraBlaze\Validation\Rule\RuleInterface;
+use TeraBlaze\Validation\Validation;
 
-trait FormatsMessages
+trait FormatsMessagesTrait
 {
+    use ReplacesFieldsTrait;
     /**
      * Get the validation message for a field and rule.
      *
@@ -98,6 +101,7 @@ trait FormatsMessages
                 }
             }
         }
+        return null;
     }
 
     /**
@@ -150,13 +154,20 @@ trait FormatsMessages
      * @param  string  $field
      * @return string
      */
-    public function makeReplacements($message, $field)
+    public function makeReplacements($message, $field, $rule, $parameters)
     {
         $message = $this->replaceFieldPlaceholder(
             $message, $this->getDisplayableField($field)
         );
 
         $message = $this->replaceInputPlaceholder($message, $field);
+
+        if (isset($this->replacers[StringMethods::snake($rule)])) {
+            return $this->callReplacer($message, $field, StringMethods::snake($rule), $parameters, $this);
+        }
+        if (method_exists($this, $replacer = "replace" . StringMethods::studly($rule))) {
+            return $this->$replacer($message, $field, $rule, $parameters);
+        }
 
         return $message;
     }
@@ -293,5 +304,46 @@ trait FormatsMessages
         }
 
         return $fields;
+    }
+
+    /**
+     * Call a custom validator message replacer.
+     *
+     * @param  string  $message
+     * @param  string  $attribute
+     * @param  string  $rule
+     * @param  array  $parameters
+     * @param  Validation  $validation
+     * @return string|null
+     */
+    protected function callReplacer($message, $attribute, $rule, $parameters, $validation)
+    {
+        $callback = $this->replacers[$rule];
+
+        if ($callback instanceof Closure) {
+            return $callback(...func_get_args());
+        }
+        if (is_string($callback)) {
+            return $this->callClassBasedReplacer($callback, $message, $attribute, $rule, $parameters, $validation);
+        }
+        return null;
+    }
+
+    /**
+     * Call a class based validator message replacer.
+     *
+     * @param  string  $callback
+     * @param  string  $message
+     * @param  string  $attribute
+     * @param  string  $rule
+     * @param  array  $parameters
+     * @param  Validation  $validation
+     * @return string
+     */
+    protected function callClassBasedReplacer($callback, $message, $attribute, $rule, $parameters, $validation)
+    {
+        [$class, $method] = StringMethods::parseCallback($callback, 'replace');
+
+        return $this->container->make($class)->{$method}(...array_slice(func_get_args(), 1));
     }
 }

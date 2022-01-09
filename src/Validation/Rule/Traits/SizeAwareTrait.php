@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace TeraBlaze\Validation\Rule\Traits;
 
 
 use Psr\Http\Message\UploadedFileInterface;
@@ -10,15 +10,20 @@ trait SizeAwareTrait
 {
     protected array $messageModifier = ["presence" => "be", "unit" => "characters"];
 
-    private function getSize()
+    private function getSize(): int
     {
+        if (is_null($this->value)) {
+            return 0;
+        }
         if (is_numeric($this->value)) {
             $this->messageModifier["unit"] = '';
             return $this->value;
-        } elseif (is_array($this->value)) {
+        }
+        if (is_array($this->value)) {
             $this->messageModifier = ["presence" => "contain", "unit" => "elements"];
             return count($this->value);
-        } elseif ($this->value instanceof \SplFileInfo || $this->value instanceof UploadedFileInterface) {
+        }
+        if ($this->value instanceof \SplFileInfo || $this->value instanceof UploadedFileInterface) {
             $this->messageModifier["unit"] = "kilobytes";
             return $this->value->getSize() / 1024;
         }

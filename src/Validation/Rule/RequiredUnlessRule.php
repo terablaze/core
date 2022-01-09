@@ -18,6 +18,6 @@ class RequiredUnlessRule extends Rule implements RuleInterface
     {
         $dependant = $this->params[0];
         $dependantValue = $this->params[1];
-        return $this->message ?? ":Field is required if $dependant equals $dependantValue";
+        return $this->message ?? ":Field is required unless $dependant equals $dependantValue";
     }
 }

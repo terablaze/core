@@ -3,7 +3,7 @@
 namespace TeraBlaze\Validation\Rule;
 
 use InvalidArgumentException;
-use TeraBlaze\Support\StringMethods;
+use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class MinRule extends Rule implements RuleInterface
 {

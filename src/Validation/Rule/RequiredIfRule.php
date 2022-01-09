@@ -8,10 +8,7 @@ class RequiredIfRule extends Rule implements RuleInterface
     {
         $dependant = $this->params[0];
         $dependantValue = $this->params[1];
-        if (empty($this->data[$dependant])) {
-            return true;
-        }
-        if ($this->data[$dependant] != $dependantValue) {
+        if (empty($this->data[$dependant]) || $this->data[$dependant] != $dependantValue) {
             return true;
         }
         return !empty($this->value);

@@ -3,6 +3,7 @@
 namespace TeraBlaze\Validation;
 
 use Closure;
+use Psr\Http\Message\UploadedFileInterface;
 use ReflectionException;
 use TeraBlaze\Collection\ArrayCollection;
 use TeraBlaze\Container\Container;
@@ -15,10 +16,11 @@ use TeraBlaze\Validation\Rule\Builder\RuleBuilderInterface;
 use TeraBlaze\Validation\Rule\ClosureValidationRule;
 use TeraBlaze\Validation\Rule\NullableRule;
 use TeraBlaze\Validation\Rule\RuleInterface;
+use TeraBlaze\Validation\Traits\FormatsMessagesTrait;
 
 class Validation implements ValidationInterface
 {
-    use FormatsMessages;
+    use FormatsMessagesTrait;
 
     /** @var string[] $rulesNamespaces */
     public static array $rulesNamespaces = ['TeraBlaze\Validation\Rule'];
@@ -58,6 +60,13 @@ class Validation implements ValidationInterface
     protected array $validated = [];
     protected array $failed = [];
     protected array $errors = [];
+
+    /**
+     * All of the custom replacer extensions.
+     *
+     * @var array
+     */
+    public $replacers = [];
 
     /**
      * @param Translator $translator
@@ -243,6 +252,7 @@ class Validation implements ValidationInterface
             if ($bail) {
                 $this->bails[$field] = array_shift($rulesForField);
             }
+            $rulesForField = ArrayMethods::clean($rulesForField);
             if($this->runFieldValidate($rulesForField, $field, $bail)) {
                 $this->rawValidated[$field] = ArrayMethods::get($this->data, $field);
             }
@@ -273,6 +283,9 @@ class Validation implements ValidationInterface
      */
     private function runFieldValidate(array $rulesForField, string $field, bool $bail): bool
     {
+        if (empty($rulesForField)) {
+            return true;
+        }
         $fieldPassed = false;
         foreach ($rulesForField as $rule) {
             if (is_a($rule, RuleBuilderInterface::class)) {
@@ -283,7 +296,7 @@ class Validation implements ValidationInterface
 
             $ruleName = $this->parseRuleName($rule);
 
-            $processor = $this->getRule($rule, $field, $this->data, $params);
+            $processor = $this->getRuleInstance($rule, $field, $this->data, $params);
             if (method_exists($processor, 'setDatabaseReqs')) {
                 $processor->setDatabaseReqs($this->container);
             }
@@ -415,7 +428,7 @@ class Validation implements ValidationInterface
      * @throws ReflectionException
      * @throws RuleException
      */
-    private function getRule($rule, $field, $data, $params)
+    private function getRuleInstance($rule, $field, $data, $params)
     {
         if ($rule instanceof Closure) {
             return new ClosureValidationRule($rule, $field, $data, $params);
@@ -668,7 +681,10 @@ class Validation implements ValidationInterface
         $field = $this->replacePlaceholderInString($field);
 
         $errorMessage = $this->makeReplacements(
-            $this->getMessage($processor, $field, $rule), $field
+            $this->getMessage($processor, $field, $rule),
+            $field,
+            $rule,
+            $parameters
         );
         if (in_array($rule, ['closure', 'object'])) {
             $this->errors[$field][] = $errorMessage;
@@ -751,6 +767,62 @@ class Validation implements ValidationInterface
         return array_map(function ($field) use ($keys) {
             return vsprintf(str_replace('*', '%s', $field), $keys);
         }, $parameters);
+    }
+
+    /**
+     * Get the size of a value.
+     *
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function getSize($value)
+    {
+        if (is_null($value)) {
+            return 0;
+        }
+
+        if (is_numeric($value)) {
+            return $value;
+        }
+        if (is_array($value)) {
+            return count($value);
+        }
+        if ($value instanceof \SplFileInfo || $value instanceof UploadedFileInterface) {
+            return $value->getSize() / 1024;
+        }
+
+        return StringMethods::length($value);
+    }
+
+
+
+    /**
+     * Register an array of custom validator message replacers.
+     *
+     * @param  array  $replacers
+     * @return void
+     */
+    public function addReplacers(array $replacers)
+    {
+        if ($replacers) {
+            $keys = array_map([StringMethods::class, 'snake'], array_keys($replacers));
+
+            $replacers = array_combine($keys, array_values($replacers));
+        }
+
+        $this->replacers = array_merge($this->replacers, $replacers);
+    }
+
+    /**
+     * Register a custom validator message replacer.
+     *
+     * @param  string  $rule
+     * @param  \Closure|string  $replacer
+     * @return void
+     */
+    public function addReplacer($rule, $replacer)
+    {
+        $this->replacers[StringMethods::snake($rule)] = $replacer;
     }
 
     private function parseRuleName($rule): string

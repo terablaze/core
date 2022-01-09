@@ -1,9 +1,7 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace TeraBlaze\Validation\Rule\Traits;
 
-use Closure;
-use TeraBlaze\Collection\ArrayCollection;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Database\Connection\ConnectionInterface;
 use TeraBlaze\Database\ORM\ClassMetadata;
