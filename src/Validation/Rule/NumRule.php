@@ -2,6 +2,6 @@
 
 namespace TeraBlaze\Validation\Rule;
 
-class IntRule extends IntegerRule
+class NumRule extends NumericRule
 {
 }

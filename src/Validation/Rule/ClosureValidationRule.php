@@ -3,6 +3,8 @@
 namespace TeraBlaze\Validation\Rule;
 
 
+use TeraBlaze\Validation\Validation;
+
 class ClosureValidationRule extends Rule implements RuleInterface
 {
     /**
@@ -19,9 +21,9 @@ class ClosureValidationRule extends Rule implements RuleInterface
      */
     public $failed = false;
 
-    public function __construct(\Closure $rule, string $field, array $data = [], $params = [])
+    public function __construct(Validation $validation, \Closure $rule, string $field, array $data = [], $params = [])
     {
-        parent::__construct($field, $data, $params);
+        parent::__construct($validation, $field, $data, $params);
         $this->callback = $rule;
     }
 

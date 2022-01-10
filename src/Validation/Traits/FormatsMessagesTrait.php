@@ -187,7 +187,7 @@ trait FormatsMessagesTrait
      */
     protected function getFieldType($field)
     {
-        if (is_numeric($this->getValue($field))) {
+        if ($this->hasRule($field, $this->numericRules)) {
             return 'numeric';
         } elseif (is_array($this->getValue($field))) {
             return 'array';

@@ -20,7 +20,7 @@ class LtRule extends Rule implements RuleInterface
         $comparedToValue = ArrayMethods::get($this->data, $this->params[0]);
 
         if (is_null($comparedToValue) && (is_numeric($this->value) && is_numeric($this->params[0]))) {
-            return $this->getSize($this->value) < $this->params[0];
+            return $this->getSize($this->field, $this->value) < $this->params[0];
         }
 
         if (is_numeric($this->params[0])) {
@@ -35,7 +35,7 @@ class LtRule extends Rule implements RuleInterface
             return false;
         }
 
-        return $this->getSize($this->value) < $this->getSize($comparedToValue);
+        return $this->getSize($this->field, $this->value) < $this->getSize($this->params[0], $comparedToValue);
     }
 
     public function getMessage(): string

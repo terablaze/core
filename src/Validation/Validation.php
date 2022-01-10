@@ -36,7 +36,14 @@ class Validation implements ValidationInterface
      *
      * @var string[]
      */
-    protected array $sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
+    public array $sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
+
+    /**
+     * The numeric validation rules.
+     *
+     * @var string[]
+     */
+    public array $numericRules = ['num', 'number', 'numeric', 'int', 'integer', 'float'];
 
     /**
      * Indicates if the validator should stop on the first rule failure.
@@ -211,6 +218,44 @@ class Validation implements ValidationInterface
     public function getRules(): array
     {
         return $this->rules;
+    }
+
+
+    /**
+     * Determine if the given field has a rule in the given set.
+     *
+     * @param  string  $field
+     * @param  string|array  $rules
+     * @return bool
+     */
+    public function hasRule($field, $rules)
+    {
+        return ! is_null($this->getRule($field, $rules));
+    }
+
+    /**
+     * Get a rule and its parameters for a given field.
+     *
+     * @param  string  $field
+     * @param  string|array  $rules
+     * @return array|null
+     */
+    protected function getRule($field, $rules)
+    {
+        if (! array_key_exists($field, $this->rules)) {
+            return null;
+        }
+
+        $rules = (array) $rules;
+
+        foreach ($this->rules[$field] as $rule) {
+            [$rule, $parameters] = self::parse($rule);
+
+            if (in_array($rule, $rules)) {
+                return [$rule, $parameters];
+            }
+        }
+        return null;
     }
 
     /**
@@ -461,7 +506,7 @@ class Validation implements ValidationInterface
     private function getRuleInstance($rule, string $field, array $data, array $params)
     {
         if ($rule instanceof Closure) {
-            return new ClosureValidationRule($rule, $field, $data, $params);
+            return new ClosureValidationRule($this, $rule, $field, $data, $params);
         }
         if ($rule instanceof RuleInterface) {
             return $rule;
@@ -486,9 +531,12 @@ class Validation implements ValidationInterface
 
             foreach ($ruleClasses as $ruleClass) {
                 if (class_exists($ruleClass) && is_a($ruleClass, RuleInterface::class, true)) {
-                    return $this->container->make($ruleClass, [
-                        'arguments' => [$field, $data, $params]
+                    $this->container->registerServiceInstance($this);
+                    $ruleInstance = $this->container->make($ruleClass, [
+                        'arguments' => [$this, $field, $data, $params]
                     ], true);
+                    $this->container->removeService($this);
+                    return $ruleInstance;
                 }
             }
         }
@@ -804,13 +852,13 @@ class Validation implements ValidationInterface
      * @param mixed $value
      * @return mixed
      */
-    protected function getSize($value)
+    protected function getSize(string $field, $value)
     {
+        $hasNumeric = $this->hasRule($field, $this->numericRules);
         if (is_null($value)) {
             return 0;
         }
-
-        if (is_numeric($value)) {
+        if (is_numeric($value) && $hasNumeric) {
             return $value;
         }
         if (is_array($value)) {

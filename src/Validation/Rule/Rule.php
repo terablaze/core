@@ -4,9 +4,11 @@ namespace TeraBlaze\Validation\Rule;
 
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Validation\Rule\Builder\UniqueRuleBuilder;
+use TeraBlaze\Validation\Validation;
 
 abstract class Rule implements RuleInterface
 {
+    protected Validation $validation;
     protected string $field;
 
     /** @var mixed $value */
@@ -25,8 +27,9 @@ abstract class Rule implements RuleInterface
      * @param array<string, mixed> $data
      * @param mixed|array<int, mixed> $params
      */
-    public function __construct(string $field, array $data = [], $params = [])
+    public function __construct(Validation $validation, string $field, array $data = [], $params = [])
     {
+        $this->validation = $validation;
         $this->field = $field;
         $this->value = ArrayMethods::get($data, $field);
         $this->data = $data;

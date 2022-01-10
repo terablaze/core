@@ -5,6 +5,7 @@ namespace TeraBlaze\Validation\Rule;
 use Psr\Http\Message\UploadedFileInterface;
 use Symfony\Component\Mime\MimeTypes;
 use TeraBlaze\Filesystem\Files;
+use TeraBlaze\Validation\Validation;
 
 class ExtRule extends Rule
 {
@@ -16,9 +17,9 @@ class ExtRule extends Rule
      * @param array<string, mixed> $data
      * @param mixed|array<string, mixed> $params
      */
-    public function __construct(string $field, array $data = [], $params = [])
+    public function __construct(Validation $validation, string $field, array $data = [], $params = [])
     {
-        parent::__construct($field, $data, $params);
+        parent::__construct($validation, $field, $data, $params);
         $this->filesystem = new Files();
         $this->mimeType = new MimeTypes();
     }

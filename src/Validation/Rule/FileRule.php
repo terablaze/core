@@ -4,7 +4,7 @@ namespace TeraBlaze\Validation\Rule;
 
 use Psr\Http\Message\UploadedFileInterface;
 
-class FileRule extends EqualsRule
+class FileRule extends Rule
 {
     protected ?string $message = ":Field must be a file";
 

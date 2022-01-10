@@ -313,7 +313,7 @@ trait ReplacesFieldsTrait
             return str_replace(':value', $this->getDisplayableField($parameters[0]), $message);
         }
 
-        return str_replace(':value', $this->getSize($value), $message);
+        return str_replace(':value', $this->getSize($field, $value), $message);
     }
 
     /**
@@ -331,7 +331,7 @@ trait ReplacesFieldsTrait
             return str_replace(':value', $this->getDisplayableField($parameters[0]), $message);
         }
 
-        return str_replace(':value', $this->getSize($value), $message);
+        return str_replace(':value', $this->getSize($field, $value), $message);
     }
 
     /**
@@ -349,7 +349,7 @@ trait ReplacesFieldsTrait
             return str_replace(':value', $this->getDisplayableField($parameters[0]), $message);
         }
 
-        return str_replace(':value', $this->getSize($value), $message);
+        return str_replace(':value', $this->getSize($field, $value), $message);
     }
 
     /**
@@ -367,7 +367,7 @@ trait ReplacesFieldsTrait
             return str_replace(':value', $this->getDisplayableField($parameters[0]), $message);
         }
 
-        return str_replace(':value', $this->getSize($value), $message);
+        return str_replace(':value', $this->getSize($field, $value), $message);
     }
 
     /**

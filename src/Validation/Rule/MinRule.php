@@ -17,7 +17,7 @@ class MinRule extends Rule implements RuleInterface
 
         $min = (int) $this->params[0];
 
-        return $this->getSize($this->value) >= $min;
+        return $this->getSize($this->field, $this->value) >= $min;
     }
 
     public function getMessage(): string

@@ -10,12 +10,13 @@ trait SizeAwareTrait
 {
     protected array $messageModifier = ["presence" => "be", "unit" => "characters"];
 
-    private function getSize($value): int
+    private function getSize(string $field, $value): int
     {
+        $hasNumeric = $this->validation->hasRule($field, $this->validation->numericRules);
         if (is_null($value)) {
             return 0;
         }
-        if (is_numeric($value)) {
+        if (is_numeric($value) && $hasNumeric) {
             $this->messageModifier["unit"] = '';
             return $value;
         }
