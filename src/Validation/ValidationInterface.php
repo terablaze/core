@@ -2,6 +2,8 @@
 
 namespace TeraBlaze\Validation;
 
+use TeraBlaze\Support\MessageBag;
+
 interface ValidationInterface
 {
     /**
@@ -41,9 +43,23 @@ interface ValidationInterface
     public function after($callback): self;
 
     /**
-     * Get all of the validation error messages.
+     * Get the message container for the validator.
      *
-     * @return array<string, mixed>
+     * @return MessageBag
      */
-    public function errors(): array;
+    public function messages(): MessageBag;
+
+    /**
+     * An alternative more semantic shortcut to the message container.
+     *
+     * @return MessageBag
+     */
+    public function errors(): MessageBag;
+
+    /**
+     * Get the messages for the instance.
+     *
+     * @return MessageBag
+     */
+    public function getMessageBag(): MessageBag;
 }

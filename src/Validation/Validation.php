@@ -10,6 +10,7 @@ use TeraBlaze\Collection\ArrayCollection;
 use TeraBlaze\Collection\Exceptions\InvalidTypeException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Support\ArrayMethods;
+use TeraBlaze\Support\MessageBag;
 use TeraBlaze\Support\StringMethods;
 use TeraBlaze\Translation\Translator;
 use TeraBlaze\Validation\Exception\RuleException;
@@ -82,8 +83,7 @@ class Validation implements ValidationInterface
     /** @var array<string, mixed> $failed */
     protected array $failed = [];
 
-    /** @var array<string, mixed> $errors */
-    protected array $errors = [];
+    private ?MessageBag $messages = null;
 
     /**
      * All the custom replacer extensions.
@@ -312,9 +312,10 @@ class Validation implements ValidationInterface
      */
     public function validate(): array
     {
+        $this->messages = new MessageBag();
         $this->validated = [];
         foreach ($this->rules as $field => $rulesForField) {
-            if ($this->stopOnFirstFailure && !empty($this->errors())) {
+            if ($this->stopOnFirstFailure && $this->messages->isNotEmpty()) {
                 break;
             }
             $bail = reset($rulesForField) == "bail";
@@ -329,7 +330,7 @@ class Validation implements ValidationInterface
 
         $this->validated = $this->validated();
 
-        if (count($this->errors)) {
+        if ($this->fails()) {
             $exception = new ValidationException($this);
             if (static::$throwException) {
                 throw $exception;
@@ -338,7 +339,7 @@ class Validation implements ValidationInterface
 
         return [
             'validated' => $this->validated,
-            'errors' => $this->errors,
+            'errors' => $this->messages,
         ];
     }
 
@@ -376,7 +377,7 @@ class Validation implements ValidationInterface
                 break;
             }
         }
-        if (empty($this->errors[$this->replacePlaceholderInString($field)])) {
+        if (! $this->messages->has($this->replacePlaceholderInString($field))) {
             $fieldPassed = true;
         }
         return $fieldPassed;
@@ -420,7 +421,7 @@ class Validation implements ValidationInterface
      */
     protected function fieldsThatHaveMessages(): array
     {
-        return (new ArrayCollection($this->errors))->map(function ($message, $key) {
+        return (new ArrayCollection($this->messages->toArray()))->map(function ($message, $key) {
             return explode('.', $key)[0];
         })->unique()->flip()->all();
     }
@@ -456,7 +457,7 @@ class Validation implements ValidationInterface
      */
     public function fails(): bool
     {
-        return !empty($this->failed) || !empty($this->errors);
+        return !empty($this->failed) || $this->messages->isNotEmpty();
     }
 
     /**
@@ -467,6 +468,40 @@ class Validation implements ValidationInterface
     public function failed(): array
     {
         return $this->failed;
+    }
+
+    /**
+     * Get the message container for the validator.
+     *
+     * @return MessageBag
+     */
+    public function messages(): MessageBag
+    {
+        if (! $this->messages) {
+            $this->validate();
+        }
+
+        return $this->messages;
+    }
+
+    /**
+     * An alternative more semantic shortcut to the message container.
+     *
+     * @return MessageBag
+     */
+    public function errors(): MessageBag
+    {
+        return $this->messages();
+    }
+
+    /**
+     * Get the messages for the instance.
+     *
+     * @return MessageBag
+     */
+    public function getMessageBag(): MessageBag
+    {
+        return $this->messages();
     }
 
     /**
@@ -482,16 +517,6 @@ class Validation implements ValidationInterface
         };
 
         return $this;
-    }
-
-    /**
-     * Get all of the validation error messages.
-     *
-     * @return array<string, mixed>
-     */
-    public function errors(): array
-    {
-        return $this->errors;
     }
 
     /**
@@ -764,11 +789,8 @@ class Validation implements ValidationInterface
             $rule,
             $parameters
         );
-        if (in_array($rule, ['closure', 'object'])) {
-            $this->errors[$field][] = $errorMessage;
-        } else {
-            $this->errors[$field][$rule] = $errorMessage;
-        }
+
+        $this->messages->add($field, $errorMessage);
 
         if (in_array($rule, ['closure', 'object'])) {
             $this->failed[$field][] = $parameters;

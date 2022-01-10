@@ -140,7 +140,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
     {
         if ($request->hasFlash()) {
             $request->getSession()->flashInput($request->all());
-            $request->getFlash()->flash('_validation_errors', $validation->errors());
+            $request->getFlash()->flash('_validation_errors', $validation->errors()->messages());
         }
         return $this->redirect($this->getRedirectUrl());
     }

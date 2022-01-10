@@ -53,7 +53,7 @@ class ValidationException extends Exception
      */
     public function errors()
     {
-        return $this->validation->errors();
+        return $this->validation->messages()->messages();
     }
 
     /**
