@@ -240,12 +240,12 @@ if (! function_exists('error')) {
      * Retrieve a flashed validation error
      *
      * @param  string|null  $key
-     * @param  mixed  $default
+     * @param  bool $all
      * @return mixed
      */
-    function error($key = null, $default = null)
+    function error($key = null, bool $all = false)
     {
-        return request()->error($key, $default);
+        return request()->error($key, $all);
     }
 }
 

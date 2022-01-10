@@ -243,14 +243,14 @@ class Request extends Psr7ServerRequest
      * Retrieve validation errors from previous request
      *
      * @param  string|null  $key
-     * @param  string|array|null  $default
+     * @param  string|array|null  $all
      * @return string|array|null
      */
-    public function error($key = null, $default = null)
+    public function error($key = null, bool $all = true)
     {
-        $errors = $this->hasSession() ? $this->getSession()->getValidationError($key, $default) : $default;
+        $errors = $this->hasSession() ? $this->getSession()->getValidationError($key, null) : "";
         $errorBag = new MessageBag(ArrayMethods::wrap($errors));
-        return $errorBag->first($key) ?: $default;
+        return $all ? $errorBag->get($key) : $errorBag->first($key);
     }
 
     /**
