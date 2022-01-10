@@ -194,7 +194,7 @@ class MessageBag implements Jsonable, JsonSerializable, MessageBagContract, Mess
             );
         }
 
-        if (StringMethods::contains($key, '*')) {
+        if (StringMethods::contains($key ?? "", '*')) {
             return $this->getMessagesForWildcardKey($key, $format);
         }
 

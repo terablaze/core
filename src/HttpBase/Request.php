@@ -249,10 +249,7 @@ class Request extends Psr7ServerRequest
     public function error($key = null, bool $all = false)
     {
         $errors = $this->hasSession() ? $this->getSession()->getValidationError($key, null) : "";
-        $errorBag = new MessageBag(ArrayMethods::wrap($errors));
-        if (empty($key)) {
-            return $errorBag->all();
-        }
+        $errorBag = new MessageBag([$key => ArrayMethods::wrap($errors)]);
         return $all ? $errorBag->get($key) : $errorBag->first($key);
     }
 
