@@ -16,7 +16,7 @@ class MaxRule extends Rule implements RuleInterface
         }
 
         $max = (int) $this->params[0];
-        return $this->getSize() <= $max;
+        return $this->getSize($this->value) <= $max;
     }
 
     public function getMessage(): string

@@ -15,7 +15,7 @@ abstract class Rule implements RuleInterface
     /** @var array<string, mixed> $data */
     protected array $data;
 
-    /** @var array<string, mixed> $params */
+    /** @var array<int, mixed> $params */
     protected array $params;
 
     protected ?string $message = null;
@@ -23,7 +23,7 @@ abstract class Rule implements RuleInterface
     /**
      * @param string $field
      * @param array<string, mixed> $data
-     * @param mixed|array<string, mixed> $params
+     * @param mixed|array<int, mixed> $params
      */
     public function __construct(string $field, array $data = [], $params = [])
     {
@@ -53,5 +53,17 @@ abstract class Rule implements RuleInterface
     public static function unique(string $table, string $column = 'NULL')
     {
         return new UniqueRuleBuilder($table, $column);
+    }
+
+    /**
+     * Check if the parameters are of the same type.
+     *
+     * @param  mixed  $first
+     * @param  mixed  $second
+     * @return bool
+     */
+    protected function isSameType($first, $second)
+    {
+        return gettype($first) == gettype($second);
     }
 }

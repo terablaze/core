@@ -3,9 +3,11 @@
 namespace TeraBlaze\Validation;
 
 use Closure;
+use Exception;
 use Psr\Http\Message\UploadedFileInterface;
 use ReflectionException;
 use TeraBlaze\Collection\ArrayCollection;
+use TeraBlaze\Collection\Exceptions\InvalidTypeException;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
@@ -34,14 +36,14 @@ class Validation implements ValidationInterface
      *
      * @var string[]
      */
-    protected $sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
+    protected array $sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
 
     /**
      * Indicates if the validator should stop on the first rule failure.
      *
      * @var bool
      */
-    protected $stopOnFirstFailure = false;
+    protected bool $stopOnFirstFailure = false;
 
     /** @var array<string, mixed> $data */
     private array $data;
@@ -63,24 +65,32 @@ class Validation implements ValidationInterface
 
     /** @var array<string, string> $bails */
     protected array $bails = [];
+
+    /** @var array<string, mixed> $rawValidated */
     protected array $rawValidated = [];
+
+    /** @var array<string, mixed> $validated */
     protected array $validated = [];
+
+    /** @var array<string, mixed> $failed */
     protected array $failed = [];
+
+    /** @var array<string, mixed> $errors */
     protected array $errors = [];
 
     /**
-     * All of the custom replacer extensions.
+     * All the custom replacer extensions.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     public $replacers = [];
 
     /**
-     * @param Translator $translator
      * @param array<string, mixed> $data
      * @param array<string, mixed> $rules
      * @param array<string, mixed> $customMessages
      * @param array<string, string> $customFields
+     * @throws Exception
      */
     public function __construct(
         array $data,
@@ -114,10 +124,10 @@ class Validation implements ValidationInterface
     /**
      * Parse the data array, converting dots and asterisks.
      *
-     * @param array $data
-     * @return array
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
-    public function parseData(array $data)
+    public function parseData(array $data): array
     {
         $newData = [];
 
@@ -141,10 +151,10 @@ class Validation implements ValidationInterface
     /**
      * Replace the placeholders used in data keys.
      *
-     * @param array $data
-     * @return array
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
-    protected function replacePlaceholders($data)
+    protected function replacePlaceholders(array $data): array
     {
         $originalData = [];
 
@@ -163,7 +173,7 @@ class Validation implements ValidationInterface
      * @param string $value
      * @return string
      */
-    protected function replacePlaceholderInString(string $value)
+    protected function replacePlaceholderInString(string $value): string
     {
         return str_replace(
             [$this->dotPlaceholder, '__asterisk__'],
@@ -175,9 +185,9 @@ class Validation implements ValidationInterface
     /**
      * Get the data under validation.
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function getData()
+    public function getData(): array
     {
         return $this->data;
     }
@@ -185,10 +195,10 @@ class Validation implements ValidationInterface
     /**
      * Get the value of a given field.
      *
-     * @param  string  $field
+     * @param string $field
      * @return mixed
      */
-    protected function getValue($field)
+    protected function getValue(string $field)
     {
         return ArrayMethods::get($this->data, $field);
     }
@@ -196,9 +206,9 @@ class Validation implements ValidationInterface
     /**
      * Get the validation rules.
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function getRules()
+    public function getRules(): array
     {
         return $this->rules;
     }
@@ -206,10 +216,11 @@ class Validation implements ValidationInterface
     /**
      * Set the validation rules.
      *
-     * @param  array  $rules
+     * @param array<string, mixed> $rules
      * @return $this
+     * @throws InvalidTypeException
      */
-    public function setRules(array $rules)
+    public function setRules(array $rules): Validation
     {
         $rules = (new ArrayCollection($rules))->mapWithKeys(function ($value, $key) {
             return [str_replace('\.', $this->dotPlaceholder, $key) => $value];
@@ -227,10 +238,10 @@ class Validation implements ValidationInterface
     /**
      * Parse the given rules and merge them into current rules.
      *
-     * @param  array  $rules
+     * @param array<string, mixed> $rules
      * @return void
      */
-    public function addRules($rules)
+    public function addRules(array $rules)
     {
         // The primary purpose of this parser is to expand any "*" rules to the all
         // of the explicit rules needed for the given data. For example the rule
@@ -248,6 +259,12 @@ class Validation implements ValidationInterface
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws ReflectionException
+     * @throws RuleException
+     * @throws ValidationException
+     */
     public function validate(): array
     {
         $this->validated = [];
@@ -260,7 +277,7 @@ class Validation implements ValidationInterface
                 $this->bails[$field] = array_shift($rulesForField);
             }
             $rulesForField = ArrayMethods::clean($rulesForField);
-            if($this->runFieldValidate($rulesForField, $field, $bail)) {
+            if ($this->runFieldValidate($rulesForField, $field, $bail)) {
                 $this->rawValidated[$field] = ArrayMethods::get($this->data, $field);
             }
         }
@@ -281,7 +298,7 @@ class Validation implements ValidationInterface
     }
 
     /**
-     * @param $rulesForField
+     * @param array<string, mixed> $rulesForField
      * @param string $field
      * @param bool $bail
      * @return bool
@@ -304,7 +321,7 @@ class Validation implements ValidationInterface
             $ruleName = $this->parseRuleName($rule);
 
             $processor = $this->getRuleInstance($rule, $field, $this->data, $params);
-            if (method_exists($processor, 'setDatabaseReqs')) {
+            if ($processor instanceof RuleInterface && method_exists($processor, 'setDatabaseReqs')) {
                 $processor->setDatabaseReqs($this->container);
             }
             if (is_null(ArrayMethods::get($this->data, $field)) && $processor instanceof NullableRule) {
@@ -321,10 +338,13 @@ class Validation implements ValidationInterface
     }
 
     /**
-     * @param RuleInterface|callable $processor
+     * @param RuleInterface $processor
+     * @param string $field
+     * @param string $ruleName
+     * @param array<int, mixed> $params
      * @return bool
      */
-    private function doValidate($processor, string $field, string $ruleName, array $params): bool
+    private function doValidate(RuleInterface $processor, string $field, string $ruleName, array $params): bool
     {
         if ($processor->validate()) {
             return true;
@@ -337,10 +357,10 @@ class Validation implements ValidationInterface
     /**
      * Instruct the validator to stop validating after the first rule failure.
      *
-     * @param  bool  $stopOnFirstFailure
+     * @param bool $stopOnFirstFailure
      * @return $this
      */
-    public function stopOnFirstFailure($stopOnFirstFailure = true)
+    public function stopOnFirstFailure($stopOnFirstFailure = true): Validation
     {
         $this->stopOnFirstFailure = $stopOnFirstFailure;
 
@@ -350,9 +370,10 @@ class Validation implements ValidationInterface
     /**
      * Generate an array of all fields that have messages.
      *
-     * @return array
+     * @return array<string, mixed>
+     * @throws InvalidTypeException
      */
-    protected function fieldsThatHaveMessages()
+    protected function fieldsThatHaveMessages(): array
     {
         return (new ArrayCollection($this->errors))->map(function ($message, $key) {
             return explode('.', $key)[0];
@@ -375,7 +396,7 @@ class Validation implements ValidationInterface
 
         foreach ($this->rawValidated as $key => $data) {
             $value = dataGet($this->getData(), $key);
-                ArrayMethods::set($results, $key, $value);
+            ArrayMethods::set($results, $key, $value);
         }
 
         $results = $this->replacePlaceholders($results);
@@ -429,13 +450,15 @@ class Validation implements ValidationInterface
     }
 
     /**
-     * @param string|callable|RuleInterface $rule
-     *
-     * @return mixed|object|RuleInterface
+     * @param RuleInterface|Closure|string $rule
+     * @param string $field
+     * @param array<string, mixed> $data
+     * @param array<int, mixed> $params
+     * @return mixed|object|ClosureValidationRule|RuleInterface
      * @throws ReflectionException
      * @throws RuleException
      */
-    private function getRuleInstance($rule, $field, $data, $params)
+    private function getRuleInstance($rule, string $field, array $data, array $params)
     {
         if ($rule instanceof Closure) {
             return new ClosureValidationRule($rule, $field, $data, $params);
@@ -476,7 +499,7 @@ class Validation implements ValidationInterface
     /**
      * Parse the human-friendly rules into a full rules array for the validator.
      *
-     * @param  array  $rules
+     * @param array $rules
      * @return \stdClass
      */
     public function explode($rules)
@@ -485,7 +508,7 @@ class Validation implements ValidationInterface
 
         $rules = $this->explodeRules($rules);
 
-        return (object) [
+        return (object)[
             'rules' => $rules,
             'implicitFields' => $this->implicitFields,
         ];
@@ -494,7 +517,7 @@ class Validation implements ValidationInterface
     /**
      * Explode the rules into an array of explicit rules.
      *
-     * @param  array  $rules
+     * @param array $rules
      * @return array
      */
     protected function explodeRules($rules)
@@ -515,7 +538,7 @@ class Validation implements ValidationInterface
     /**
      * Explode the explicit rule into an array if necessary.
      *
-     * @param  mixed  $rule
+     * @param mixed $rule
      * @return array
      */
     protected function explodeExplicitRule($rule)
@@ -532,12 +555,12 @@ class Validation implements ValidationInterface
     /**
      * Prepare the given rule for the Validator.
      *
-     * @param  mixed  $rule
+     * @param mixed $rule
      * @return mixed
      */
     protected function prepareRule($rule)
     {
-        if (! is_object($rule) || $rule instanceof RuleInterface) {
+        if (!is_object($rule) || $rule instanceof RuleInterface) {
             return $rule;
         }
 
@@ -547,9 +570,9 @@ class Validation implements ValidationInterface
     /**
      * Define a set of rules that apply to each element in an array field.
      *
-     * @param  array  $results
-     * @param  string  $field
-     * @param  string|array  $rules
+     * @param array $results
+     * @param string $field
+     * @param string|array $rules
      * @return array
      */
     protected function explodeWildcardRules($results, $field, $rules)
@@ -559,8 +582,8 @@ class Validation implements ValidationInterface
         $data = ValidationData::initializeAndGatherData($field, $this->data);
 
         foreach ($data as $key => $value) {
-            if (StringMethods::startsWith($key, $field) || (bool) preg_match('/^' . $pattern . '\z/', $key)) {
-                foreach ((array) $rules as $rule) {
+            if (StringMethods::startsWith($key, $field) || (bool)preg_match('/^' . $pattern . '\z/', $key)) {
+                foreach ((array)$rules as $rule) {
                     $this->implicitFields[$field][] = $key;
 
                     $results = $this->mergeRules($results, $key, $rule);
@@ -574,15 +597,15 @@ class Validation implements ValidationInterface
     /**
      * Merge additional rules into a given field(s).
      *
-     * @param  array  $results
-     * @param  string|array  $field
-     * @param  string|array  $rules
+     * @param array $results
+     * @param string|array $field
+     * @param string|array $rules
      * @return array
      */
     public function mergeRules($results, $field, $rules = [])
     {
         if (is_array($field)) {
-            foreach ((array) $field as $innerField => $innerRules) {
+            foreach ((array)$field as $innerField => $innerRules) {
                 $results = $this->mergeRulesForField($results, $innerField, $innerRules);
             }
 
@@ -599,9 +622,9 @@ class Validation implements ValidationInterface
     /**
      * Merge additional rules into a given field.
      *
-     * @param  array  $results
-     * @param  string  $field
-     * @param  string|array  $rules
+     * @param array $results
+     * @param string $field
+     * @param string|array $rules
      * @return array
      */
     protected function mergeRulesForField($results, $field, $rules)
@@ -619,7 +642,7 @@ class Validation implements ValidationInterface
     /**
      * Extract the rule name and parameters from a rule.
      *
-     * @param  array|string  $rule
+     * @param array|string $rule
      * @return array
      */
     public static function parse($rule)
@@ -638,7 +661,7 @@ class Validation implements ValidationInterface
     /**
      * Parse a string based rule.
      *
-     * @param  string  $rule
+     * @param string $rule
      * @return array
      */
     protected static function parseStringRule($rule)
@@ -660,8 +683,8 @@ class Validation implements ValidationInterface
     /**
      * Parse a parameter list.
      *
-     * @param  string  $rule
-     * @param  string  $parameter
+     * @param string $rule
+     * @param string $parameter
      * @return array
      */
     protected static function parseParameters($rule, $parameter)
@@ -678,9 +701,9 @@ class Validation implements ValidationInterface
     /**
      * Add a failed rule and error message to the collection.
      *
-     * @param  string  $field
-     * @param  string  $rule
-     * @param  array  $parameters
+     * @param string $field
+     * @param string $rule
+     * @param array $parameters
      * @return void
      */
     public function addFailure($processor, $field, $rule, $parameters = [])
@@ -707,20 +730,19 @@ class Validation implements ValidationInterface
     }
 
 
-
     /**
      * Get the explicit keys from a field flattened with dot notation.
      *
      * E.g. 'foo.1.bar.spark.baz' -> [1, 'spark'] for 'foo.*.bar.*.baz'
      *
-     * @param  string  $field
+     * @param string $field
      * @return array
      */
     protected function getExplicitKeys($field)
     {
         $pattern = str_replace('\*', '([^\.]+)', preg_quote($this->getPrimaryField($field), '/'));
 
-        if (preg_match('/^'.$pattern.'/', $field, $keys)) {
+        if (preg_match('/^' . $pattern . '/', $field, $keys)) {
             array_shift($keys);
 
             return $keys;
@@ -734,7 +756,7 @@ class Validation implements ValidationInterface
      *
      * For example, if "name.0" is given, "name.*" will be returned.
      *
-     * @param  string  $field
+     * @param string $field
      * @return string
      */
     protected function getPrimaryField($field)
@@ -751,8 +773,8 @@ class Validation implements ValidationInterface
     /**
      * Replace each field parameter which has an escaped dot with the dot placeholder.
      *
-     * @param  array  $parameters
-     * @param  array  $keys
+     * @param array $parameters
+     * @param array $keys
      * @return array
      */
     protected function replaceDotInParameters(array $parameters)
@@ -765,8 +787,8 @@ class Validation implements ValidationInterface
     /**
      * Replace each field parameter which has asterisks with the given keys.
      *
-     * @param  array  $parameters
-     * @param  array  $keys
+     * @param array $parameters
+     * @param array $keys
      * @return array
      */
     protected function replaceAsterisksInParameters(array $parameters, array $keys)
@@ -779,7 +801,7 @@ class Validation implements ValidationInterface
     /**
      * Get the size of a value.
      *
-     * @param  mixed  $value
+     * @param mixed $value
      * @return mixed
      */
     protected function getSize($value)
@@ -802,11 +824,10 @@ class Validation implements ValidationInterface
     }
 
 
-
     /**
      * Register an array of custom validator message replacers.
      *
-     * @param  array  $replacers
+     * @param array $replacers
      * @return void
      */
     public function addReplacers(array $replacers)
@@ -823,8 +844,8 @@ class Validation implements ValidationInterface
     /**
      * Register a custom validator message replacer.
      *
-     * @param  string  $rule
-     * @param  \Closure|string  $replacer
+     * @param string $rule
+     * @param \Closure|string $replacer
      * @return void
      */
     public function addReplacer($rule, $replacer)
@@ -841,7 +862,7 @@ class Validation implements ValidationInterface
             return 'closure';
         }
         if (!is_string($rule)) {
-            return (string) gettype($rule);
+            return (string)gettype($rule);
         }
         return $rule;
     }

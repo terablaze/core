@@ -3,25 +3,43 @@
 namespace TeraBlaze\Validation\Rule;
 
 use InvalidArgumentException;
+use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Support\StringMethods;
+use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class LtRule extends Rule implements RuleInterface
 {
+    use SizeAwareTrait;
+
     public function validate(): bool
     {
         if (empty($this->params[0])) {
             throw new InvalidArgumentException('Specify a max size + 1');
         }
 
-        $size = (int) $this->params[0];
+        $comparedToValue = ArrayMethods::get($this->data, $this->params[0]);
 
-        return $this->value < $size;
+        if (is_null($comparedToValue) && (is_numeric($this->value) && is_numeric($this->params[0]))) {
+            return $this->getSize($this->value) < $this->params[0];
+        }
+
+        if (is_numeric($this->params[0])) {
+            return false;
+        }
+
+        if (is_numeric($this->value) && is_numeric($comparedToValue)) {
+            return $this->value < $comparedToValue;
+        }
+
+        if (! $this->isSameType($this->value, $comparedToValue)) {
+            return false;
+        }
+
+        return $this->getSize($this->value) < $this->getSize($comparedToValue);
     }
 
     public function getMessage(): string
     {
-        $size = (int) $this->params[0];
-
-        return $this->message ?? ":Field should be less than $size";
+        return $this->message ?? ":Field should be less than :value";
     }
 }

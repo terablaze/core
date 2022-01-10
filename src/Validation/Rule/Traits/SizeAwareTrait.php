@@ -10,24 +10,24 @@ trait SizeAwareTrait
 {
     protected array $messageModifier = ["presence" => "be", "unit" => "characters"];
 
-    private function getSize(): int
+    private function getSize($value): int
     {
-        if (is_null($this->value)) {
+        if (is_null($value)) {
             return 0;
         }
-        if (is_numeric($this->value)) {
+        if (is_numeric($value)) {
             $this->messageModifier["unit"] = '';
-            return $this->value;
+            return $value;
         }
-        if (is_array($this->value)) {
+        if (is_array($value)) {
             $this->messageModifier = ["presence" => "contain", "unit" => "elements"];
-            return count($this->value);
+            return count($value);
         }
-        if ($this->value instanceof \SplFileInfo || $this->value instanceof UploadedFileInterface) {
+        if ($value instanceof \SplFileInfo || $value instanceof UploadedFileInterface) {
             $this->messageModifier["unit"] = "kilobytes";
-            return $this->value->getSize() / 1024;
+            return $value->getSize() / 1024;
         }
 
-        return StringMethods::length($this->value);
+        return StringMethods::length($value);
     }
 }
