@@ -18,6 +18,8 @@ use TeraBlaze\Session\Flash\FlashMessageMiddleware;
 use TeraBlaze\Session\Flash\FlashMessagesInterface;
 use TeraBlaze\Session\SessionInterface;
 use TeraBlaze\Session\SessionMiddleware;
+use TeraBlaze\Support\ArrayMethods;
+use TeraBlaze\Support\MessageBag;
 use TeraBlaze\Support\StringMethods;
 
 use TeraBlaze\Validation\Validation;
@@ -246,11 +248,9 @@ class Request extends Psr7ServerRequest
      */
     public function error($key = null, $default = null)
     {
-        $error = $this->hasSession() ? $this->getSession()->getValidationError($key, $default) : $default;
-        if (is_array($error)) {
-            $error = count($error) == 1 ? reset($error) : $error;
-        }
-        return $error;
+        $errors = $this->hasSession() ? $this->getSession()->getValidationError($key, $default) : $default;
+        $errorBag = new MessageBag(ArrayMethods::wrap($errors));
+        return $errorBag->first($key) ?: $default;
     }
 
     /**
