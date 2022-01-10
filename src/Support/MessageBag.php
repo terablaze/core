@@ -185,9 +185,6 @@ class MessageBag implements Jsonable, JsonSerializable, MessageBagContract, Mess
      */
     public function get($key, $format = null)
     {
-        if (empty($key)) {
-            return [];
-        }
         // If the message exists in the message bag, we will transform it and return
         // the message. Otherwise, we will check if the key is implicit & collect
         // all the messages that match the given key and output it as an array.
