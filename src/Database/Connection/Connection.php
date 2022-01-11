@@ -18,8 +18,6 @@ use Throwable;
 
 abstract class Connection implements ConnectionInterface
 {
-    protected $dateTimeMode = 'DATETIME';
-
     /**
      * The default PDO connection options.
      *
@@ -165,7 +163,7 @@ abstract class Connection implements ConnectionInterface
 
     public function getDateTimeMode(): string
     {
-        return $this->dateTimeMode;
+        return $this->config['datetime_mode'] ?? getConfig('database.datetime_mode', 'migrations');
     }
 
     public function setQueryLogger(QueryLogger $queryLogger): self

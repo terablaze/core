@@ -3,8 +3,6 @@
 namespace TeraBlaze\Database;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\PsrCachedReader;
-use Doctrine\Common\Annotations\Reader;
 use ReflectionException;
 use TeraBlaze\Config\Exception\InvalidContextException;
 use TeraBlaze\Container\Exception\ServiceNotFoundException;
@@ -23,8 +21,6 @@ use TeraBlaze\Database\Migrations\MigrationCreator;
 use TeraBlaze\Database\Migrations\MigrationRepository;
 use TeraBlaze\Database\Migrations\Migrator;
 use TeraBlaze\Database\ORM\AnnotationDriver;
-use TeraBlaze\Database\ORM\ClassMetadata;
-use Tests\TeraBlaze\Model\Book;
 
 class DatabaseParcel extends Parcel implements ParcelInterface
 {
@@ -78,16 +74,15 @@ class DatabaseParcel extends Parcel implements ParcelInterface
         switch ($type) {
             case "mysql":
             case "mysqli":
-                $dbConnection = (new MysqlConnection($conf))
-                    ->setName($confKey)->setEventDispatcher($this->dispatcher);
+                $dbConnection = (new MysqlConnection($conf));
                 break;
             case "sqlite":
-                $dbConnection = (new SqliteConnection($conf))
-                    ->setName($confKey)->setEventDispatcher($this->dispatcher);
+                $dbConnection = (new SqliteConnection($conf));
                 break;
             default:
                 throw new ArgumentException(sprintf("Invalid or unimplemented database type: %s", $type));
         }
+        $dbConnection->setName($confKey)->setEventDispatcher($this->dispatcher);
         $this->container->registerServiceInstance($connectionName, $dbConnection);
         if (getConfig('database.default') === $confKey) {
             $this->container->setAlias(ConnectionInterface::class, $connectionName);

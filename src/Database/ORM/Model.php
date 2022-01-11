@@ -72,7 +72,7 @@ abstract class Model implements ModelInterface
                     $value = $this->_getEncrypter()->decryptString((string)$value);
                 }
             } catch (MappingException $exception) {
-
+                // TODO: Add a logger to log the exception
             }
             $this->_setPropertyValue($prop, $value);
         }
@@ -228,7 +228,7 @@ abstract class Model implements ModelInterface
             $datum = $this->$prop ?? $column['options']['default'] ?? null;
         }
         if ($datum instanceof DateTime && ($column['options']['convertDate'] ?? '' != false)) {
-            $dateTimeMode = $this->_getConnection()->getDateTimeMode();
+            $dateTimeMode = $column['options']['datetime_mode'] ?? $this->_getConnection()->getDateTimeMode();
             if ($dateTimeMode == 'TIMESTAMP') {
                 $datum = $datum->getTimestamp();
             } elseif ($dateTimeMode == 'DATETIME') {
@@ -300,8 +300,7 @@ abstract class Model implements ModelInterface
         $limit = null,
         $offset = null,
         $page = null
-    )
-    {
+    ) {
         $fields = ArrayMethods::wrap($fields);
         $query = $this
             ->_getConnection()
