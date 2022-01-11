@@ -102,18 +102,17 @@ abstract class Model implements ModelInterface
      */
     private function _setPropertyValue(string $property, $value): void
     {
+        $propertyType = StringMethods::lower($this->_getClassMetadata()->getPropertyType($property));
         if (
-            in_array(
-                StringMethods::lower($this->_getClassMetadata()->getPropertyType($property)),
-                ['date', 'time', 'datetime'],
-                true
-            ) &&
+            in_array($propertyType, self::DATE_TYPES, true) &&
             (!$value instanceof DateTime) &&
             (!empty($value)) &&
-            ($this->_getClassMetadata()->getPropertyOptions($property)['convertDate'] ?? "" != false)
+            ($this->_getClassMetadata()->getPropertyOptions($property)['convertDate'] ?? true != false)
         ) {
             try {
-                $value = new DateTime($value);
+                $value = $propertyType == "timestamp" ?
+                    (new DateTime())->setTimestamp($value) :
+                    new DateTime($value);
             } catch (Exception $exception) {
             }
         }
@@ -227,11 +226,10 @@ abstract class Model implements ModelInterface
         } else {
             $datum = $this->$prop ?? $column['options']['default'] ?? null;
         }
-        if ($datum instanceof DateTime && ($column['options']['convertDate'] ?? '' != false)) {
-            $dateTimeMode = $column['options']['datetime_mode'] ?? $this->_getConnection()->getDateTimeMode();
-            if ($dateTimeMode == 'TIMESTAMP') {
+        if ($datum instanceof DateTime && ($column['options']['convertDate'] ?? true != false)) {
+            if (StringMethods::lower($this->_getClassMetadata()->getPropertyType($prop)) == 'timestamp') {
                 $datum = $datum->getTimestamp();
-            } elseif ($dateTimeMode == 'DATETIME') {
+            } else {
                 switch ($column['type']) {
                     case 'date':
                         $datum = $datum->format('Y-m-d');

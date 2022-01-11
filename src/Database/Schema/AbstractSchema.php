@@ -116,6 +116,11 @@ abstract class AbstractSchema implements SchemaInterface
         return $this->fields[] = new DateTimeField($column, "YEAR");
     }
 
+    public function timestamp(string $column): IntField
+    {
+        return $this->fields[] = new IntField($column, 'BIGINT', 21);
+    }
+
     public function float(string $column): FloatField
     {
         return $this->fields[] = new FloatField($column);

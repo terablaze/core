@@ -104,13 +104,6 @@ interface ConnectionInterface
 
     public function escape($value, $type = PDO::PARAM_STR);
 
-    /**
-     * Returns the configured dateTimeMode [DATETIME or TIMESTAMP]
-     * or returns DATETIME by default
-     * @return string
-     */
-    public function getDateTimeMode(): string;
-
     public function setQueryLogger(QueryLogger $queryLogger): self;
 
     public function getQueryLogger(): QueryLogger;

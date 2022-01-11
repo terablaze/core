@@ -161,11 +161,6 @@ abstract class Connection implements ConnectionInterface
         return $this->quote($value, $type);
     }
 
-    public function getDateTimeMode(): string
-    {
-        return $this->config['datetime_mode'] ?? getConfig('database.datetime_mode', 'migrations');
-    }
-
     public function setQueryLogger(QueryLogger $queryLogger): self
     {
         $this->queryLogger = $queryLogger;

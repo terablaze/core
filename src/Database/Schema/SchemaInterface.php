@@ -42,6 +42,8 @@ interface SchemaInterface
 
     public function year(string $column): DateTimeField;
 
+    public function timestamp(string $column): IntField;
+
     public function float(string $column): FloatField;
 
     public function decimal(string $column, int $precision = 10, int $scale = 2): DecimalField;
