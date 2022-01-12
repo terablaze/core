@@ -10,6 +10,7 @@ use TeraBlaze\Container\ContainerInterface;
 use TeraBlaze\Container\Exception\ContainerException;
 use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\HttpBase\JsonResponse;
+use TeraBlaze\HttpBase\RedirectResponse;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
 use TeraBlaze\Routing\RouterInterface;
@@ -41,7 +42,7 @@ trait ResponseTrait
      * @param array $parameters
      * @param int $status
      * @param int $referenceType
-     * @return Response
+     * @return RedirectResponse
      * @throws ReflectionException
      * @throws ContainerException
      * @throws ParameterNotFoundException
@@ -51,7 +52,7 @@ trait ResponseTrait
         array  $parameters = [],
         int    $status = 302,
         int    $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
-    ): Response {
+    ): RedirectResponse {
         return $this->redirect($this->generateUrl($routeName, $parameters, $referenceType), $status);
     }
 
@@ -78,12 +79,11 @@ trait ResponseTrait
     /**
      * @param string $url
      * @param int $status
-     * @return Response
+     * @param array $headers
+     * @return RedirectResponse
      */
-    public function redirect(string $url, int $status = 302): Response
+    public function redirect(string $url, int $status = 302, array $headers = []): RedirectResponse
     {
-        return new Response('', $status, [
-            'Location' => $url
-        ]);
+        return new RedirectResponse($url, $status, $headers);
     }
 }

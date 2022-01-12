@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TeraBlaze\Container\Container;
+use TeraBlaze\HttpBase\RedirectResponse;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
 use TeraBlaze\HttpBase\Traits\ResponseTrait;
@@ -132,7 +133,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
      * Handle a failed validation attempt.
      *
      * @param Validation  $validation
-     * @return Response|ResponseInterface
+     * @return RedirectResponse|ResponseInterface
      *
      * @throws ValidationException
      */
@@ -161,7 +162,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
     /**
      * Handle a failed authorization attempt.
      *
-     * @return Response|ResponseInterface
+     * @return RedirectResponse|ResponseInterface
      *
      * @throws AuthorizationException
      */
