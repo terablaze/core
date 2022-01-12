@@ -1278,8 +1278,8 @@ class Request extends Psr7ServerRequest
      * @return array
      * @throws \Exception
      */
-    public function validated(): array
+    public function validated(string $field = null): array
     {
-        return $this->validation()->validated();
+        return $this->validation()->validated($field);
     }
 }

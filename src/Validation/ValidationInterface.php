@@ -16,9 +16,10 @@ interface ValidationInterface
     /**
      * Get the fields and values that were validated.
      *
-     * @return array
+     * @param string|null $field
+     * @return mixed
      */
-    public function validated(): array;
+    public function validated(string $field = null);
 
     /**
      * Determine if the data fails the validation rules.

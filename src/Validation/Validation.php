@@ -429,11 +429,15 @@ class Validation implements ValidationInterface
     /**
      * Get the fields and values that were validated.
      *
-     * @return array
-     *
-     * @throws ValidationException
+     * @param string|null $field
+     * @return mixed
      */
-    public function validated(): array
+    public function validated(string $field = null)
+    {
+        return $field ? ArrayMethods::get($this->getValidated(), $field) : $this->getValidated();
+    }
+
+    private function getValidated()
     {
         if (!empty($this->validated)) {
             return $this->validated;
