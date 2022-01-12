@@ -728,6 +728,9 @@ class Validation implements ValidationInterface
             return [$rule, []];
         }
 
+        if ($rule instanceof RuleBuilderInterface) {
+            $rule = (string) $rule;
+        }
         if (is_string($rule)) {
             $rule = static::parseStringRule($rule);
         }
