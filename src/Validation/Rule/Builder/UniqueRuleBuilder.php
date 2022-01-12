@@ -60,9 +60,10 @@ class UniqueRuleBuilder implements RuleBuilderInterface
     public function ignoreModel(ModelInterface $model, $idColumn = null)
     {
         $this->idColumn = $idColumn ?? $model->_getClassMetadata()->getSingleIdentifierColumnName();
-        $this->ignore = $model->_getClassMetadata()
-            ->getReflectionClass()->getProperty($this->idColumn)
-            ->getValue($model);
+        $property = $model->_getClassMetadata()
+            ->getReflectionClass()->getProperty($this->idColumn);
+        $property->setAccessible(true);
+        $this->ignore = $property->getValue($model);
 
         return $this;
     }
