@@ -17,7 +17,7 @@ class RedirectResponse extends Response
     protected $encodingOptions = self::DEFAULT_ENCODING_OPTIONS;
 
 
-    public function __construct(string $url, int $status = 302, array $headers = [])
+    public function __construct(string $url, int $status = 302)
     {
         $this->setTargetUrl($url);
 

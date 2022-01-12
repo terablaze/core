@@ -82,8 +82,8 @@ trait ResponseTrait
      * @param array $headers
      * @return RedirectResponse
      */
-    public function redirect(string $url, int $status = 302, array $headers = []): RedirectResponse
+    public function redirect(string $url, int $status = 302): RedirectResponse
     {
-        return new RedirectResponse($url, $status, $headers);
+        return new RedirectResponse($url, $status);
     }
 }
