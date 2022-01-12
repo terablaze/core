@@ -1275,10 +1275,11 @@ class Request extends Psr7ServerRequest
     }
 
     /**
-     * @return array
+     * @param string|null $field
+     * @return mixed|mixed[]
      * @throws \Exception
      */
-    public function validated(string $field = null): array
+    public function validated(string $field = null)
     {
         return $this->validation()->validated($field);
     }
