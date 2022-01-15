@@ -174,4 +174,19 @@ interface ConnectionInterface
      * @return void
      */
     public function flushQueryLog();
+
+    /**
+     * Enable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function enableForeignKeyConstraints();
+
+
+    /**
+     * Disable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function disableForeignKeyConstraints();
 }

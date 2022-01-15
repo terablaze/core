@@ -85,4 +85,24 @@ class MysqlConnection extends Connection implements ConnectionInterface
 
         return $statement->execute();
     }
+
+    /**
+     * Compile the command to enable foreign key constraints.
+     *
+     * @return string
+     */
+    protected function compileEnableForeignKeyConstraints()
+    {
+        return "SET FOREIGN_KEY_CHECKS=1;";
+    }
+
+    /**
+     * Compile the command to disable foreign key constraints.
+     *
+     * @return string
+     */
+    protected function compileDisableForeignKeyConstraints()
+    {
+        return "SET FOREIGN_KEY_CHECKS=0;";
+    }
 }

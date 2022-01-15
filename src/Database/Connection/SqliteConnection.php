@@ -56,4 +56,24 @@ class SqliteConnection extends Connection implements ConnectionInterface
         file_put_contents($this->config['path'], '');
         return 1;
     }
+
+    /**
+     * Compile the command to enable foreign key constraints.
+     *
+     * @return string
+     */
+    protected function compileEnableForeignKeyConstraints()
+    {
+        return 'PRAGMA foreign_keys = ON;';
+    }
+
+    /**
+     * Compile the command to disable foreign key constraints.
+     *
+     * @return string
+     */
+    protected function compileDisableForeignKeyConstraints()
+    {
+        return 'PRAGMA foreign_keys = OFF;';
+    }
 }

@@ -458,4 +458,39 @@ abstract class Connection implements ConnectionInterface
     {
         return $this->getSchema($from)->setType('rename')->renameTo($to);
     }
+
+    /**
+     * Enable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function enableForeignKeyConstraints()
+    {
+        return $this->execute($this->compileEnableForeignKeyConstraints());
+    }
+
+    /**
+     * Disable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function disableForeignKeyConstraints()
+    {
+        return $this->execute($this->compileDisableForeignKeyConstraints());
+    }
+
+    /**
+     * Enable foreign key constraints.
+     *
+     * @return string
+     */
+    abstract protected function compileEnableForeignKeyConstraints();
+
+
+    /**
+     * Disable foreign key constraints.
+     *
+     * @return string
+     */
+    abstract protected function compileDisableForeignKeyConstraints();
 }

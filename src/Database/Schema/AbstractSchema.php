@@ -366,4 +366,24 @@ abstract class AbstractSchema implements SchemaInterface
         $this->renameTo = $to;
         return $this;
     }
+
+    /**
+     * Enable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function enableForeignKeyConstraints()
+    {
+        return $this->connection->enableForeignKeyConstraints();
+    }
+
+    /**
+     * Disable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function disableForeignKeyConstraints()
+    {
+        return $this->connection->disableForeignKeyConstraints();
+    }
 }
