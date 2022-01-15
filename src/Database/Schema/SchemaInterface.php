@@ -216,4 +216,19 @@ interface SchemaInterface
     public function getFkDrops(): array;
 
     public function renameTo(string $to): self;
+
+    /**
+     * Enable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function enableForeignKeyConstraints();
+
+
+    /**
+     * Disable foreign key constraints.
+     *
+     * @return bool
+     */
+    public function disableForeignKeyConstraints();
 }
