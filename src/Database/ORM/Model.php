@@ -221,11 +221,7 @@ abstract class Model implements ModelInterface
      */
     private function getSaveDatum(string $prop, array $column)
     {
-        if (in_array(strtolower($column['type']), self::DATE_TYPES)) {
-            $datum = $this->$prop ?? null;
-        } else {
-            $datum = $this->$prop ?? $column['options']['default'] ?? null;
-        }
+        $datum = $this->getDatum($prop, $column);
         if ($datum instanceof DateTime && ($column['options']['convertDate'] ?? true != false)) {
             if (StringMethods::lower($this->_getClassMetadata()->getPropertyType($prop)) == 'timestamp') {
                 $datum = $datum->getTimestamp();
@@ -244,6 +240,27 @@ abstract class Model implements ModelInterface
             }
         }
         return $datum;
+    }
+
+    /**
+     * @param string $prop
+     * @param array $column
+     * @return mixed|null
+     */
+    private function getDatum(string $prop, array $column)
+    {
+        $columnType = StringMethods::lower($column['type']);
+        $default = $column['options']['default'] ?? null;
+        if (
+            $columnType == 'timestamp' &&
+            in_array(StringMethods::lower($default), ['now', 'now()', 'current_timestamp'])
+        ) {
+            return new DateTime();
+        }
+        if (in_array($columnType, self::DATE_TYPES)) {
+            return $this->$prop ?? null;
+        }
+        return $this->$prop ?? $default ?? null;
     }
 
     public function delete()
