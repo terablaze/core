@@ -33,10 +33,12 @@ use TeraBlaze\Profiler\DebugBar\DataCollectors\RequestCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\RouteCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\SessionCollector;
 use TeraBlaze\Profiler\DebugBar\DataCollectors\TeraBlazeCollector;
+use TeraBlaze\Profiler\DebugBar\DataCollectors\ViewCollector;
 use TeraBlaze\Profiler\DebugBar\DataFormatter\QueryFormatter;
 use TeraBlaze\Profiler\DebugBar\Storage\FilesystemStorage;
 use TeraBlaze\Routing\Router;
 use TeraBlaze\Session\SessionInterface;
+use TeraBlaze\View\Events\TemplateEvent;
 
 class TeraBlazeDebugbar extends DebugBar
 {
@@ -437,7 +439,28 @@ class TeraBlazeDebugbar extends DebugBar
             } catch (\Exception $e) {
                 $this->addThrowable(
                     new Exception(
-                        'Cannot add EventCollector to Laravel Debugbar: ' . $e->getMessage(),
+                        'Cannot add EventCollector to TeraBlaze Debugbar: ' . $e->getMessage(),
+                        $e->getCode(),
+                        $e
+                    )
+                );
+            }
+        }
+
+        if ($this->shouldCollect('views', true) && isset($this->dispatcher)) {
+            try {
+                $collectData = getConfig('debugbar.options.views.data', true);
+                $this->addCollector(new ViewCollector($collectData));
+                $this->dispatcher->listen(
+                    TemplateEvent::class,
+                    function ($viewEvent) use ($debugbar) {
+                        $debugbar['views']->addView($viewEvent->getTemplate());
+                    }
+                );
+            } catch (\Exception $e) {
+                $this->addThrowable(
+                    new Exception(
+                        'Cannot add ViewCollector to TeraBlaze Debugbar: ' . $e->getMessage(),
                         $e->getCode(),
                         $e
                     )
@@ -634,7 +657,7 @@ class TeraBlazeDebugbar extends DebugBar
             $this->addCollector(new RequestCollector($request, $response));
         }
 
-        if ($this->shouldCollect('database.query', true)) {
+        if ($this->shouldCollect('db', true)) {
             if ($this->container->has('database.connection')) {
                 $mysqliCollector = new QueryCollector(null, $this->getCollector('time'));
                 $connectionNames = array_keys(getConfig('database.connections'));

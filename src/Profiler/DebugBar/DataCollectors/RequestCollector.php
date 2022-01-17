@@ -4,35 +4,30 @@ namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\RequestDataCollector;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use TeraBlaze\HttpBase\Request;
 use TeraBlaze\HttpBase\Response;
-use TeraBlaze\HttpBase\Session\Driver;
 
 class RequestCollector extends RequestDataCollector
 {
-    /** @var Request $request */
+    /** @var Request|ServerRequestInterface $request */
     protected $request;
     /** @var  Response $response */
     protected $response;
-    /** @var Driver\Server|null $session */
-    protected $session;
     /** @var string|null */
     protected $currentRequestId;
 
     /**
      * Create a new SymfonyRequestCollector
      *
-     * @param RequestInterface|Request $request
-     * @param ResponseInterface|Response $response
-     * @param Driver $session
+     * @param ServerRequestInterface|Request $request
+     * @param ResponseInterface|Response $respons
      */
-    public function __construct($request, $response, $session = null, $currentRequestId = null)
+    public function __construct($request, $response, $currentRequestId = null)
     {
         $this->request = $request;
         $this->response = $response;
-        $this->session = $session;
         $this->currentRequestId = $currentRequestId;
     }
 

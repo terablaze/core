@@ -68,10 +68,11 @@ class EventCollector extends TimeDataCollector
         $this->previousTime = $currentTime;
     }
 
-    public function subscribe(Dispatcher $events)
+    public function subscribe(Dispatcher $dispatcher)
     {
-        $this->events = $events;
-        $events->listen('*', [$this, 'onWildcardEvent']);
+        $this->dispatcher = $dispatcher;
+        $this->listenerProvider = $dispatcher->getListenerProvider();
+        $this->dispatcher->listen('*', [$this, 'onWildcardEvent']);
     }
 
     protected function prepareParams($params)

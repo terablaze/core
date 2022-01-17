@@ -6,6 +6,7 @@ use TeraBlaze\View\Engine\EngineInterface ;
 
 class Template
 {
+    public string $name;
     public string $path;
     public string $namespace;
 
@@ -23,10 +24,12 @@ class Template
      */
     public function __construct(
         EngineInterface $engine,
+        string $name,
         string $path,
         array $data,
         string $namespace = ''
     ) {
+        $this->name = $name;
         $this->data = $data;
         $this->path = $path;
         $this->engine = $engine;
@@ -49,6 +52,14 @@ class Template
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     /**

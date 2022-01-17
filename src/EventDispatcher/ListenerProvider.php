@@ -13,9 +13,10 @@ use function is_int;
  */
 class ListenerProvider implements ListenerProviderInterface
 {
-
     /** @var array<int, array<string, callable[]>> */
     private array $listeners = [];
+    /** @var array<int, array<string, callable[]>> */
+    private array $wildcardListeners = [];
 
     /**
      * @param object $event
@@ -33,6 +34,7 @@ class ListenerProvider implements ListenerProviderInterface
         foreach ($priorities as $priority) {
             foreach ($this->listeners[$priority] as $eventName => $listeners) {
                 if ($event instanceof $eventName) {
+                    $listeners = array_merge($listeners, $this->wildcardListeners);
                     foreach ($listeners as $listener) {
                         yield $listener;
                     }
@@ -49,6 +51,10 @@ class ListenerProvider implements ListenerProviderInterface
      */
     public function addListener(string $eventType, callable $listener, int $priority = 0): self
     {
+        if ($eventType == "*") {
+            $this->wildcardListeners[$priority] = $listener;
+            return $this;
+        }
         if (
             isset($this->listeners[$priority][$eventType])
             && in_array($listener, $this->listeners[$priority][$eventType], true)

@@ -49,7 +49,7 @@ class Dispatcher implements EventDispatcherInterface
 
     public function listen(string $event, $listeners)
     {
-        $listeners = ArrayMethods::wrap($listeners);
+        $listeners = is_callable($listeners) ? [$listeners] : ArrayMethods::wrap($listeners);
         $this->listenerProvider->addListeners($event, $listeners);
     }
 }

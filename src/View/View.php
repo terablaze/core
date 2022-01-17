@@ -6,10 +6,13 @@ use Closure;
 use Exception;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Core\Kernel\KernelInterface;
+use TeraBlaze\EventDispatcher\Dispatcher;
 use TeraBlaze\Support\StringMethods;
 use TeraBlaze\View\Engine\EngineInterface;
+use TeraBlaze\View\Events\TemplateEvent;
 use TeraBlaze\View\Exception\NamespaceNotRegisteredException;
 use TeraBlaze\View\Exception\TemplateNotFoundException;
+use Throwable;
 
 class View
 {
@@ -79,6 +82,7 @@ class View
      */
     public function render(string $template, array $data = []): Template
     {
+        $name = $template;
         [
             'paths' => $paths,
             'template' => $template,
@@ -88,12 +92,12 @@ class View
             foreach ($paths as $path) {
                 $file = normalizeDir("$path" . DIRECTORY_SEPARATOR . "$template");
                 if (is_file($file) && StringMethods::endsWith($template, $extension)) {
-                    return new Template($engine, $file, $data, $namespace);
+                    return $this->makeTemplate($engine, $name, $file, $data, $namespace);
                 }
 
                 $fileWithExtension = "$file.$extension";
                 if (is_file($fileWithExtension)) {
-                    return new Template($engine, $fileWithExtension, $data, $namespace);
+                    return $this->makeTemplate($engine, $name, $fileWithExtension, $data, $namespace);
                 }
             }
         }
@@ -103,6 +107,7 @@ class View
 
     public function includeFile(string $template): string
     {
+        $name = $template;
         ['paths' => $paths, 'template' => $template] = $this->resolvePathAndTemplate($template);
         foreach ($this->engines as $extension => $engine) {
             foreach ($paths as $path) {
@@ -185,5 +190,23 @@ class View
         }
 
         return compact('paths', 'template', 'namespace');
+    }
+
+    /**
+     * @param EngineInterface $engine
+     * @param string $name
+     * @param $file
+     * @param array $data
+     * @param $namespace
+     * @return Template
+     */
+    private function makeTemplate(EngineInterface $engine, string $name, $file, array $data, $namespace): Template
+    {
+        $template = new Template($engine, $name, $file, $data, $namespace);
+        try {
+            $this->container->get(Dispatcher::class)->dispatch(new TemplateEvent($template));
+        } catch (Throwable $e) {
+        }
+        return $template;
     }
 }
