@@ -140,16 +140,20 @@ class SqliteBuilder extends AbstractBuilder
     protected function buildId(string $prefix, IdField $field): string
     {
         $field->length = null;
+        $type = $field->type;
 
-        $template = "$prefix \"$field->column\" $field->type" . ($field->length ? "($field->length)" : "");
-
-        if (StringMethods::endsWith($field->type, "INT")) {
-            $template .= " UNSIGNED";
+        if (in_array(
+            StringMethods::upper($type),
+            ['INT', 'TINYINT', 'BIGINT', 'INTEGER', 'TINYINTEGER', 'BIGINTEGER']
+        )) {
+            $type = "INTEGER";
         }
 
-        $template .= " NOT NULL";
+        $template = "$prefix \"$field->column\" $type" . ($field->length ? "($field->length)" : "");
+
+        $template .= " NOT NULL PRIMARY KEY";
         if (!$field->noAutoIncrement) {
-            $template .= " AUTO_INCREMENT";
+            $template .= " AUTOINCREMENT";
         }
         return $template;
     }

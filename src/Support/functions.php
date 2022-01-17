@@ -826,6 +826,13 @@ if (!function_exists('storageDir')) {
     }
 }
 
+if (!function_exists('databaseDir')) {
+    function databaseDir(string $path = '', bool $trailingSlash = false)
+    {
+        return baseDir('database' . normalizeDir($path), $trailingSlash);
+    }
+}
+
 if (!function_exists('normalizeDir')) {
     function normalizeDir(string $path, bool $trailingSlash = false)
     {

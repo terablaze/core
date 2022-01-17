@@ -12,9 +12,13 @@ use TeraBlaze\EventDispatcher\Dispatcher;
 
 interface ConnectionInterface
 {
-    public const SQL_FUNCTIONS = [
-        'NOW()',
-    ];
+    /**
+     * Establish a database connection.
+     *
+     * @param  array  $config
+     * @return \PDO
+     */
+    public function connect(array $config);
 
     public function setName(string $name): self;
 

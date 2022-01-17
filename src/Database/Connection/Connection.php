@@ -18,6 +18,9 @@ use Throwable;
 
 abstract class Connection implements ConnectionInterface
 {
+    use DetectsConcurrencyErrors,
+        DetectsLostConnections;
+
     /**
      * The default PDO connection options.
      *
@@ -35,6 +38,13 @@ abstract class Connection implements ConnectionInterface
     protected $queryLogger;
 
     protected ?PDO $pdo;
+
+    /**
+     * The name of the connected database.
+     *
+     * @var string
+     */
+    protected string $database;
 
     protected array $config;
 
@@ -76,6 +86,115 @@ abstract class Connection implements ConnectionInterface
     {
         $this->config = $config;
         $this->expr = new ExpressionBuilder($this);
+        $this->pdo = $this->connect($config);
+        $this->database = $config['database'] ?? '';
+    }
+
+    /**
+     * Create a new PDO connection.
+     *
+     * @param  string  $dsn
+     * @param  array  $config
+     * @param  array  $options
+     * @return \PDO
+     *
+     * @throws \Exception
+     */
+    public function createConnection($dsn, array $config, array $options)
+    {
+        [$username, $password] = [
+            $config['username'] ?? null, $config['password'] ?? null,
+        ];
+
+        try {
+            return $this->createPdoConnection(
+                $dsn, $username, $password, $options
+            );
+        } catch (\Exception $e) {
+            return $this->tryAgainIfCausedByLostConnection(
+                $e, $dsn, $username, $password, $options
+            );
+        }
+    }
+    /**
+     * Create a new PDO connection instance.
+     *
+     * @param  string  $dsn
+     * @param  string  $username
+     * @param  string  $password
+     * @param  array  $options
+     * @return \PDO
+     */
+    protected function createPdoConnection($dsn, $username, $password, $options)
+    {
+        return new PDO($dsn, $username, $password, $options);
+    }
+
+    /**
+     * Determine if the connection is persistent.
+     *
+     * @param  array  $options
+     * @return bool
+     */
+    protected function isPersistentConnection($options)
+    {
+        return isset($options[PDO::ATTR_PERSISTENT]) &&
+            $options[PDO::ATTR_PERSISTENT];
+    }
+
+    /**
+     * Handle an exception that occurred during connect execution.
+     *
+     * @param  \Throwable  $e
+     * @param  string  $dsn
+     * @param  string  $username
+     * @param  string  $password
+     * @param  array  $options
+     * @return \PDO
+     *
+     * @throws \Exception
+     */
+    protected function tryAgainIfCausedByLostConnection(Throwable $e, $dsn, $username, $password, $options)
+    {
+        if ($this->causedByLostConnection($e)) {
+            return $this->createPdoConnection($dsn, $username, $password, $options);
+        }
+
+        throw $e;
+    }
+
+    /**
+     * Get the PDO options based on the configuration.
+     *
+     * @param  array  $config
+     * @return array
+     */
+    public function getOptions(array $config)
+    {
+        $options = $config['options'] ?? [];
+
+        return array_diff_key($this->options, $options) + $options;
+    }
+
+    /**
+     * Get the default PDO connection options.
+     *
+     * @return array
+     */
+    public function getDefaultOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * Set the default PDO connection options.
+     *
+     * @param  array  $options
+     * @return void
+     */
+    public function setDefaultOptions(array $options)
+    {
+        $this->options = $options;
     }
 
     public function setName(string $name): self

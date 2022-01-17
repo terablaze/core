@@ -9,19 +9,27 @@ use TeraBlaze\Database\Schema\SqliteSchema;
 
 class SqliteConnection extends Connection implements ConnectionInterface
 {
-    public function __construct(array $config)
+    public function connect(array $config): PDO
     {
-        parent::__construct($config);
-        ['path' => $path] = $config;
+        $options = $this->getOptions($config);
 
-        if (empty($path)) {
-            throw new InvalidArgumentException('Connection incorrectly configured');
+        // SQLite supports "in-memory" databases that only last as long as the owning
+        // connection does. These are useful for tests or for short lifetime store
+        // querying. In-memory databases may only have a single open connection.
+        if ($config['database'] === ':memory:') {
+            return $this->createConnection('sqlite::memory:', $config, $options);
         }
 
-        $this->pdo = new PDO("sqlite:{$path}");
-        foreach ($this->options as $key => $value) {
-            $this->pdo->setAttribute($key, $value);
+        $path = realpath($config['database']);
+
+        // Here we'll verify that the SQLite database exists before going any further
+        // as the developer probably wants to know if the database exists and this
+        // SQLite driver will not throw any exception if it does not by default.
+        if ($path === false) {
+            throw new InvalidArgumentException("Database ({$config['database']}) does not exist.");
         }
+
+        return $this->createConnection("sqlite:{$path}", $config, $options);
     }
 
     public function query(): SqliteQueryBuilder
@@ -53,7 +61,7 @@ class SqliteConnection extends Connection implements ConnectionInterface
 
     public function dropTables(): int
     {
-        file_put_contents($this->config['path'], '');
+        file_put_contents($this->config['database'], '');
         return 1;
     }
 

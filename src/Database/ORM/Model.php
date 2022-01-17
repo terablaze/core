@@ -253,7 +253,7 @@ abstract class Model implements ModelInterface
         $default = $column['options']['default'] ?? null;
         if (
             $columnType == 'timestamp' &&
-            in_array(StringMethods::lower($default), ['now', 'now()', 'current_timestamp'])
+            in_array(StringMethods::lower($default ?? ''), ['now', 'now()', 'current_timestamp'])
         ) {
             return new DateTime();
         }

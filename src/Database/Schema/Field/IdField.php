@@ -14,6 +14,7 @@ class IdField extends Field
     {
         switch ($type) {
             case 'INT':
+            case 'INTEGER':
                 $length = $length ?? 11;
                 break;
             case 'BIGINT':
