@@ -252,13 +252,10 @@ abstract class Model implements ModelInterface
         $columnType = StringMethods::lower($column['type']);
         $default = $column['options']['default'] ?? null;
         if (
-            $columnType == 'timestamp' &&
+            in_array($columnType, self::DATE_TYPES) &&
             in_array(StringMethods::lower($default ?? ''), ['now', 'now()', 'current_timestamp'])
         ) {
-            return new DateTime();
-        }
-        if (in_array($columnType, self::DATE_TYPES)) {
-            return $this->$prop ?? null;
+            return $this->$prop ?? new DateTime();
         }
         return $this->$prop ?? $default ?? null;
     }
