@@ -48,14 +48,18 @@ if (!function_exists('service')) {
 
 if (!function_exists('parameter')) {
     /**
-     * @param $parameterName
-     * @return mixed|mixed[]
+     * @param string $parameterName
+     * @param mixed $default
+     * @return mixed
      * @throws ContainerException
      * @throws ParameterNotFoundException
      */
-    function parameter($parameterName)
+    function parameter(string $parameterName, $default = null)
     {
-        return container()->getParameter($parameterName);
+        if (container()->hasParameter($parameterName)) {
+            return container()->getParameter($parameterName);
+        }
+        return $default;
     }
 }
 
