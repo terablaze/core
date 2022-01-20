@@ -2,6 +2,7 @@
 
 namespace TeraBlaze\View\Engine;
 
+use TeraBlaze\Support\StringMethods;
 use TeraBlaze\View\Template;
 
 class PhaEngine implements EngineInterface
@@ -10,6 +11,21 @@ class PhaEngine implements EngineInterface
 
     /** @var string[] $blocks */
     protected array $blocks = [];
+
+    protected array $specials = [
+        "{{" => "_DOUBLE_OPENING_BRACE",
+        "}}" => "_DOUBLE_CLOSING_BRACE",
+        "{" => "_OPENING_BRACE",
+        "}" => "_CLOSING_BRACE",
+        "%" => "_PERCENTAGE",
+    ];
+
+    private string $placeholder;
+
+    public function __construct()
+    {
+        $this->placeholder = StringMethods::random();
+    }
 
     /**
      * @param Template $template
@@ -56,8 +72,12 @@ class PhaEngine implements EngineInterface
 
     protected function compile(string $templateFile): string
     {
-        $code = $this->includeFiles($templateFile);
-        return $this->compileCode($code);
+        $code = $this->compileCode($this->includeFiles($templateFile));
+        return str_replace(
+            array_map(fn($special) => $this->placeholder . $special, array_values($this->specials)),
+            array_keys($this->specials),
+            $code
+        );
     }
 
     protected function includeFiles(string $templateFile): string
@@ -68,6 +88,11 @@ class PhaEngine implements EngineInterface
 
     protected function compileIncludes(string $code): string
     {
+        $code = str_replace(
+            array_map(fn($special) => "\\" . $special, array_keys($this->specials)),
+            array_map(fn($special) => $this->placeholder . $special, array_values($this->specials)),
+            $code
+        );
         preg_match_all('#{% ?(extends) ?\'?(.*?)\'? ?%}#i', (string)$code, $matches, PREG_SET_ORDER);
         foreach ($matches as $value) {
             $extended = $this->getManager()->includeFile($value[2]);
@@ -125,7 +150,8 @@ class PhaEngine implements EngineInterface
 
     public function compileRawEchos($code)
     {
-        return preg_replace('#\{!!\s*(.+?)\s*\!!}#is', '<?php echo $1 ?>', $code);
+        $code = preg_replace('#\{!!\s*(.+?)\s*\!!}#is', '<?php echo $1 ?>', $code);
+        return preg_replace('#\{\s*(.+?)\s*\}#is', '<?php echo $1 ?>', $code);
     }
 
     public function compileEscapedEchos($code)
