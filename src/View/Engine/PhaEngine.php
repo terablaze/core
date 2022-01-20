@@ -113,12 +113,11 @@ class PhaEngine implements EngineInterface
         $code = $this->compileComments($code);
         $code = $this->compileBlock($code);
         $code = $this->compileYield($code);
-        $code = $this->compileEscapedEchos($code);
-        $code = $this->compileRawEchos($code);
         $code = $this->compileIfs($code);
         $code = $this->compileLoops($code);
         $code = $this->compilePHP($code);
-        return $code;
+        $code = $this->compileEscapedEchos($code);
+        return $this->compileRawEchos($code);
     }
 
     public function compileBlock($code)
