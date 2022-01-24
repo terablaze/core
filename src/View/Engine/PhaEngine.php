@@ -83,6 +83,7 @@ class PhaEngine implements EngineInterface
     protected function includeFiles(string $templateFile): string
     {
         $code = file_get_contents($templateFile);
+        $code = $this->compileComments($code);
         return $this->compileIncludes($code);
     }
 
