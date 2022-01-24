@@ -148,15 +148,15 @@ class PhaEngine implements EngineInterface
         return $code;
     }
 
-    public function compileRawEchos($code)
-    {
-        $code = preg_replace('#\{!!\s*(.+?)\s*\!!}#is', '<?php echo $1 ?>', $code);
-        return preg_replace('#\{\s*(.+?)\s*\}#is', '<?php echo $1 ?>', $code);
-    }
-
     public function compileEscapedEchos($code)
     {
-        return preg_replace('#\{{\s*(.+?)\s*\}}#is', '<?php echo htmlentities($1, ENT_QUOTES, \'UTF-8\') ?>', $code);
+        return preg_replace('#\{{\s*(.+?)\s*\}}#is', '<?= htmlentities($1, ENT_QUOTES, \'UTF-8\') ?>', $code);
+    }
+
+    public function compileRawEchos($code)
+    {
+        $code = preg_replace('#\{!!\s*(.+?)\s*\!!}#is', '<?= $1 ?>', $code);
+        return preg_replace('#\{\s*(.+?)\s*\}#is', '<?= $1 ?>', $code);
     }
 
     public function compileIfs($code)
