@@ -32,7 +32,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
 
     protected ?Validation $validation = null;
 
-    protected string $submitChecker = "submit";
+    protected string $submitName = "submit";
 
     /**
      * The URI to redirect to if validation fails.
