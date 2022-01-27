@@ -32,6 +32,8 @@ abstract class ValidationMiddleware implements MiddlewareInterface
 
     protected ?Validation $validation = null;
 
+    protected string $submitChecker = "submit";
+
     /**
      * The URI to redirect to if validation fails.
      *
@@ -189,7 +191,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
             $response = $this->failedAuthorization($request);
         }
 
-        if (!empty($request->all())) {
+        if (!isset($request->all()[$this->submitChecker])) {
             $validation = $request->validate($this->rules(), $this->messages(), $this->fields());
             if ($validation->fails()) {
                 $response = $this->failedValidation($validation, $request);
