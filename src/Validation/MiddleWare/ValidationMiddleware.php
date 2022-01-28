@@ -191,7 +191,7 @@ abstract class ValidationMiddleware implements MiddlewareInterface
             $response = $this->failedAuthorization($request);
         }
 
-        if (!isset($request->all()[$this->submitChecker])) {
+        if (!isset($request->all()[$this->submitName])) {
             $validation = $request->validate($this->rules(), $this->messages(), $this->fields());
             if ($validation->fails()) {
                 $response = $this->failedValidation($validation, $request);
