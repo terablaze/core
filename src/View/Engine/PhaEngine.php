@@ -15,8 +15,8 @@ class PhaEngine implements EngineInterface
     protected array $specials = [
         "{{" => "_DOUBLE_OPENING_BRACE",
         "}}" => "_DOUBLE_CLOSING_BRACE",
-        "{" => "_OPENING_BRACE",
-        "}" => "_CLOSING_BRACE",
+//        "{" => "_OPENING_BRACE",
+//        "}" => "_CLOSING_BRACE",
         "%" => "_PERCENTAGE",
     ];
 
@@ -155,8 +155,7 @@ class PhaEngine implements EngineInterface
 
     public function compileRawEchos($code)
     {
-        $code = preg_replace('#\{!!\s*(.+?)\s*\!!}#is', '<?= $1 ?>', $code);
-        return preg_replace('#\{\s*(.+?)\s*\}#is', '<?= $1 ?>', $code);
+        return preg_replace('#\{!!\s*(.+?)\s*\!!}#is', '<?= $1 ?>', $code);
     }
 
     public function compileIfs($code)
