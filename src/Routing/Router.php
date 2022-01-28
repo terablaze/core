@@ -21,6 +21,7 @@ use TeraBlaze\Routing\Exception\MissingParametersException;
 use TeraBlaze\Routing\Exception\RouteNotFoundException;
 use TeraBlaze\Routing\Generator\UrlGenerator;
 use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
+use TeraBlaze\Support\ArrayMethods;
 
 /**
  * Class Routing
@@ -89,8 +90,8 @@ class Router implements RouterInterface
                 $groupConfig['prefix'] = ($config['prefix'] ?? '') . ($route['@prefix'] ?? '');
                 $groupConfig['name_prefix'] = ($config['name_prefix'] ?? '') . ($route['@name_prefix'] ?? '');
                 $groupConfig['middlewares'] = array_merge(
-                    $config['middlewares'] ?? [],
-                    $route['@middlewares'] ?? []
+                    ArrayMethods::wrap($config['middlewares'] ?? $config['middleware'] ?? []),
+                    ArrayMethods::wrap($route['@middlewares'] ?? $route['@middleware'] ?? [])
                 );
                 $groupConfig['expects_json'] = $route['@expects_json'] ?? $config['expects_json'] ?? false;
                 $nestLevel++;
@@ -103,7 +104,9 @@ class Router implements RouterInterface
             }
             $route['pattern'] = ($config['prefix'] ?? '') . $route['pattern'] ?? '';
             $route['expects_json'] = $route['expects_json'] ?? $config['expects_json'] ?? false;
-            $route['middlewares'] = $route['middlewares'] ?? $config['middlewares'] ?? [];
+            $routeMiddlewares = ArrayMethods::wrap($route['middlewares'] ?? $route['middleware'] ?? []);
+            $configMiddlewares = ArrayMethods::wrap($config['middlewares'] ?? $config['middleware'] ?? []);
+            $route['middlewares'] = array_merge($routeMiddlewares, $configMiddlewares);
             $this->addRoute($name, new Route($this->container, $name, $route));
         }
         if ($nestLevel > 0) {
