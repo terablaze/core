@@ -165,7 +165,7 @@ abstract class Model implements ModelInterface
         $allMappings = $this->_getClassMetadata()->getAllMappings();
         foreach ($allMappings as $property => $mapping) {
             $type = $mapping['type'] ?? '';
-            if (is_int($type) && $mapping['type'] & ClassMetadata::TO_MANY) {
+            if (is_int($type) && ($mapping['type'] & ClassMetadata::TO_MANY)) {
                 continue;
             }
             $queryName = $this->_getClassMetadata()->getColumnForProperty($property);

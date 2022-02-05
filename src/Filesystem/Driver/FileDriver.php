@@ -18,6 +18,10 @@ abstract class FileDriver implements FileDriverInterface
      * @var array<string, mixed> $config
      */
     protected array $config = [];
+    /**
+     * @var mixed|string
+     */
+    protected string $root;
 
     /**
      * Driver constructor.
@@ -26,7 +30,7 @@ abstract class FileDriver implements FileDriverInterface
     public function __construct(array $config)
     {
         $this->config = $config;
-
+        $this->root = $this->config['root'] ?? "";
         $this->connect();
     }
 
