@@ -2,6 +2,9 @@
 
 namespace TeraBlaze\Filesystem\Driver;
 
+use League\Flysystem\DirectoryAttributes;
+use League\Flysystem\DirectoryListing;
+use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
@@ -27,14 +30,6 @@ abstract class FileDriver implements FileDriverInterface
         $this->connect();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function list(string $path, bool $recursive = false)
-    {
-        return $this->filesystem->listContents($path, $recursive);
-    }
-
     public function exists(string $path): bool
     {
         return $this->filesystem->fileExists($path);
@@ -48,7 +43,7 @@ abstract class FileDriver implements FileDriverInterface
         return $this->filesystem->read($path);
     }
 
-    public function write(string $path, $value, array $config = []): FileDriverInterface
+    public function write(string $path, $value, array $config = []): void
     {
         $config = array_merge($this->config, $config);
 
@@ -67,18 +62,77 @@ abstract class FileDriver implements FileDriverInterface
         if (is_resource($value)) {
             $this->filesystem->writeStream($path, $value, $config);
         }
-        return $this;
     }
 
-    public function delete(string $path): FileDriverInterface
+    public function delete(string $path): void
     {
         $this->filesystem->delete($path);
-        return $this;
     }
 
-    public function deleteDirectory(string $path): FileDriverInterface
+    public function deleteDirectory(string $path): void
     {
         $this->filesystem->deleteDirectory($path);
-        return $this;
+    }
+
+    public function createDirectory(string $path, array $config = []): void
+    {
+        $this->filesystem->createDirectory($path, $config);
+    }
+
+    /**
+     * List files and directories in the specified path
+     *
+     * @param string $path
+     * @param bool $recursive
+     * @return DirectoryListing<FileAttributes|DirectoryAttributes>|iterable<FileAttributes|DirectoryAttributes>
+     */
+    public function list(string $path, bool $recursive = false)
+    {
+        return $this->filesystem->listContents($path, $recursive);
+    }
+
+    public function move(string $source, string $destination, array $config = []): void
+    {
+        $this->filesystem->move($source, $destination, $config);
+    }
+
+    public function copy(string $source, string $destination, array $config = []): void
+    {
+        $this->filesystem->copy($source, $destination, $config);
+    }
+
+    public function lastModified(string $path): int
+    {
+        return $this->filesystem->lastModified($path);
+    }
+
+    public function fileSize(string $path): int
+    {
+        return $this->filesystem->fileSize($path);
+    }
+
+    public function mimeType(string $path): string
+    {
+        return $this->filesystem->mimeType($path);
+    }
+
+    public function setVisibility(string $path, string $visibility): void
+    {
+        $this->filesystem->setVisibility($path, $visibility);
+    }
+
+    public function visibility(string $path): string
+    {
+        return $this->filesystem->visibility($path);
+    }
+
+    public function getVisibility(string $path): string
+    {
+        return $this->visibility($path);
+    }
+
+    public function getFlysystem(): Filesystem
+    {
+        return $this->filesystem;
     }
 }
