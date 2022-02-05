@@ -76,7 +76,7 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
     {
         if (!class_exists(AsyncAwsS3Adapter::class)) {
             throw new DriverException(
-                "To support use of async s3 with flysystem, please run 'composer require league/flysystem-async-aws-v3'"
+                "To support use of async s3 with flysystem, please run 'composer require league/flysystem-async-aws-s3'"
             );
         }
         $visibility = new AsyncPortableVisibilityConverter($this->config["visibility"]);
@@ -93,9 +93,15 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
 
     private function connectSimpleAsyncS3()
     {
+        if (!class_exists(AsyncAwsS3Adapter::class) && !class_exists(SimpleS3Client::class)) {
+            throw new DriverException(
+                "To support use of simple s3 client with flysystem and AsyncAws,"
+                . " please run 'composer require league/flysystem-async-aws-s3 async-aws/simple-s3'"
+            );
+        }
         if (!class_exists(AsyncAwsS3Adapter::class)) {
             throw new DriverException(
-                "To support use of async s3 with flysystem, please run 'composer require league/flysystem-async-aws-v3'"
+                "To support use of async s3 with flysystem, please run 'composer require league/flysystem-async-aws-s3'"
             );
         }
         if (!class_exists(SimpleS3Client::class)) {
