@@ -927,3 +927,41 @@ if (!function_exists('validate')) {
         return validator()->make($data, $rules, $messages, $customFields)->validate();
     }
 }
+
+if (!function_exists('encrypter')) {
+    function encrypter(): \TeraBlaze\Encryption\Encrypter
+    {
+        if (!container()->has("encrypter")) {
+            throw new RuntimeException("Encryption service not found, ensure it has been loaded in parcels");
+        }
+        return container()->get("encrypter");
+    }
+}
+
+if (!function_exists('encrypt')) {
+    function encrypt($value, bool $serialize = true): string
+    {
+        return encrypter()->encrypt($value, $serialize);
+    }
+}
+
+if (!function_exists('encryptString')) {
+    function encryptString(string $value)
+    {
+        return encrypter()->encryptString($value);
+    }
+}
+
+if (!function_exists('decrypt')) {
+    function decrypt(string $payload, bool $unserialize = true): string
+    {
+        return encrypter()->decrypt($payload, $unserialize);
+    }
+}
+
+if (!function_exists('decryptString')) {
+    function decryptString(string $payload)
+    {
+        return encrypter()->decryptString($payload);
+    }
+}
