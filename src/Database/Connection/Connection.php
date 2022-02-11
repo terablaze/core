@@ -521,6 +521,9 @@ abstract class Connection implements ConnectionInterface
             if (is_bool($values)) {
                 $params[$key] = (int)$values;
             }
+            if ($values instanceof \DateTime) {
+                $params[$key] = $values->format('Y-m-d H:i:s');
+            }
             if (is_array($values)) {
                 // get placeholder from array, e.g. ids => [7,12,3] would be ':ids'
                 $oldPlaceholder = ':' . $key;
