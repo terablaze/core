@@ -370,9 +370,16 @@ class Validation implements ValidationInterface
             if ($processor instanceof RuleInterface && method_exists($processor, 'setDatabaseReqs')) {
                 $processor->setDatabaseReqs($this->container);
             }
-            if (is_null(ArrayMethods::get($this->data, $field)) && $processor instanceof NullableRule) {
-                break;
+            if ($processor instanceof NullableRule) {
+                $data = ArrayMethods::get($this->data, $field);
+                if (is_null($data)) {
+                    break;
+                }
+                if ($data instanceof UploadedFileInterface && $data->getError() == UPLOAD_ERR_NO_FILE) {
+                    break;
+                }
             }
+
             if (!$this->doValidate($processor, $field, $ruleName, $params) && $bail) {
                 break;
             }
