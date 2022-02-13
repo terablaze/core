@@ -185,7 +185,7 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
         $options = array_merge([
             'Bucket' => $this->config['bucket'],
             'Key' => $fileUrl,
-            'ContentType' => 'application-json',
+            'ContentType' => 'application/json',
             'Body' => '',
         ], $options);
         if ($this->client instanceof S3Client) {
