@@ -255,7 +255,7 @@ class Container implements ContainerInterface
      * {@inheritDoc}
      * @throws ReflectionException
      */
-    public function get($id): object
+    public function get($id)
     {
         if (!$this->has($id)) {
             throw new ServiceNotFoundException('ServiceException not found: ' . $id);

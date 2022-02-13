@@ -41,7 +41,7 @@ trait ContainerAwareTrait
      * @return object
      * @throws ReflectionException
      */
-    public function get(string $key): object
+    public function get(string $key)
     {
         if (!$this->container instanceof Container) {
             $this->container = Container::getContainer();
