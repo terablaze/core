@@ -167,7 +167,7 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
     {
         return $this->client->getObject([
             'Bucket' => $this->config['bucket'],
-            'Key' => $path,
+            'Key' => $this->applyPathPrefix(ltrim($path, '\\/')),
         ]);
     }
 
