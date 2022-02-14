@@ -163,6 +163,14 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
         return $this->client;
     }
 
+    public function getObject(string $path)
+    {
+        return $this->client->getObject([
+            'Bucket' => $this->config['bucket'],
+            'Key' => $path,
+        ]);
+    }
+
     public function temporaryGetUrl(string $fileUrl, $expiration = "+1 hour", array $options = []): string
     {
         $fileUrl = $this->applyPathPrefix(ltrim($fileUrl, '\\/'));
