@@ -148,6 +148,20 @@ abstract class Model implements ModelInterface
         return null;
     }
 
+    /**
+     * @param array<int|string, mixed> $initData
+     * @return static|null
+     */
+    public static function hydrate(array $initData = [])
+    {
+        $model = new static();
+        if (is_array($initData) && (!empty($initData))) {
+            $model->initExternalData($initData);
+        }
+        $model->_loadAssociations($initData);
+        return $model;
+    }
+
     public function save()
     {
         [
