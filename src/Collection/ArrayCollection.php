@@ -281,7 +281,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * {@inheritDoc}
      */
-    public function count()
+    public function count(): int
     {
         return count($this->elements);
     }
