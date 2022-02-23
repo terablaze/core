@@ -7,6 +7,7 @@ use TeraBlaze\Container\Exception\ParameterNotFoundException;
 use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
 use TeraBlaze\HttpBase\Response;
+use TeraBlaze\Log\LogManager;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Config\Config;
 use TeraBlaze\Config\ConfigInterface;
@@ -785,6 +786,11 @@ if (!function_exists('setConfig')) {
 }
 
 if (!function_exists('logger')) {
+    /**
+     * @return LoggerInterface|LogManager
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
     function logger(): LoggerInterface
     {
         /** @var LoggerInterface $logger */
