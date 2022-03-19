@@ -45,11 +45,13 @@ abstract class Migration
 
     final public function dropTable(string $table): SchemaInterface
     {
+        $this->getConnection()->disableForeignKeyConstraints();
         return $this->getConnection()->dropTable($table);
     }
 
     final public function dropTableIfExists(string $table): SchemaInterface
     {
+        $this->getConnection()->disableForeignKeyConstraints();
         return $this->getConnection()->dropTableIfExists($table);
     }
 
