@@ -16,6 +16,7 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use TeraBlaze\Container\Container;
 use TeraBlaze\Container\ContainerInterface;
 use DebugBar\DebugBar;
@@ -84,12 +85,12 @@ class TeraBlazeDebugbar extends DebugBar
     ];
 
 
-    public function __construct(?ContainerInterface $container = null, LoggerInterface $logger)
+    public function __construct(?ContainerInterface $container = null, ?LoggerInterface $logger = null)
     {
         $this->container = $container ?: Container::getContainer();
         $this->dispatcher = $this->container->get(EventDispatcherInterface::class);
         $this->listenerProvider = $this->container->get(ListenerProviderInterface::class);
-        $this->logger = $logger;
+        $this->logger = $logger ?? new NullLogger();
         $this->kernel = $this->container->get('kernel');
     }
 
