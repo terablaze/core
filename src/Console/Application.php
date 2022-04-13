@@ -10,10 +10,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Process\PhpExecutableFinder;
 use TeraBlaze\Container\ContainerAwareInterface;
 use TeraBlaze\Core\Kernel\Kernel;
 use TeraBlaze\Core\Kernel\KernelInterface;
 use TeraBlaze\Core\Parcel\Parcel;
+use TeraBlaze\Support\ProcessUtils;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
@@ -222,5 +224,36 @@ class Application extends BaseApplication
         foreach ($this->registrationErrors as $error) {
             $this->doRenderThrowable($error, $output);
         }
+    }
+
+    /**
+     * Determine the proper PHP executable.
+     *
+     * @return string
+     */
+    public static function phpBinary()
+    {
+        return ProcessUtils::escapeArgument((new PhpExecutableFinder())->find(false));
+    }
+
+    /**
+     * Determine the proper Blaze executable.
+     *
+     * @return string
+     */
+    public static function blazeBinary()
+    {
+        return ProcessUtils::escapeArgument(defined('BLAZE_BINARY') ? BLAZE_BINARY : 'blaze');
+    }
+
+    /**
+     * Format the given command as a fully-qualified executable command.
+     *
+     * @param  string  $string
+     * @return string
+     */
+    public static function formatCommandString($string)
+    {
+        return sprintf('%s %s %s', static::phpBinary(), static::blazeBinary(), $string);
     }
 }
