@@ -9,7 +9,7 @@ namespace TeraBlaze\Support;
  *
  * This class was originally copied from Symfony 3.
  */
-class ProcessUtils
+class ProcessUtils extends \Symfony\Component\Process\ProcessUtils
 {
     /**
      * Escapes a string to be used as a shell argument.

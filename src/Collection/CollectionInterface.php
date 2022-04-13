@@ -190,7 +190,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      *
      * @return static A collection with the results of the filter operation.
      */
-    public function filter(callable $p);
+    public function filter(?callable $p = null);
 
     /**
      * Tests whether the given predicate p holds for all elements of this collection.
@@ -202,6 +202,17 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      * @psalm-param callable(TKey=, T=):bool $p
      */
     public function forAll(callable $p);
+
+    /**
+     * Zip the collection together with one or more arrays.
+     *
+     * e.g. new Collection([1, 2, 3])->zip([4, 5, 6]);
+     *      => [[1, 4], [2, 5], [3, 6]]
+     *
+     * @param  mixed  ...$items
+     * @return static
+     */
+    public function zip($items);
 
     /**
      * Applies the given function to each element in the collection and returns

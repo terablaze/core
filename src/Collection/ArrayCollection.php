@@ -4,6 +4,8 @@ namespace TeraBlaze\Collection;
 
 use ArrayIterator;
 use TeraBlaze\Collection\Exceptions\InvalidTypeException;
+use TeraBlaze\Interfaces\Support\Arrayable;
+use TeraBlaze\Interfaces\Support\Jsonable;
 use TeraBlaze\Support\ArrayMethods;
 use TeraBlaze\Collection\Exceptions\TypeException;
 
@@ -308,16 +310,6 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
-     * Get and remove the last item from the collection.
-     *
-     * @return mixed
-     */
-    public function pop()
-    {
-        return array_pop($this->elements);
-    }
-
-    /**
      * Push an item onto the beginning of the collection.
      *
      * @param  mixed  $value
@@ -362,6 +354,28 @@ class ArrayCollection implements CollectionInterface
     public function getIterator()
     {
         return new ArrayIterator($this->elements);
+    }
+
+    /**
+     * Zip the collection together with one or more arrays.
+     *
+     * e.g. new Collection([1, 2, 3])->zip([4, 5, 6]);
+     *      => [[1, 4], [2, 5], [3, 6]]
+     *
+     * @param  mixed  ...$items
+     * @return static
+     */
+    public function zip($items)
+    {
+        $arrayableItems = array_map(function ($items) {
+            return $this->getArrayableItems($items);
+        }, func_get_args());
+
+        $params = array_merge([function () {
+            return new static(func_get_args());
+        }, $this->elements], $arrayableItems);
+
+        return new static(array_map(...$params));
     }
 
     /**
@@ -431,6 +445,232 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
+     * Merge the collection with the given items.
+     *
+     * @param  mixed  $elements
+     * @return static
+     */
+    public function merge($elements)
+    {
+        return new static(array_merge($this->elements, $this->getArrayableItems($elements)));
+    }
+
+    /**
+     * Recursively merge the collection with the given items.
+     *
+     * @param  mixed  $elements
+     * @return static
+     */
+    public function mergeRecursive($elements)
+    {
+        return new static(array_merge_recursive($this->elements, $this->getArrayableItems($elements)));
+    }
+
+    /**
+     * Create a collection by using this collection for keys and another for its values.
+     *
+     * @param  mixed  $values
+     * @return static
+     */
+    public function combine($values)
+    {
+        return new static(array_combine($this->all(), $this->getArrayableItems($values)));
+    }
+
+    /**
+     * Union the collection with the given items.
+     *
+     * @param  mixed  $elements
+     * @return static
+     */
+    public function union($elements)
+    {
+        return new static($this->elements + $this->getArrayableItems($elements));
+    }
+
+    /**
+     * Create a new collection consisting of every n-th element.
+     *
+     * @param  int  $step
+     * @param  int  $offset
+     * @return static
+     */
+    public function nth($step, $offset = 0)
+    {
+        $new = [];
+
+        $position = 0;
+
+        foreach ($this->slice($offset)->elements as $item) {
+            if ($position % $step === 0) {
+                $new[] = $item;
+            }
+
+            $position++;
+        }
+
+        return new static($new);
+    }
+
+    /**
+     * Get the items with the specified keys.
+     *
+     * @param  mixed  $keys
+     * @return static
+     */
+    public function only($keys)
+    {
+        if (is_null($keys)) {
+            return new static($this->elements);
+        }
+
+        $keys = is_array($keys) ? $keys : func_get_args();
+
+        return new static(ArrayMethods::only($this->elements, $keys));
+    }
+
+    /**
+     * Get and remove the last N items from the collection.
+     *
+     * @param  int  $count
+     * @return mixed
+     */
+    public function pop($count = 1)
+    {
+        if ($count === 1) {
+            return array_pop($this->elements);
+        }
+
+        if ($this->isEmpty()) {
+            return new static;
+        }
+
+        $results = [];
+
+        $collectionCount = $this->count();
+
+        foreach (range(1, min($count, $collectionCount)) as $item) {
+            array_push($results, array_pop($this->elements));
+        }
+
+        return new static($results);
+    }
+
+    /**
+     * Push all of the given items onto the collection.
+     *
+     * @param  iterable  $source
+     * @return static
+     */
+    public function concat($source)
+    {
+        $result = new static($this->all());
+
+        foreach ($source as $item) {
+            $result->push($item);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get and remove an item from the collection.
+     *
+     * @param  mixed  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    public function pull($key, $default = null)
+    {
+        return ArrayMethods::pull($this->elements, $key, $default);
+    }
+
+    /**
+     * Put an item in the collection by key.
+     *
+     * @param  mixed  $key
+     * @param  mixed  $value
+     * @return $this
+     */
+    public function put($key, $value)
+    {
+        $this->offsetSet($key, $value);
+
+        return $this;
+    }
+
+    /**
+     * Get one or a specified number of items randomly from the collection.
+     *
+     * @param  int|null  $number
+     * @return static|mixed
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function random($number = null)
+    {
+        if (is_null($number)) {
+            return ArrayMethods::random($this->elements);
+        }
+
+        return new static(ArrayMethods::random($this->elements, $number));
+    }
+
+    /**
+     * Replace the collection items with the given items.
+     *
+     * @param  mixed  $elements
+     * @return static
+     */
+    public function replace($elements)
+    {
+        return new static(array_replace($this->elements, $this->getArrayableItems($elements)));
+    }
+
+    /**
+     * Recursively replace the collection items with the given items.
+     *
+     * @param  mixed  $elements
+     * @return static
+     */
+    public function replaceRecursive($elements)
+    {
+        return new static(array_replace_recursive($this->elements, $this->getArrayableItems($elements)));
+    }
+
+    /**
+     * Reverse items order.
+     *
+     * @return static
+     */
+    public function reverse()
+    {
+        return new static(array_reverse($this->elements, true));
+    }
+
+    /**
+     * Search the collection for a given value and return the corresponding key if successful.
+     *
+     * @param  mixed  $value
+     * @param  bool  $strict
+     * @return mixed
+     */
+    public function search($value, $strict = false)
+    {
+        if (! $this->useAsCallable($value)) {
+            return array_search($value, $this->elements, $strict);
+        }
+
+        foreach ($this->elements as $key => $item) {
+            if ($value($item, $key)) {
+                return $key;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Map a collection and flatten the result by a single level.
      *
      * @param  callable  $callback
@@ -456,7 +696,7 @@ class ArrayCollection implements CollectionInterface
      *
      * @return static
      */
-    public function filter(callable $p)
+    public function filter(?callable $p = null)
     {
         return $this->createFrom(array_filter($this->elements, $p, ARRAY_FILTER_USE_BOTH));
     }
@@ -577,7 +817,7 @@ class ArrayCollection implements CollectionInterface
      */
     public function slice($offset, $length = null)
     {
-        return array_slice($this->elements, $offset, $length, true);
+        return new static(array_slice($this->elements, $offset, $length, true));
     }
 
     /**
@@ -643,13 +883,13 @@ class ArrayCollection implements CollectionInterface
      */
     public function sort($callback = null)
     {
-        $items = $this->elements;
+        $elements = $this->elements;
 
         $callback && is_callable($callback)
-            ? uasort($items, $callback)
-            : asort($items, $callback ?? SORT_REGULAR);
+            ? uasort($elements, $callback)
+            : asort($elements, $callback ?? SORT_REGULAR);
 
-        return new static($items);
+        return new static($elements);
     }
 
     /**
@@ -660,11 +900,11 @@ class ArrayCollection implements CollectionInterface
      */
     public function sortDesc($options = SORT_REGULAR)
     {
-        $items = $this->elements;
+        $elements = $this->elements;
 
-        arsort($items, $options);
+        arsort($elements, $options);
 
-        return new static($items);
+        return new static($elements);
     }
 
     /**
@@ -713,9 +953,9 @@ class ArrayCollection implements CollectionInterface
      */
     protected function sortByMany(array $comparisons = [])
     {
-        $items = $this->elements;
+        $elements = $this->elements;
 
-        usort($items, function ($a, $b) use ($comparisons) {
+        usort($elements, function ($a, $b) use ($comparisons) {
             foreach ($comparisons as $comparison) {
                 $comparison = ArrayMethods::wrap($comparison);
 
@@ -746,7 +986,7 @@ class ArrayCollection implements CollectionInterface
             }
         });
 
-        return new static($items);
+        return new static($elements);
     }
 
     /**
@@ -770,11 +1010,11 @@ class ArrayCollection implements CollectionInterface
      */
     public function sortKeys($options = SORT_REGULAR, $descending = false)
     {
-        $items = $this->elements;
+        $elements = $this->elements;
 
-        $descending ? krsort($items, $options) : ksort($items, $options);
+        $descending ? krsort($elements, $options) : ksort($elements, $options);
 
-        return new static($items);
+        return new static($elements);
     }
 
     /**
@@ -873,5 +1113,28 @@ class ArrayCollection implements CollectionInterface
         return function ($item) use ($value) {
             return dataGet($item, $value);
         };
+    }
+
+    /**
+     * Results array of items from Collection or Arrayable.
+     *
+     * @param  mixed  $elements
+     * @return array
+     */
+    protected function getArrayableItems($elements)
+    {
+        if (is_array($elements)) {
+            return $elements;
+        } elseif ($elements instanceof Arrayable) {
+            return $elements->toArray();
+        } elseif ($elements instanceof Jsonable) {
+            return json_decode($elements->toJson(), true);
+        } elseif ($elements instanceof \JsonSerializable) {
+            return (array) $elements->jsonSerialize();
+        } elseif ($elements instanceof \Traversable) {
+            return iterator_to_array($elements);
+        }
+
+        return (array) $elements;
     }
 }
