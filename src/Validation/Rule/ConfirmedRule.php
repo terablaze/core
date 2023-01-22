@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Support\ArrayMethods;
 
 class ConfirmedRule extends Rule implements RuleInterface
 {

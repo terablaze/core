@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Session\Traits;
+namespace Terablaze\Session\Traits;
 
 trait SessionAwareTrait
 {

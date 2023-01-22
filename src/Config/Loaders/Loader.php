@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Config\Loaders;
+namespace Terablaze\Config\Loaders;
 
 abstract class Loader implements LoadableInterface
 {

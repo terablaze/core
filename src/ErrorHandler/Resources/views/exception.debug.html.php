@@ -17,22 +17,22 @@
             );
         </script>
 
-        <?php if (class_exists(\TeraBlaze\Core\Kernel\Kernel::class)) { ?>
+        <?php if (class_exists(\Terablaze\Core\Kernel\Kernel::class)) { ?>
             <header>
                 <div class="container">
-                    <h1 class="logo">TeraBlaze Exception</h1>
+                    <h1 class="logo">Terablaze Exception</h1>
 
                     <div class="help-link">
-                        <a href="https://github.com/terablaze/terablaze<?= \TeraBlaze\Core\Kernel\Kernel::TERABLAZE_VERSION; ?>/index.html">
+                        <a href="https://github.com/terablaze/terablaze<?= \Terablaze\Core\Kernel\Kernel::TERABLAZE_VERSION; ?>/index.html">
                             <span class="icon"><?= $this->include('assets/images/icon-book.svg'); ?></span>
-                            <span class="hidden-xs-down">TeraBlaze</span> Docs
+                            <span class="hidden-xs-down">Terablaze</span> Docs
                         </a>
                     </div>
 
                     <div class="help-link">
                         <a href="#">
                             <span class="icon"><?= $this->include('assets/images/icon-support.svg'); ?></span>
-                            <span class="hidden-xs-down">TeraBlaze</span> Support
+                            <span class="hidden-xs-down">Terablaze</span> Support
                         </a>
                     </div>
                 </div>

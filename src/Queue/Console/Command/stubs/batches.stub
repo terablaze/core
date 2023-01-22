@@ -1,0 +1,37 @@
+<?php
+
+use Terablaze\Database\Migrations\Migration;
+
+class Create{{ tableClassName }}Table extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up(): void
+    {
+        $table = $this->createTable('{{ table }}');
+        $table->stringId();
+        $table->string('name');
+        $table->int('total_jobs');
+        $table->int('pending_jobs');
+        $table->int('failed_jobs');
+        $table->text('failed_job_ids');
+        $table->mediumText('options')->nullable();
+        $table->bigInt('created_at');
+        $table->bigInt('cancelled_at')->nullable();
+        $table->bigInt('finished_at')->nullable();
+        $table->build();
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down(): void
+    {
+        $this->dropTableIfExists('{{ table }}')->build();
+    }
+};

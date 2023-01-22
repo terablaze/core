@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Config;
+namespace Terablaze\Config;
 
 use ArrayIterator;
 use Traversable;
@@ -12,7 +12,7 @@ trait ArrayableTrait
      *
      * @return Traversable The conifg as a traversable iterator
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->config);
     }
@@ -24,7 +24,7 @@ trait ArrayableTrait
      *
      * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->config[$offset]);
     }
@@ -36,6 +36,7 @@ trait ArrayableTrait
      *
      * @return mixed
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->config[$offset];
@@ -47,7 +48,7 @@ trait ArrayableTrait
      * @param mixed $offset The offset to assign the value to
      * @param mixed $value The value to set
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->config[$offset] = $value;
     }
@@ -57,7 +58,7 @@ trait ArrayableTrait
      *
      * @param $offset The offset to unset
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->config[$offset]);
     }

@@ -1,21 +1,21 @@
 <?php
 
-namespace TeraBlaze\Routing;
+namespace Terablaze\Routing;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
-use TeraBlaze\Collection\Exceptions\TypeException;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Routing\Exception\ImplementationException;
-use TeraBlaze\Routing\Exception\MissingParametersException;
-use TeraBlaze\Routing\Exception\RouteNotFoundException;
-use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
+use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
+use Terablaze\Routing\Exception\ImplementationException;
+use Terablaze\Routing\Exception\MissingParametersException;
+use Terablaze\Routing\Exception\RouteNotFoundException;
+use Terablaze\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Interface RouterInterface
- * @package TeraBlaze\Routing
+ * @package Terablaze\Routing
  */
 interface RouterInterface
 {

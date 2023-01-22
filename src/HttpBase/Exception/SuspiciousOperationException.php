@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\HttpBase\Exception;
+namespace Terablaze\HttpBase\Exception;
 
 /**
  * Raised when a user has performed an operation that should be considered

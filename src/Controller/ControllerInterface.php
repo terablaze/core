@@ -1,15 +1,15 @@
 <?php
 
-namespace TeraBlaze\Controller;
+namespace Terablaze\Controller;
 
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
-use TeraBlaze\Routing\Router;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\HttpBase\Response;
+use Terablaze\Routing\Generator\UrlGeneratorInterface;
+use Terablaze\Routing\Router;
 
 /**
  * Interface ControllerInterface
- * @package TeraBlaze\Controller
+ * @package Terablaze\Controller
  */
 interface ControllerInterface
 {

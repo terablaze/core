@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\Events;
+namespace Terablaze\Database\Events;
 
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\EventDispatcher\Event;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\EventDispatcher\Event;
 
 class QueryExecuted extends Event
 {

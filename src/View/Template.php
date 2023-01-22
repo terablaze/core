@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\View;
+namespace Terablaze\View;
 
-use TeraBlaze\View\Engine\EngineInterface ;
+use Terablaze\View\Engine\EngineInterface ;
 
 class Template
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Exception;
+namespace Terablaze\Validation\Exception;
 
-use TeraBlaze\ErrorHandler\Exception\Http\UnauthorizedHttpException;
+use Terablaze\ErrorHandler\Exception\Http\UnauthorizedHttpException;
 
 class AuthorizationException extends UnauthorizedHttpException
 {

@@ -1,17 +1,17 @@
 <?php
 
-namespace TeraBlaze\View;
+namespace Terablaze\View;
 
 use Closure;
 use Exception;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\View\Engine\EngineInterface;
-use TeraBlaze\View\Events\TemplateEvent;
-use TeraBlaze\View\Exception\NamespaceNotRegisteredException;
-use TeraBlaze\View\Exception\TemplateNotFoundException;
+use Terablaze\Container\Container;
+use Terablaze\Core\Kernel\KernelInterface;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Support\StringMethods;
+use Terablaze\View\Engine\EngineInterface;
+use Terablaze\View\Events\TemplateEvent;
+use Terablaze\View\Exception\NamespaceNotRegisteredException;
+use Terablaze\View\Exception\TemplateNotFoundException;
 use Throwable;
 
 class View

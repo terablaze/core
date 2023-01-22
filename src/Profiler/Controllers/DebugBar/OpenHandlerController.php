@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Profiler\Controllers\DebugBar;
+namespace Terablaze\Profiler\Controllers\DebugBar;
 
 use DebugBar\OpenHandler;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Response;
 
 class OpenHandlerController extends BaseController
 {

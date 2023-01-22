@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\View\Engine;
+namespace Terablaze\View\Engine;
 
-use TeraBlaze\View\Template;
+use Terablaze\View\Template;
 
 class LiteralEngine implements EngineInterface
 {

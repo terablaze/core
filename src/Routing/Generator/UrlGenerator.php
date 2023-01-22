@@ -1,23 +1,23 @@
 <?php
 
-namespace TeraBlaze\Routing\Generator;
+namespace Terablaze\Routing\Generator;
 
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Collection\Exceptions\TypeException;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Routing\Exception\InvalidParameterException;
-use TeraBlaze\Routing\Exception\MissingParametersException;
-use TeraBlaze\Routing\Exception\MissingRouteParameterNameException;
-use TeraBlaze\Routing\Exception\RouteNotFoundException;
-use TeraBlaze\Routing\Route;
-use TeraBlaze\Routing\Router;
-use TeraBlaze\Routing\RouterInterface;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\HttpBase\Request;
+use Terablaze\Routing\Exception\InvalidParameterException;
+use Terablaze\Routing\Exception\MissingParametersException;
+use Terablaze\Routing\Exception\MissingRouteParameterNameException;
+use Terablaze\Routing\Exception\RouteNotFoundException;
+use Terablaze\Routing\Route;
+use Terablaze\Routing\Router;
+use Terablaze\Routing\RouterInterface;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
 
 /**
  * Class UrlGenerator
- * @package TeraBlaze\Routing
+ * @package Terablaze\Routing
  *
  * handles url generation
  */

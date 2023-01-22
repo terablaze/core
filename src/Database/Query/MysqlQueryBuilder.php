@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Query;
+namespace Terablaze\Database\Query;
 
 class MysqlQueryBuilder extends QueryBuilder implements QueryBuilderInterface
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Flash;
+namespace Terablaze\Session\Flash;
 
-use TeraBlaze\Session\SessionInterface;
+use Terablaze\Session\SessionInterface;
 
 interface FlashMessagesInterface
 {

@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Session\Persistence;
+namespace Terablaze\Session\Persistence;
 
 use Exception;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TeraBlaze\Session\Exception\InvalidArgumentException;
-use TeraBlaze\Session\Session;
-use TeraBlaze\Session\SessionInterface;
+use Terablaze\Session\Exception\InvalidArgumentException;
+use Terablaze\Session\Session;
+use Terablaze\Session\SessionInterface;
 
 use function bin2hex;
 use function gmdate;

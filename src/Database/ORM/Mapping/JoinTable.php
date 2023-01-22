@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM\Mapping;
+namespace Terablaze\Database\ORM\Mapping;
 
 /**
  * @Annotation
@@ -19,12 +19,12 @@ final class JoinTable implements Annotation
     public $schema;
 
     /**
-     * @var array<\TeraBlaze\Database\ORM\Mapping\JoinColumn>
+     * @var array<\Terablaze\Database\ORM\Mapping\JoinColumn>
      */
     public $joinColumns = [];
 
     /**
-     * @var array<\TeraBlaze\Database\ORM\Mapping\JoinColumn>
+     * @var array<\Terablaze\Database\ORM\Mapping\JoinColumn>
      */
     public $inverseJoinColumns = [];
 }

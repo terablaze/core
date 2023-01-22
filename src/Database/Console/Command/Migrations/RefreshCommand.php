@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Database\Console\Command\Migrations;
+namespace Terablaze\Database\Console\Command\Migrations;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use TeraBlaze\Console\Command;
-use TeraBlaze\Console\ConfirmableTrait;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\Database\Events\DatabaseRefreshed;
+use Terablaze\Console\Command;
+use Terablaze\Console\ConfirmableTrait;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Database\Events\DatabaseRefreshed;
 use Symfony\Component\Console\Input\InputOption;
 
 class RefreshCommand extends Command

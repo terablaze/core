@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Container\Exception;
+namespace Terablaze\Container\Exception;
 
 class DependencyIsNotInstantiableException extends ContainerException
 {

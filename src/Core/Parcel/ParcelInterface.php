@@ -1,12 +1,13 @@
 <?php
 
-namespace TeraBlaze\Core\Parcel;
+namespace Terablaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Console\Application;
-use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\EventDispatcher\Dispatcher;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Console\Application;
+use Terablaze\Core\Kernel\KernelInterface;
+use Terablaze\Core\Scheduling\Schedule;
+use Terablaze\EventDispatcher\Dispatcher;
 
 interface ParcelInterface
 {
@@ -73,4 +74,6 @@ interface ParcelInterface
     public function registerRoutes(array $routes): void;
 
     public function registerCommands(Application $application);
+
+    public function schedule(Schedule $schedule);
 }

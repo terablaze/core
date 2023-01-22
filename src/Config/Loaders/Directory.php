@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Config\Loaders;
+namespace Terablaze\Config\Loaders;
 
 use DirectoryIterator;
-use TeraBlaze\Config\Exception\InvalidFileException;
+use Terablaze\Config\Exception\InvalidFileException;
 
 class Directory extends Loader
 {
@@ -24,7 +24,7 @@ class Directory extends Loader
             }
 
             $className = $file->isDir() ? 'Directory' : ucfirst(strtolower($file->getExtension()));
-            $classPath = 'TeraBlaze\\Config\\Loaders\\' . $className;
+            $classPath = 'Terablaze\\Config\\Loaders\\' . $className;
 
             $loader = new $classPath($file->getPathname());
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
 use Psr\Http\Message\UploadedFileInterface;
 use Symfony\Component\Mime\MimeTypes;
-use TeraBlaze\Filesystem\Files;
-use TeraBlaze\Validation\Validation;
+use Terablaze\Filesystem\Files;
+use Terablaze\Validation\Validation;
 
 class ExtRule extends Rule
 {

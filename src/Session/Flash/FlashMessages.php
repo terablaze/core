@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Flash;
+namespace Terablaze\Session\Flash;
 
-use TeraBlaze\Session\Exception\InvalidHopsValueException;
-use TeraBlaze\Session\SessionInterface;
+use Terablaze\Session\Exception\InvalidHopsValueException;
+use Terablaze\Session\SessionInterface;
 
 use function is_array;
 

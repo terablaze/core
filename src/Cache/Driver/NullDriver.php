@@ -1,6 +1,9 @@
 <?php
 
-namespace TeraBlaze\Cache\Driver;
+namespace Terablaze\Cache\Driver;
+
+use Terablaze\Cache\Lock\LockInterface;
+use Terablaze\Cache\Lock\NullLock;
 
 class NullDriver extends CacheDriver
 {
@@ -60,8 +63,49 @@ class NullDriver extends CacheDriver
     /**
      * @inheritDoc
      */
+    public function increment($key, $value = 1)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $value = 1)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function clear(): bool
     {
         return true;
+    }
+
+    /**
+     * Get a lock instance.
+     *
+     * @param  string  $name
+     * @param  int  $seconds
+     * @param  string|null  $owner
+     * @return LockInterface
+     */
+    public function lock($name, $seconds = 0, $owner = null)
+    {
+        return new NullLock($name, $seconds, $owner);
+    }
+
+    /**
+     * Restore a lock instance using the owner identifier.
+     *
+     * @param  string  $name
+     * @param  string  $owner
+     * @return LockInterface
+     */
+    public function restoreLock($name, $owner)
+    {
+        return $this->lock($name, 0, $owner);
     }
 }

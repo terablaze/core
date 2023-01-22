@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
-use TeraBlaze\Validation\Rule\Traits\DatabaseRuleTrait;
+use Terablaze\Validation\Rule\Traits\DatabaseRuleTrait;
 
 class ExistsRule extends Rule implements RuleInterface
 {

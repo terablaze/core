@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Config;
+namespace Terablaze\Config;
 
 use ArrayAccess;
 use DirectoryIterator;
 use IteratorAggregate;
 use RuntimeException;
 use SplFileInfo;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Config\Exception\InvalidContextException;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Config\Exception\InvalidContextException;
 
 class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
 {
@@ -237,7 +237,7 @@ class Config implements ConfigInterface, ArrayAccess, IteratorAggregate
         $file = new SplFileInfo($path);
 
         $className = $file->isDir() ? 'Directory' : ucfirst(strtolower($file->getExtension()));
-        $classPath = 'TeraBlaze\\Config\\Loaders\\' . $className;
+        $classPath = 'Terablaze\\Config\\Loaders\\' . $className;
 
         $loader = new $classPath($file->getRealPath());
 

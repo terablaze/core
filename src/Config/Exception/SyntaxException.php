@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Config\Exception;
+namespace Terablaze\Config\Exception;
 
-use TeraBlaze\Config\Exception;
+use Terablaze\Config\Exception;
 
 class SyntaxException extends Exception
 {

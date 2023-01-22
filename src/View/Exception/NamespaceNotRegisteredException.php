@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\View\Exception;
+namespace Terablaze\View\Exception;
 
-use TeraBlaze\View as View;
+use Terablaze\View as View;
 
 class NamespaceNotRegisteredException extends View\Exception
 {

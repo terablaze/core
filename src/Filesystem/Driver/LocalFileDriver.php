@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Filesystem\Driver;
+namespace Terablaze\Filesystem\Driver;
 
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;

@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Session;
+namespace Terablaze\Session;
 
-use TeraBlaze\Session\Csrf\CsrfGuardInterface;
-use TeraBlaze\Session\Flash\FlashMessagesInterface;
+use Terablaze\Session\Csrf\CsrfGuardInterface;
+use Terablaze\Session\Flash\FlashMessagesInterface;
 
 interface SessionInterface
 {

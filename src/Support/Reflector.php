@@ -3,7 +3,7 @@
  * Code from Laravel
  */
 
-namespace TeraBlaze\Support;
+namespace Terablaze\Support;
 
 use ReflectionClass;
 use ReflectionMethod;

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Collection\Exceptions;
+namespace Terablaze\Collection\Exceptions;
 
 /**
  * Thrown when one or more elements of the ArrayCollection is an invalid type

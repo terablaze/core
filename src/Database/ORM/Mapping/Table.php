@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM\Mapping;
+namespace Terablaze\Database\ORM\Mapping;
 
 /**
  * @Annotation
@@ -34,12 +34,12 @@ final class Table implements Annotation
     public $connection = "default";
 
     /**
-     * @var array<\TeraBlaze\Database\ORM\Mapping\Index>
+     * @var array<\Terablaze\Database\ORM\Mapping\Index>
      */
     public $indexes;
 
     /**
-     * @var array<\TeraBlaze\Database\ORM\Mapping\UniqueConstraint>
+     * @var array<\Terablaze\Database\ORM\Mapping\UniqueConstraint>
      */
     public $uniqueConstraints;
 

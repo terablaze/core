@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Container;
+namespace Terablaze\Container;
 
 use ReflectionException;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
+use Terablaze\Container\Exception\ContainerException;
+use Terablaze\Container\Exception\ParameterNotFoundException;
 
 trait ContainerAwareTrait
 {

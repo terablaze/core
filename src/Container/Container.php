@@ -1,8 +1,7 @@
 <?php
 
-namespace TeraBlaze\Container;
+namespace Terablaze\Container;
 
-use Closure;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -11,14 +10,13 @@ use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionType;
 use ReflectionUnionType;
-use Psr\Container\ContainerInterface as PsrContainerInterface;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\DependencyIsNotInstantiableException;
-use TeraBlaze\Container\Exception\InvalidArgumentException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\Container\Exception\ServiceNotFoundException;
-use TeraBlaze\Database\ORM\ModelInterface;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Container\Exception\ContainerException;
+use Terablaze\Container\Exception\DependencyIsNotInstantiableException;
+use Terablaze\Container\Exception\InvalidArgumentException;
+use Terablaze\Container\Exception\ParameterNotFoundException;
+use Terablaze\Container\Exception\ServiceNotFoundException;
+use Terablaze\Database\ORM\ModelInterface;
 
 /**
  * The container interface. This extends the interface defined by
@@ -258,7 +256,7 @@ class Container implements ContainerInterface
     public function get($id)
     {
         if (!$this->has($id)) {
-            throw new ServiceNotFoundException('ServiceException not found: ' . $id);
+            throw new ServiceNotFoundException('Service not found: ' . $id);
         }
 
         if (isset($this->resolvedServices[$id])) {
@@ -332,7 +330,7 @@ class Container implements ContainerInterface
     /**
      * Initialize a route action
      *
-     * @param callable $callable The service.
+     * @param callable|array $callable The service.
      * @param array<string, mixed> $parameters The call parameters
      *
      * @return false|mixed
@@ -341,7 +339,7 @@ class Container implements ContainerInterface
      * @throws ParameterNotFoundException
      * @throws ReflectionException
      */
-    public function call(callable $callable, array $parameters = [])
+    public function call($callable, array $parameters = [])
     {
         $reflector = $this->getReflector($callable);
 

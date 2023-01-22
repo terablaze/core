@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Traits;
+namespace Terablaze\Validation\Traits;
 
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Support\ArrayMethods;
 
 trait ReplacesFieldsTrait
 {

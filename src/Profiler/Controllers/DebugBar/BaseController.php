@@ -1,15 +1,15 @@
 <?php
 
-namespace TeraBlaze\Profiler\Controllers\DebugBar;
+namespace Terablaze\Profiler\Controllers\DebugBar;
 
-use TeraBlaze\Controller\AbstractController;
-use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
+use Terablaze\Controller\AbstractController;
+use Terablaze\Profiler\DebugBar\TerablazeDebugbar;
 
 class BaseController extends AbstractController
 {
     public $debugbar;
 
-    public function __construct(TeraBlazeDebugbar $debugbar)
+    public function __construct(TerablazeDebugbar $debugbar)
     {
         $this->debugbar = $debugbar;
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Flash;
+namespace Terablaze\Session\Flash;
 
-use TeraBlaze\Session\Exception\InvalidFlashMessagesImplementationException;
-use TeraBlaze\Session\Exception\MissingSessionException;
-use TeraBlaze\Session\SessionInterface;
-use TeraBlaze\Session\SessionMiddleware;
+use Terablaze\Session\Exception\InvalidFlashMessagesImplementationException;
+use Terablaze\Session\Exception\MissingSessionException;
+use Terablaze\Session\SessionInterface;
+use Terablaze\Session\SessionMiddleware;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;

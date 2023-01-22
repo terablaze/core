@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Exception;
+namespace Terablaze\Session\Exception;
 
 use InvalidArgumentException;
-use TeraBlaze\Session\Flash\FlashMessageMiddleware;
-use TeraBlaze\Session\Flash\FlashMessagesInterface;
+use Terablaze\Session\Flash\FlashMessageMiddleware;
+use Terablaze\Session\Flash\FlashMessagesInterface;
 
 use function sprintf;
 

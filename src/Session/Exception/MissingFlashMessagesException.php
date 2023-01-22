@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Exception;
+namespace Terablaze\Session\Exception;
 
-use TeraBlaze\Session\Csrf\FlashCsrfGuard;
-use TeraBlaze\Session\Flash\FlashMessageMiddleware;
+use Terablaze\Session\Csrf\FlashCsrfGuard;
+use Terablaze\Session\Flash\FlashMessageMiddleware;
 use RuntimeException;
 
 use function sprintf;

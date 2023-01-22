@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
 /**
  * A set of rules for determining the physical column and table names

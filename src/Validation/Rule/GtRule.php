@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
 use InvalidArgumentException;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
+use Terablaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class GtRule extends Rule implements RuleInterface
 {

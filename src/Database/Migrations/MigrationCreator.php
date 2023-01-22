@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Database\Migrations;
+namespace Terablaze\Database\Migrations;
 
 use Closure;
-use TeraBlaze\Filesystem\Files;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Filesystem\Files;
+use Terablaze\Support\StringMethods;
 use InvalidArgumentException;
 
 class MigrationCreator

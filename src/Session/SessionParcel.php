@@ -1,19 +1,19 @@
 <?php
 
-namespace TeraBlaze\Session;
+namespace Terablaze\Session;
 
 use InvalidArgumentException;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Session\Csrf\CsrfGuardInterface;
-use TeraBlaze\Session\Csrf\CsrfMiddleware;
-use TeraBlaze\Session\Csrf\FlashCsrfGuard;
-use TeraBlaze\Session\Csrf\SessionCsrfGuard;
-use TeraBlaze\Session\Flash\FlashMessageMiddleware;
-use TeraBlaze\Session\Flash\FlashMessagesInterface;
-use TeraBlaze\Session\Persistence\CacheSessionPersistence;
-use TeraBlaze\Session\Persistence\PhpSessionPersistence;
-use TeraBlaze\Session\Persistence\SessionPersistenceInterface;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Session\Csrf\CsrfGuardInterface;
+use Terablaze\Session\Csrf\CsrfMiddleware;
+use Terablaze\Session\Csrf\FlashCsrfGuard;
+use Terablaze\Session\Csrf\SessionCsrfGuard;
+use Terablaze\Session\Flash\FlashMessageMiddleware;
+use Terablaze\Session\Flash\FlashMessagesInterface;
+use Terablaze\Session\Persistence\CacheSessionPersistence;
+use Terablaze\Session\Persistence\PhpSessionPersistence;
+use Terablaze\Session\Persistence\SessionPersistenceInterface;
+use Terablaze\Support\StringMethods;
 
 class SessionParcel extends Parcel
 {
@@ -36,7 +36,7 @@ class SessionParcel extends Parcel
                 );
                 break;
             case "cache":
-                $sessionCache = 'cache.' . $config->get('session.cache');
+                $sessionCache = 'simple_cache.' . $config->get('session.cache');
                 if (!$this->container->has($sessionCache)) {
                     throw new InvalidArgumentException(
                         "If you're using a cache persistence, you must add it to your cache config"

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Core\Exception;
+namespace Terablaze\Core\Exception;
 
 /*
  * This file is part of the Symfony package.

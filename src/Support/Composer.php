@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Support;
+namespace Terablaze\Support;
 
-use TeraBlaze\Filesystem\Files;
+use Terablaze\Filesystem\Files;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 

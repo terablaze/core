@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Logging;
+namespace Terablaze\Database\Logging;
 
 use Exception;
 

@@ -1,18 +1,23 @@
 <?php
 
-namespace TeraBlaze\Cache\Driver;
+namespace Terablaze\Cache\Driver;
 
 use Memcached;
-use TeraBlaze\Cache\Exception\ServiceException;
+use Terablaze\Cache\Exception\ServiceException;
+use Terablaze\Cache\Lock\LockInterface;
+use Terablaze\Cache\Lock\MemcachedLock;
+use Terablaze\Cache\LockProviderInterface;
 
 class MemcachedDriver extends CacheDriver
 {
     private ?Memcached $memcached = null;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(array $config)
     {
         parent::__construct($config);
-        $this->connect();
     }
 
     protected function connect(): void
@@ -32,22 +37,30 @@ class MemcachedDriver extends CacheDriver
         }
     }
 
+    public function memcached(): Memcached
+    {
+        if (is_null($this->memcached)) {
+            $this->connect();
+        }
+        return $this->memcached;
+    }
+
     public function disconnect()
     {
-        $this->memcached->resetServerList();
+        $this->memcached()->resetServerList();
         $this->memcached = null;
     }
 
     public function has($key)
     {
         $key = $this->fixKey($key);
-        return $this->memcached->get($key) !== false;
+        return $this->memcached()->get($key) !== false;
     }
 
     public function get($key, $default = null)
     {
         $key = $this->fixKey($key);
-        if ($value = $this->memcached->get($key)) {
+        if ($value = $this->memcached()->get($key)) {
             return $value;
         }
 
@@ -61,17 +74,60 @@ class MemcachedDriver extends CacheDriver
             $ttl = $this->ttl();
         }
 
-        return $this->memcached->set($key, $value, time() + $ttl);
+        return $this->memcached()->set($key, $value, time() + $ttl);
     }
 
     public function delete($key): bool
     {
         $key = $this->fixKey($key);
-        return $this->memcached->delete($key);
+        return $this->memcached()->delete($key);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $incrementBy = 1)
+    {
+        $key = $this->fixKey($key);
+        return $this->memcached->increment($key, $incrementBy);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $decrementBy = 1)
+    {
+        $key = $this->fixKey($key);
+        return $this->memcached->decrement($key, $decrementBy);
     }
 
     public function clear(): bool
     {
-        return $this->memcached->flush();
+        return $this->memcached()->flush();
+    }
+
+    /**
+     * Get a lock instance.
+     *
+     * @param  string  $name
+     * @param  int  $seconds
+     * @param  string|null  $owner
+     * @return LockInterface
+     */
+    public function lock($name, $seconds = 0, $owner = null)
+    {
+        return new MemcachedLock($this->memcached, $this->fixKey($name), $seconds, $owner);
+    }
+
+    /**
+     * Restore a lock instance using the owner identifier.
+     *
+     * @param  string  $name
+     * @param  string  $owner
+     * @return LockInterface
+     */
+    public function restoreLock($name, $owner)
+    {
+        return $this->lock($name, 0, $owner);
     }
 }

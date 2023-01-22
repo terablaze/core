@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\Renderer;
+namespace Terablaze\ErrorHandler\Renderer;
 
-use TeraBlaze\ErrorHandler\FlattenException;
+use Terablaze\ErrorHandler\FlattenException;
 
 /**
  * Formats an exception to be used as response content.

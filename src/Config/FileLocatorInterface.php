@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Config;
+namespace Terablaze\Config;
 
 interface FileLocatorInterface
 {

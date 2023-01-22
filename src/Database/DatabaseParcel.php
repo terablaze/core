@@ -1,26 +1,28 @@
 <?php
 
-namespace TeraBlaze\Database;
+namespace Terablaze\Database;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use ReflectionException;
-use TeraBlaze\Config\Exception\InvalidContextException;
-use TeraBlaze\Container\Exception\ServiceNotFoundException;
-use TeraBlaze\Console\Application;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Connection\MysqlConnection;
-use TeraBlaze\Database\Connection\SqliteConnection;
-use TeraBlaze\Database\Console\Command\Migrations\InstallCommand;
-use TeraBlaze\Database\Console\Command\Migrations\MigrateCommand;
-use TeraBlaze\Database\Console\Command\Migrations\MigrateMakeCommand;
-use TeraBlaze\Database\Console\Command\Migrations\RollbackCommand;
-use TeraBlaze\Database\Exception\ArgumentException;
-use TeraBlaze\Database\Migrations\MigrationCreator;
-use TeraBlaze\Database\Migrations\MigrationRepository;
-use TeraBlaze\Database\Migrations\Migrator;
-use TeraBlaze\Database\ORM\AnnotationDriver;
+use Terablaze\Config\Exception\InvalidContextException;
+use Terablaze\Container\Exception\ServiceNotFoundException;
+use Terablaze\Console\Application;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Connection\MysqlConnection;
+use Terablaze\Database\Connection\SqliteConnection;
+use Terablaze\Database\Console\Command\Migrations\InstallCommand;
+use Terablaze\Database\Console\Command\Migrations\MigrateCommand;
+use Terablaze\Database\Console\Command\Migrations\MigrateMakeCommand;
+use Terablaze\Database\Console\Command\Migrations\RollbackCommand;
+use Terablaze\Database\Exception\ArgumentException;
+use Terablaze\Database\Migrations\MigrationCreator;
+use Terablaze\Database\Migrations\MigrationRepository;
+use Terablaze\Database\Migrations\Migrator;
+use Terablaze\Database\ORM\AnnotationDriver;
+use Terablaze\Database\Query\DatabaseTransactionsManager;
+use Terablaze\Support\Helpers;
 
 class DatabaseParcel extends Parcel implements ParcelInterface
 {
@@ -48,7 +50,7 @@ class DatabaseParcel extends Parcel implements ParcelInterface
      */
     public function boot(): void
     {
-        $parsed = loadConfig('database');
+        $parsed = Helpers::loadConfig('database');
 
         foreach ($parsed->get('database.connections') as $key => $conf) {
             $this->initialize($key, $conf);
@@ -83,6 +85,7 @@ class DatabaseParcel extends Parcel implements ParcelInterface
                 throw new ArgumentException(sprintf("Invalid or unimplemented database type: %s", $type));
         }
         $dbConnection->setName($confKey)->setEventDispatcher($this->dispatcher);
+        $dbConnection->setTransactionManager($this->container->make(DatabaseTransactionsManager::class));
         $this->container->registerServiceInstance($connectionName, $dbConnection);
         if (getConfig('database.default') === $confKey) {
             $this->container->setAlias(ConnectionInterface::class, $connectionName);

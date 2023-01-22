@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Testing;
+namespace Terablaze\Testing;
 
 use Closure;
 use PHPUnit\Framework\TestCase as BaseTestCase;

@@ -1,17 +1,17 @@
 <?php
 
-namespace Tests\TeraBlaze\Unit\Collection;
+namespace Tests\Terablaze\Unit\Collection;
 
 use PHPUnit\Framework\TestCase;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Collection\Exceptions\InvalidTypeException;
-use TeraBlaze\Collection\Exceptions\TypeException;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\Exceptions\InvalidTypeException;
+use Terablaze\Collection\Exceptions\TypeException;
 
 class ArrayCollectionTest extends TestCase
 {
     public function testCanBeCreated(): void
     {
-        $data = ["TeraBlaze", "is", "great"];
+        $data = ["Terablaze", "is", "great"];
 
         $arrayCollection = new ArrayCollection($data);
         $this->assertInstanceOf(ArrayCollection::class, $arrayCollection);
@@ -30,13 +30,13 @@ class ArrayCollectionTest extends TestCase
     public function testExceptionThrownWithInvalidTypeConstraint(): void
     {
         $this->expectException(InvalidTypeException::class);
-        $data = ["TeraBlaze", "is", "great"];
+        $data = ["Terablaze", "is", "great"];
         new ArrayCollection($data, 'invalid');
     }
 
     public function testExceptionThrownWhenDataInvalid(): void
     {
-        $data = ["TeraBlaze", 1, "great"];
+        $data = ["Terablaze", 1, "great"];
         $this->expectException(TypeException::class);
         $arrayCollection = new ArrayCollection($data, 'string');
         $this->assertInstanceOf(ArrayCollection::class, $arrayCollection);
@@ -44,7 +44,7 @@ class ArrayCollectionTest extends TestCase
 
     public function testAll(): void
     {
-        $data = ["TeraBlaze", "is", "great"];
+        $data = ["Terablaze", "is", "great"];
         $arrayCollection = new ArrayCollection($data, 'string');
         $this->assertEquals($data, $arrayCollection->all());
         $this->assertIsArray($arrayCollection->toArray());
@@ -52,10 +52,10 @@ class ArrayCollectionTest extends TestCase
 
     public function testGetFirstAndLast(): void
     {
-        $data = ["TeraBlaze", 1, "is", 2, "great", 3];
+        $data = ["Terablaze", 1, "is", 2, "great", 3];
         $arrayCollection = new ArrayCollection($data);
 
-        $this->assertEquals("TeraBlaze", $arrayCollection->first());
+        $this->assertEquals("Terablaze", $arrayCollection->first());
 
         $callbackFirst = $arrayCollection->first(fn ($item) => is_int($item));
         $this->assertEquals(1, $callbackFirst);
@@ -68,10 +68,10 @@ class ArrayCollectionTest extends TestCase
 
     public function testKey(): void
     {
-        $data = ["TeraBlaze", 1, "is", 2, "great", 3];
+        $data = ["Terablaze", 1, "is", 2, "great", 3];
         $arrayCollection = new ArrayCollection($data);
 
-        $this->assertEquals("TeraBlaze", $arrayCollection->current());
+        $this->assertEquals("Terablaze", $arrayCollection->current());
         $this->assertEquals(0, $arrayCollection->key());
         $this->assertEquals(1, $arrayCollection->next());
 
@@ -79,10 +79,10 @@ class ArrayCollectionTest extends TestCase
         $this->assertEquals(1, $arrayCollection->key());
         $this->assertEquals("is", $arrayCollection->next());
 
-        $data2 = ["framework" => "TeraBlaze", "author" => "tomiwahq", "source" => "opensource"];
+        $data2 = ["framework" => "Terablaze", "author" => "tomiwahq", "source" => "opensource"];
         $arrayCollection2 = new ArrayCollection($data2);
 
-        $this->assertEquals("TeraBlaze", $arrayCollection2->current());
+        $this->assertEquals("Terablaze", $arrayCollection2->current());
         $this->assertEquals("framework", $arrayCollection2->key());
         $this->assertEquals("tomiwahq", $arrayCollection2->next());
 
@@ -93,7 +93,7 @@ class ArrayCollectionTest extends TestCase
 
     public function testRemoveByKey(): void
     {
-        $data = ["TeraBlaze", 1, "is", 2, "great", 3];
+        $data = ["Terablaze", 1, "is", 2, "great", 3];
         $arrayCollection = new ArrayCollection($data);
         $this->assertNull($arrayCollection->remove("tom"));
         $this->assertEquals($data, $arrayCollection->all());
@@ -101,23 +101,23 @@ class ArrayCollectionTest extends TestCase
         unset($data[2]);
         $this->assertEquals($data, $arrayCollection->all());
 
-        $data2 = ["framework" => "TeraBlaze", "author" => "tomiwahq", "source" => "opensource"];
+        $data2 = ["framework" => "Terablaze", "author" => "tomiwahq", "source" => "opensource"];
         $arrayCollection2 = new ArrayCollection($data2);
         $this->assertNull($arrayCollection2->remove("tom"));
         $this->assertEquals($data2, $arrayCollection2->all());
         $this->assertEquals("tomiwahq", $arrayCollection2->remove("author"));
-        $this->assertEquals(["framework" => "TeraBlaze", "source" => "opensource"], $arrayCollection2->all());
+        $this->assertEquals(["framework" => "Terablaze", "source" => "opensource"], $arrayCollection2->all());
 
     }
 
     public function testRemoveElement(): void
     {
-        $data = ["framework" => "TeraBlaze", "author" => "tomiwahq", "source" => "opensource"];
+        $data = ["framework" => "Terablaze", "author" => "tomiwahq", "source" => "opensource"];
         $arrayCollection = new ArrayCollection($data);
         $this->assertFalse($arrayCollection->removeElement("Non-existent"));
         $this->assertEquals($data, $arrayCollection->all());
 
         $this->assertTrue($arrayCollection->removeElement("opensource"));
-        $this->assertEquals(["framework" => "TeraBlaze", "author" => "tomiwahq"], $arrayCollection->all());
+        $this->assertEquals(["framework" => "Terablaze", "author" => "tomiwahq"], $arrayCollection->all());
     }
 }

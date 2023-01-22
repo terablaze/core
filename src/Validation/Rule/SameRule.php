@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Validation\Rule\Traits\RequiredTestTrait;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Validation\Rule\Traits\RequiredTestTrait;
 
 class SameRule extends Rule implements RuleInterface
 {

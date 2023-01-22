@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM\Mapping;
+namespace Terablaze\Database\ORM\Mapping;
 
 /**
  * @Annotation
@@ -9,7 +9,7 @@ namespace TeraBlaze\Database\ORM\Mapping;
 final class JoinColumns implements Annotation
 {
     /**
-     * @var array<\TeraBlaze\Database\ORM\Mapping\JoinColumn>
+     * @var array<\Terablaze\Database\ORM\Mapping\JoinColumn>
      */
     public $value;
 }

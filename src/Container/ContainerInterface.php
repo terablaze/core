@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Container;
+namespace Terablaze\Container;
 
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use ReflectionException;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\InvalidArgumentException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\Container\Exception\ServiceNotFoundException;
+use Terablaze\Container\Exception\ContainerException;
+use Terablaze\Container\Exception\InvalidArgumentException;
+use Terablaze\Container\Exception\ParameterNotFoundException;
+use Terablaze\Container\Exception\ServiceNotFoundException;
 
 /**
  * The container interface. This extends the interface defined by
@@ -80,7 +80,7 @@ interface ContainerInterface extends PsrContainerInterface
     /**
      * Initialize a route action
      *
-     * @param callable $callable The service.
+     * @param callable|array $callable The service.
      * @param array<string, mixed> $parameters The call parameters
      *
      * @return false|mixed
@@ -89,7 +89,7 @@ interface ContainerInterface extends PsrContainerInterface
      * @throws ParameterNotFoundException
      * @throws ReflectionException
      */
-    public function call(callable $callable, array $parameters = []);
+    public function call($callable, array $parameters = []);
 
     /**
      * @param string $service

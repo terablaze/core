@@ -1,32 +1,32 @@
 <?php
 
-namespace TeraBlaze\Validation;
+namespace Terablaze\Validation;
 
 use Closure;
 use Exception;
 use Psr\Http\Message\UploadedFileInterface;
 use ReflectionException;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Collection\Exceptions\InvalidTypeException;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\MessageBag;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Translation\Translator;
-use TeraBlaze\Validation\Exception\RuleException;
-use TeraBlaze\Validation\Exception\ValidationException;
-use TeraBlaze\Validation\Rule\Builder\RuleBuilderInterface;
-use TeraBlaze\Validation\Rule\ClosureValidationRule;
-use TeraBlaze\Validation\Rule\NullableRule;
-use TeraBlaze\Validation\Rule\RuleInterface;
-use TeraBlaze\Validation\Traits\FormatsMessagesTrait;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\Exceptions\InvalidTypeException;
+use Terablaze\Container\Container;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\MessageBag;
+use Terablaze\Support\StringMethods;
+use Terablaze\Translation\Translator;
+use Terablaze\Validation\Exception\RuleException;
+use Terablaze\Validation\Exception\ValidationException;
+use Terablaze\Validation\Rule\Builder\RuleBuilderInterface;
+use Terablaze\Validation\Rule\ClosureValidationRule;
+use Terablaze\Validation\Rule\NullableRule;
+use Terablaze\Validation\Rule\RuleInterface;
+use Terablaze\Validation\Traits\FormatsMessagesTrait;
 
 class Validation implements ValidationInterface
 {
     use FormatsMessagesTrait;
 
     /** @var string[] $rulesNamespaces */
-    public static array $rulesNamespaces = ['TeraBlaze\Validation\Rule'];
+    public static array $rulesNamespaces = ['Terablaze\Validation\Rule'];
     public static bool $throwException = true;
 
     private ?Translator $translator = null;

@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\Storage;
+namespace Terablaze\Profiler\DebugBar\Storage;
 
 use DebugBar\Storage\StorageInterface;
 use Symfony\Component\Finder\Finder;
-use TeraBlaze\Filesystem\Files;
+use Terablaze\Filesystem\Files;
 
 /**
  * Stores collected data into files

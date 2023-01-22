@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Database;
+namespace Terablaze\Database;
 
-use TeraBlaze\Console\Command;
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Console\Command;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Support\ArrayMethods;
 use InvalidArgumentException;
 
 abstract class Seeder

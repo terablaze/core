@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Session\Persistence;
+namespace Terablaze\Session\Persistence;
 
 use Dflydev\FigCookies\FigRequestCookies;
 use Dflydev\FigCookies\FigResponseCookies;
 use Dflydev\FigCookies\Modifier\SameSite;
 use Dflydev\FigCookies\SetCookie;
-use TeraBlaze\Session\SessionCookiePersistenceInterface;
-use TeraBlaze\Session\SessionInterface;
+use Terablaze\Session\SessionCookiePersistenceInterface;
+use Terablaze\Session\SessionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

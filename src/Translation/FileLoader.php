@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Translation;
+namespace Terablaze\Translation;
 
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Collection\Exceptions\TypeException;
-use TeraBlaze\Filesystem\Exception\FileNotFoundException;
-use TeraBlaze\Filesystem\Files;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\Filesystem\Exception\FileNotFoundException;
+use Terablaze\Filesystem\Files;
 use RuntimeException;
 
 class FileLoader implements LoaderInterface

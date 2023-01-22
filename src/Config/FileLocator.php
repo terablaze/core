@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Config;
+namespace Terablaze\Config;
 
 /**
  * Class FileLocator
  *
  * Locates files in one or more directory paths.
  *
- * @package TeraBlaze\Config
+ * @package Terablaze\Config
  */
 class FileLocator implements FileLocatorInterface
 {

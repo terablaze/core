@@ -1,25 +1,25 @@
 <?php
 
-use TeraBlaze\Database\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Migrations\Migration;
+use Terablaze\Database\Migrations\Migration;
 
-class {{ class }} extends Migration
+class Create{{ tableClassName }}Table extends Migration
 {
     /**
      * Run the migrations.
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
-        $table = $this->createTable('{{table}}');
-        $table->id('id');
-        $table->text('closure');
-        $table->text('params');
-        $table->int('attempts')->default(0);
-        $table->bool('is_complete')->default(false);
-        $table->dateTime('created_at')
-        $table->execute();
+        $table = $this->createTable('{{ table }}');
+        $table->bigId();
+        $table->string('queue')->index();
+        $table->longText('payload');
+        $table->tinyInt('attempts')->unsigned();
+        $table->int('created_at')->unsigned();
+        $table->int('reserved_at')->unsigned()->nullable();
+        $table->int('available_at')->unsigned();
+        $table->build();
     }
 
     /**
@@ -27,8 +27,8 @@ class {{ class }} extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
-        $this->->dropTableIfExists('{{table}}')->execute();
+        $this->dropTableIfExists('{{ table }}')->build();
     }
 }

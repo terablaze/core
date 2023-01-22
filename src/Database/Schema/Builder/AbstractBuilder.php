@@ -1,23 +1,24 @@
 <?php
 
-namespace TeraBlaze\Database\Schema\Builder;
+namespace Terablaze\Database\Schema\Builder;
 
-use TeraBlaze\Database\Exception\MigrationException;
-use TeraBlaze\Database\Schema\Field\BoolField;
-use TeraBlaze\Database\Schema\Field\DateTimeField;
-use TeraBlaze\Database\Schema\Field\DecimalField;
-use TeraBlaze\Database\Schema\Field\EnumField;
-use TeraBlaze\Database\Schema\Field\Field;
-use TeraBlaze\Database\Schema\Field\FloatField;
-use TeraBlaze\Database\Schema\Field\IdField;
-use TeraBlaze\Database\Schema\Field\IntField;
-use TeraBlaze\Database\Schema\Field\JsonField;
-use TeraBlaze\Database\Schema\Field\StringField;
-use TeraBlaze\Database\Schema\Field\TextField;
-use TeraBlaze\Database\Schema\ForeignKey;
-use TeraBlaze\Database\Schema\SchemaInterface;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Database\Exception\MigrationException;
+use Terablaze\Database\Schema\Field\BoolField;
+use Terablaze\Database\Schema\Field\DateTimeField;
+use Terablaze\Database\Schema\Field\DecimalField;
+use Terablaze\Database\Schema\Field\EnumField;
+use Terablaze\Database\Schema\Field\Field;
+use Terablaze\Database\Schema\Field\FloatField;
+use Terablaze\Database\Schema\Field\IdField;
+use Terablaze\Database\Schema\Field\IntField;
+use Terablaze\Database\Schema\Field\JsonField;
+use Terablaze\Database\Schema\Field\StringField;
+use Terablaze\Database\Schema\Field\TextField;
+use Terablaze\Database\Schema\Field\TimeStampField;
+use Terablaze\Database\Schema\ForeignKey;
+use Terablaze\Database\Schema\SchemaInterface;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
 
 abstract class AbstractBuilder implements BuilderInterface
 {
@@ -106,6 +107,29 @@ abstract class AbstractBuilder implements BuilderInterface
     }
 
     protected function buildDateTime(string $prefix, DateTimeField $field): string
+    {
+        $template = "$prefix `$field->column` $field->type";
+
+        if (!$field->nullable) {
+            $template .= " NOT NULL";
+        }
+
+        if ($field->default === 'CURRENT_TIMESTAMP' || $field->default === 'NOW()') {
+            $template .= " DEFAULT $field->default";
+        } elseif ($field->useCurrent) {
+            $template .= " DEFAULT CURRENT_TIMESTAMP";
+        } elseif ($field->default !== null) {
+            $template .= " DEFAULT '$field->default'";
+        }
+
+        if ($field->useCurrentOnUpdate) {
+            $template .= " ON UPDATE CURRENT_TIMESTAMP";
+        }
+
+        return $template;
+    }
+
+    protected function buildTimeStamp(string $prefix, TimeStampField $field): string
     {
         $template = "$prefix `$field->column` $field->type";
 
@@ -261,6 +285,10 @@ abstract class AbstractBuilder implements BuilderInterface
 
         if ($field instanceof DateTimeField) {
             return $this->buildDateTime($prefix, $field);
+        }
+
+        if ($field instanceof TimeStampField) {
+            return $this->buildTimeStamp($prefix, $field);
         }
 
         if ($field instanceof FloatField) {

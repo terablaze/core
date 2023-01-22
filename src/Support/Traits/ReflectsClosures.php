@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Support\Traits;
+namespace Terablaze\Support\Traits;
 
 use Closure;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Support\Reflector;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Support\Reflector;
 use ReflectionFunction;
 use RuntimeException;
 

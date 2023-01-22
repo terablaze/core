@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Log;
+namespace Terablaze\Log;
 
 use Closure;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\Log\Events\MessageLogged;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Log\Events\MessageLogged;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;

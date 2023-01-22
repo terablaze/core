@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Database\Schema;
+namespace Terablaze\Database\Schema;
 
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Support\ArrayMethods;
 
 class ForeignKey
 {

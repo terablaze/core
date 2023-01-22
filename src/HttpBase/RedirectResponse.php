@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\HttpBase;
+namespace Terablaze\HttpBase;
 
-use TeraBlaze\Psr7\Stream;
+use Terablaze\Psr7\Stream;
 
 class RedirectResponse extends Response
 {

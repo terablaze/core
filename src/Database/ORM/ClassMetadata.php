@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
 use BadMethodCallException;
 use Doctrine\Instantiator\Instantiator;
@@ -9,7 +9,7 @@ use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionProperty;
 use RuntimeException;
-use TeraBlaze\Database\ORM\Exception\MappingException;
+use Terablaze\Database\ORM\Exception\MappingException;
 
 use function array_key_exists;
 use function explode;

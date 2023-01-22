@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Routing\Exception;
+namespace Terablaze\Routing\Exception;
 
-use TeraBlaze\Routing\Exception\Exception;
+use Terablaze\Routing\Exception\Exception;
 
 class RouteNotFoundException extends Exception
 {

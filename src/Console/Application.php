@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Console;
+namespace Terablaze\Console;
 
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Command\Command;
@@ -11,11 +11,12 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\PhpExecutableFinder;
-use TeraBlaze\Container\ContainerAwareInterface;
-use TeraBlaze\Core\Kernel\Kernel;
-use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Support\ProcessUtils;
+use Terablaze\Container\ContainerAwareInterface;
+use Terablaze\Core\Kernel\Kernel;
+use Terablaze\Core\Kernel\KernelInterface;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Scheduling\Schedule;
+use Terablaze\Support\ProcessUtils;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
@@ -28,6 +29,10 @@ class Application extends BaseApplication
 
     public function __construct(KernelInterface $kernel)
     {
+        if (! defined('BLAZE_BINARY')) {
+            define('BLAZE_BINARY', 'blaze');
+        }
+
         $this->kernel = $kernel;
         $this->kernel->boot();
 
@@ -35,11 +40,11 @@ class Application extends BaseApplication
 
         foreach ($commands as $command => $envs) {
             if ($envs[$this->getKernel()->getEnvironment()] ?? $envs['all'] ?? false) {
-                $this->add(new $command());
+                $this->add($this->kernel->getContainer()->make($command));
             }
         }
 
-        parent::__construct('TeraBlaze', Kernel::TERABLAZE_VERSION);
+        parent::__construct('Terablaze', Kernel::TERABLAZE_VERSION);
 
         $inputDefinition = $this->getDefinition();
         $inputDefinition->addOption(new InputOption(
@@ -187,6 +192,7 @@ class Application extends BaseApplication
             if ($parcel instanceof Parcel) {
                 try {
                     $parcel->registerCommands($this);
+                    $parcel->schedule($this->kernel->getContainer()->make(Schedule::class));
                 } catch (\Throwable $e) {
                     $this->registrationErrors[] = $e;
                 }

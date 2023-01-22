@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel;
+namespace Terablaze\Core\Kernel;
 
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
 
 /**
  * Terminable extends the Kernel request/response cycle with dispatching a post

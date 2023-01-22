@@ -1,8 +1,9 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\PhpInfoCollector as DebugBarPhpInfoCollector;
+use Terablaze\Support\Helpers;
 
 class PhpInfoCollector extends DebugBarPhpInfoCollector
 {
@@ -12,7 +13,7 @@ class PhpInfoCollector extends DebugBarPhpInfoCollector
     public function getWidgets()
     {
         return tap(parent::getWidgets(), function (&$widgets) {
-            dataSet($widgets, 'php_version.tooltip', 'PHP Version');
+            Helpers::dataSet($widgets, 'php_version.tooltip', 'PHP Version');
         });
     }
 }

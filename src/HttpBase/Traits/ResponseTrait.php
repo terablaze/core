@@ -1,19 +1,19 @@
 <?php
 
-namespace TeraBlaze\HttpBase\Traits;
+namespace Terablaze\HttpBase\Traits;
 
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionException;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\HttpBase\JsonResponse;
-use TeraBlaze\HttpBase\RedirectResponse;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
-use TeraBlaze\Routing\RouterInterface;
+use Terablaze\Container\Container;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Container\Exception\ContainerException;
+use Terablaze\Container\Exception\ParameterNotFoundException;
+use Terablaze\HttpBase\JsonResponse;
+use Terablaze\HttpBase\RedirectResponse;
+use Terablaze\HttpBase\Response;
+use Terablaze\Routing\Generator\UrlGeneratorInterface;
+use Terablaze\Routing\RouterInterface;
 
 trait ResponseTrait
 {

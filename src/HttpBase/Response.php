@@ -1,9 +1,13 @@
 <?php
 
-namespace TeraBlaze\HttpBase;
+namespace Terablaze\HttpBase;
 
+use Laminas\HttpHandlerRunner\Emitter\EmitterInterface;
+use Laminas\HttpHandlerRunner\Emitter\EmitterStack;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
-use TeraBlaze\Psr7\Response as Psr7Response;
+use Laminas\HttpHandlerRunner\Emitter\SapiStreamEmitter;
+use Psr\Http\Message\ResponseInterface;
+use Terablaze\Psr7\Response as Psr7Response;
 
 class Response extends Psr7Response
 {
@@ -81,7 +85,7 @@ class Response extends Psr7Response
         parent::__construct($status, $headers, $body, $version, $reason);
     }
 
-    public function withCookie(Cookie $cookie): self
+    public function withCookie(Cookie $cookie): static
     {
         $new = clone $this;
         $new = $new->withAddedHeader('Set-Cookie', (string) $cookie);
@@ -209,8 +213,31 @@ class Response extends Psr7Response
     public function send()
     {
 //        $unsafeOutput = ob_get_clean();
-//        $new = $this->withBody(\TeraBlaze\Psr7\Stream::create($unsafeOutput . (string)$this->getBody()));
+//        $new = $this->withBody(\Terablaze\Psr7\Stream::create($unsafeOutput . (string)$this->getBody()));
 //        return (new SapiEmitter())->emit($new);
-        return (new SapiEmitter())->emit($this);
+        $sapiStreamEmitter = new SapiStreamEmitter();
+        $conditionalEmitter = new class ($sapiStreamEmitter) implements EmitterInterface {
+            private $emitter;
+
+            public function __construct(EmitterInterface $emitter)
+            {
+                $this->emitter = $emitter;
+            }
+
+            public function emit(ResponseInterface $response) : bool
+            {
+                if (! $response->hasHeader('Content-Disposition')
+                    && ! $response->hasHeader('Content-Range')
+                ) {
+                    return false;
+                }
+                return $this->emitter->emit($response);
+            }
+        };
+
+        $stack = new EmitterStack();
+        $stack->push(new SapiEmitter());
+        $stack->push($conditionalEmitter);
+        return $stack->emit($this);
     }
 }

@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler;
+namespace Terablaze\ErrorHandler;
 
 use ErrorException;
 use Exception;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Exception\FatalError;
-use TeraBlaze\Core\Kernel\Kernel;
+use Terablaze\Container\Container;
+use Terablaze\Core\Exception\FatalError;
+use Terablaze\Core\Kernel\Kernel;
 use Throwable;
 
 class HandleExceptions
@@ -165,14 +165,6 @@ class HandleExceptions
      */
     protected function getExceptionHandler()
     {
-        try {
-            $container = $this->kernel->getContainer();
-        } catch (Exception $e) {
-            $container = Container::getContainer();
-        }
-        return $container->make(ExceptionHandlerInterface::class, [
-            'class' => ExceptionHandler::class,
-            'arguments' => [$container, $this->kernel->isDebug()]
-        ]);
+        return $this->kernel->getExceptionHandler();
     }
 }

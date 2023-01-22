@@ -1,9 +1,10 @@
 <?php
 
-namespace TeraBlaze\Validation;
+namespace Terablaze\Validation;
 
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\Helpers;
+use Terablaze\Support\StringMethods;
 
 class ValidationData
 {
@@ -40,11 +41,11 @@ class ValidationData
             return $data;
         }
 
-        return dataSet($data, $field, null, true);
+        return Helpers::dataSet($data, $field, null, true);
     }
 
     /**
-     * Get all of the exact field values for a given wildcard field.
+     * Get all the exact field values for a given wildcard field.
      *
      * @param  array  $masterData
      * @param  array  $data

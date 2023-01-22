@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler;
+namespace Terablaze\ErrorHandler;
 
 use ReflectionException;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Collection\Exceptions\TypeException;
-use TeraBlaze\View\View;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\View\View;
 
 class RegisterErrorViewPaths
 {

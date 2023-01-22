@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Support;
+namespace Terablaze\Support;
 
 class NamespacedItemResolver
 {

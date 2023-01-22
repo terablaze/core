@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Console;
+namespace Terablaze\Console;
 
 use Exception;
 use ReflectionException;
@@ -11,11 +11,14 @@ use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Kernel\KernelInterface;
+use Symfony\Component\Console\Terminal;
+use Terablaze\Container\Container;
+use Terablaze\Core\Kernel\KernelInterface;
 
 abstract class Command extends SymfonyCommand
 {
+    use CallsCommands;
+
     protected Container $container;
 
     protected KernelInterface $kernel;
@@ -30,13 +33,19 @@ abstract class Command extends SymfonyCommand
     protected $io;
 
     /**
+     * An instance of Symfony's console terminal.
+     */
+    protected Terminal $terminal;
+
+    /**
      * @throws ReflectionException
      */
-    public function __construct(string $name = null)
+    public function __construct(string $name = null, Terminal$terminal = null)
     {
         parent::__construct($name);
         $this->container = Container::getContainer();
         $this->kernel = kernel();
+        $this->terminal = $terminal ?? new Terminal();
     }
 
     public function getKernel(): KernelInterface
@@ -52,6 +61,7 @@ abstract class Command extends SymfonyCommand
         if (!$helper->ask($this->input, $this->output, $question)) {
             return Command::SUCCESS;
         }
+        return Command::FAILURE;
     }
 
     protected function configure()
@@ -74,14 +84,7 @@ abstract class Command extends SymfonyCommand
         $this->input = $input;
         $this->output = $output;
         $this->io = new SymfonyStyle($input, $output);
-        return $this->handle() ?? self::SUCCESS;
-    }
-
-    /**
-     * @return int
-     */
-    protected function handle()
-    {
+        return $this->container->call([$this, 'handle']) ?? self::SUCCESS;
     }
 
     /**
@@ -113,6 +116,27 @@ abstract class Command extends SymfonyCommand
     }
 
     /**
+     * Resolve the console command instance for the given command.
+     *
+     * @param  \Symfony\Component\Console\Command\Command|string  $command
+     * @return \Symfony\Component\Console\Command\Command
+     */
+    protected function resolveCommand($command)
+    {
+        if (! class_exists($command)) {
+            return $this->getApplication()->find($command);
+        }
+
+        $command = $this->container->make($command);
+
+        if ($command instanceof SymfonyCommand) {
+            $command->setApplication($this->getApplication());
+        }
+
+        return $command;
+    }
+
+    /**
      * Get the console command arguments.
      *
      * @return array
@@ -130,5 +154,25 @@ abstract class Command extends SymfonyCommand
     protected function getOptions()
     {
         return [];
+    }
+
+    /**
+     * Get a console command argument.
+     * @param string $argument
+     * @return mixed
+     */
+    protected function getArgument(string $argument)
+    {
+        return $this->getInput()->getArgument($argument);
+    }
+
+    /**
+     * Get a console command option.
+     * @param string $option
+     * @return mixed
+     */
+    protected function getOption(string $option)
+    {
+        return $this->getInput()->getOption($option);
     }
 }

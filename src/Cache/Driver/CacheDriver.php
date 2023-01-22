@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Cache\Driver;
+namespace Terablaze\Cache\Driver;
 
-use TeraBlaze\Cache\Exception\ArgumentException;
+use Terablaze\Cache\Exception\InvalidArgumentException;
 
 abstract class CacheDriver implements CacheDriverInterface
 {
@@ -35,12 +35,12 @@ abstract class CacheDriver implements CacheDriverInterface
      *
      * @param mixed $key Key to check.
      * @return void
-     * @throws ArgumentException When the key is not valid.
+     * @throws InvalidArgumentException When the key is not valid.
      */
     protected function ensureValidKey($key): void
     {
         if (!is_string($key) || strlen($key) === 0) {
-            throw new ArgumentException('A cache key must be a non-empty string.');
+            throw new InvalidArgumentException('A cache key must be a non-empty string.');
         }
     }
 
@@ -50,12 +50,12 @@ abstract class CacheDriver implements CacheDriverInterface
      * @param iterable $iterable The iterable to check.
      * @param string $check Whether to check keys or values.
      * @return void
-     * @throws ArgumentException
+     * @throws InvalidArgumentException
      */
     protected function ensureValidType($iterable, string $check = self::CHECK_VALUE): void
     {
         if (!is_iterable($iterable)) {
-            throw new ArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'A cache %s must be either an array or a Traversable.',
                 $check === self::CHECK_VALUE ? 'key set' : 'set'
             ));
@@ -77,7 +77,7 @@ abstract class CacheDriver implements CacheDriverInterface
      * @param mixed $default Default value to return for keys that do not exist.
      * @return iterable A list of key value pairs.
      * Cache keys that do not exist or are stale will have $default as value.
-     * @throws ArgumentException If $keys is neither an array nor a Traversable,
+     * @throws InvalidArgumentException If $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
     public function getMultiple($keys, $default = null): iterable
@@ -100,7 +100,7 @@ abstract class CacheDriver implements CacheDriverInterface
      *   the driver supports TTL then the library may set a default value
      *   for it or let the driver take care of that.
      * @return bool True on success and false on failure.
-     * @throws ArgumentException If $values is neither an array nor a Traversable,
+     * @throws InvalidArgumentException If $values is neither an array nor a Traversable,
      *   or if any of the $values are not a legal value.
      */
     public function setMultiple($values, $ttl = null): bool
@@ -125,7 +125,7 @@ abstract class CacheDriver implements CacheDriverInterface
      *
      * @param iterable $keys A list of string-based keys to be deleted.
      * @return bool True if the items were successfully removed. False if there was an error.
-     * @throws ArgumentException If $keys is neither an array nor a Traversable,
+     * @throws InvalidArgumentException If $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
     public function deleteMultiple($keys): bool
@@ -150,7 +150,7 @@ abstract class CacheDriver implements CacheDriverInterface
      *
      * @param string $key the key passed over
      * @return string Prefixed key with potentially unsafe characters replaced.
-     * @throws ArgumentException If key's value is invalid.
+     * @throws InvalidArgumentException If key's value is invalid.
      */
     protected function fixKey($key): string
     {

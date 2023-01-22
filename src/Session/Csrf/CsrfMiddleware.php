@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Csrf;
+namespace Terablaze\Session\Csrf;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TeraBlaze\Session\Flash\FlashMessageMiddleware;
-use TeraBlaze\Session\Flash\FlashMessagesInterface;
-use TeraBlaze\Session\SessionInterface;
-use TeraBlaze\Session\SessionMiddleware;
+use Terablaze\Session\Flash\FlashMessageMiddleware;
+use Terablaze\Session\Flash\FlashMessagesInterface;
+use Terablaze\Session\SessionInterface;
+use Terablaze\Session\SessionMiddleware;
 
 /**
  * Injects a CSRF guard as a request attribute.

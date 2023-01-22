@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
 use function preg_replace;
 use function strpos;

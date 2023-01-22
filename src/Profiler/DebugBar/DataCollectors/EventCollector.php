@@ -1,12 +1,12 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\TimeDataCollector;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\EventDispatcher\ListenerProvider;
-use TeraBlaze\Profiler\DebugBar\DataFormatter\SimpleFormatter;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\EventDispatcher\ListenerProvider;
+use Terablaze\Profiler\DebugBar\DataFormatter\SimpleFormatter;
+use Terablaze\Support\StringMethods;
 
 class EventCollector extends TimeDataCollector
 {
@@ -79,7 +79,7 @@ class EventCollector extends TimeDataCollector
     {
         $data = [];
         foreach ($params as $key => $value) {
-            if (is_object($value) && StringMethods::is('TeraBlaze\*\Events\*', get_class($value))) {
+            if (is_object($value) && StringMethods::is('Terablaze\*\Events\*', get_class($value))) {
                 $value =  $this->prepareParams(get_object_vars($value));
             }
             $data[$key] = htmlentities($this->getDataFormatter()->formatVar($value), ENT_QUOTES, 'UTF-8', false);

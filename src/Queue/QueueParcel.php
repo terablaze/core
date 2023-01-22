@@ -1,204 +1,302 @@
 <?php
 
-namespace TeraBlaze\Queue;
+namespace Terablaze\Queue;
 
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\Queue\Exception\ArgumentException;
+use Terablaze\Queue\Connector\DatabaseConnector;
+use Terablaze\Queue\Connector\NullConnector;
+use Terablaze\Queue\Connector\SyncConnector;
+use Terablaze\Console\Application;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\Queue\Console\Command;
+use Terablaze\Queue\Failed\DatabaseFailedJobProvider;
+use Terablaze\Queue\Failed\DatabaseUuidFailedJobProvider;
+use Terablaze\Queue\Failed\NullFailedJobProvider;
+use Terablaze\SerializableClosure\SerializableClosure;
+use Terablaze\Support\Helpers;
 
 class QueueParcel extends Parcel implements ParcelInterface
 {
+    use SerializesAndRestoresModelIdentifiers;
+
+    protected QueueManager $queueManager;
+
+    /**
+     * The commands to be registered.
+     *
+     * @var array
+     */
+    protected $commands = [
+        Command\BatchesTableCommand::class,
+        Command\ClearCommand::class,
+        Command\FailedTableCommand::class,
+        Command\FlushFailedCommand::class,
+        Command\ForgetFailedCommand::class,
+        Command\ListenCommand::class,
+        Command\ListFailedCommand::class,
+        Command\MonitorCommand::class,
+        Command\PruneBatchesCommand::class,
+        Command\PruneFailedJobsCommand::class,
+        Command\RestartCommand::class,
+        Command\RetryBatchCommand::class,
+        Command\RetryCommand::class,
+        Command\TableCommand::class,
+        Command\WorkCommand::class,
+    ];
+
     public function boot(): void
     {
-        $parsed = loadConfig('queue');
+        Helpers::loadConfig('queue');
 
-        foreach ($parsed->get('queue.connections') as $key => $conf) {
-            $this->initialize($key, $conf);
-        }
+        $this->configureSerializableClosureUses();
+
+        $this->registerManager();
+        $this->registerConnection();
+        $this->registerWorker();
+        $this->registerListener();
+        $this->registerFailedJobServices();
     }
 
     /**
-     * @throws ArgumentException
-     * @throws \TeraBlaze\Container\Exception\ServiceNotFoundException
-     * @throws \ReflectionException
+     * @param string $confKey
+     * @param array $conf
+     * @return void
      */
     private function initialize(string $confKey, array $conf): void
     {
         $type = $conf['type'] ?? $conf['driver'] ?? '';
 
-        $connectionName = "queue.connection.$confKey";
+        $queueName = "queue.$confKey";
         if (empty($type)) {
-            throw new ArgumentException("Database driver type not set");
+            throw new \InvalidArgumentException("Queue driver type not set");
         }
 
         switch ($type) {
-            case "mysql":
-            case "mysqli":
-                $queueConnection = (new MysqlConnection($conf))
-                    ->setName($confKey)->setEventDispatcher($this->dispatcher);
+            case "database":
+                $queueConnection = new DatabaseConnector($this->container);
                 break;
             default:
-                throw new ArgumentException(sprintf("Invalid or unimplemented queue connection type: %s", $type));
+                throw new \InvalidArgumentException(sprintf("Invalid or unimplemented queue driver type: %s", $type));
         }
-        $this->container->registerServiceInstance($connectionName, $dbConnection);
-        if (getConfig('database.default') === $confKey) {
-            if ($dbConnection instanceof ConnectorInterface) {
-                $this->container->setAlias(ConnectorInterface::class, $connectionName);
-                return;
-            }
-            $this->container->setAlias(ConnectionInterface::class, $connectionName);
-            $this->container->setAlias('database.connection', $connectionName);
-            $this->container->setAlias('database.connection.default', $connectionName);
+        $queue = $queueConnection->connect($conf)->setConnectionName($confKey);
+        $this->container->registerServiceInstance($queueName, $queue);
+        if (getConfig('queue.default') === $confKey) {
+            $this->container->setAlias(QueueInterface::class, $queueName);
+            $this->container->setAlias('queue', $queueName);
+            $this->container->setAlias('queue.default', $queueName);
         }
     }
 
     /**
-     * @throws ReflectionException
+     * @param Application $application
+     * @return void
+     * @throws \ReflectionException
      */
     public function registerCommands(Application $application)
     {
-        if (! $this->getKernel()->inConsole()) {
-            return;
-        }
-        $this->registerRepository();
+//        if (!$this->getKernel()->inConsole()) {
+//            return;
+//        }
 
-        $this->registerMigrator();
-
-        $this->registerCreator();
-
-        $this->registerMigrationCommands($application, $this->commands);
-    }
-
-    /**
-     * Register the migration repository service.
-     *
-     * @return void
-     */
-    protected function registerRepository()
-    {
-        $this->container->make(MigrationRepository::class);
-    }
-
-    /**
-     * Register the migrator service.
-     *
-     * @return void
-     */
-    protected function registerMigrator()
-    {
-        // The migrator is responsible for actually running and rollback the migration
-        // files in the application. We'll pass in our database connection resolver
-        // so the migrator can resolve any of these connections when it needs to.
-        $this->container->make(Migrator::class);
-    }
-
-    /**
-     * Register the migration creator.
-     *
-     * @return void
-     * @throws ReflectionException
-     */
-    protected function registerCreator()
-    {
-        $this->container->make(MigrationCreator::class, [
-            'class' => MigrationCreator::class,
-            'arguments' => [
-                MigrationCreator::class,
-                $this->getKernel()->getProjectDir() . DIRECTORY_SEPARATOR . 'stubs',
-            ]
-        ]);
-    }
-
-    /**
-     * Register the given commands.
-     *
-     * @param array $commands
-     * @return void
-     */
-    protected function registerMigrationCommands(Application $application, array $commands)
-    {
-        foreach ($commands as $command) {
+        foreach ($this->commands as $command) {
             $application->add($this->container->make($command));
         }
     }
 
-    /**
-     * Register the command.
+    /*
+     * Configure serializable closures uses.
      *
      * @return void
      */
-    protected function registerMigrateCommand()
+    protected function configureSerializableClosureUses()
     {
-        return $this->container->make(MigrateCommand::class);
+        SerializableClosure::transformUseVariablesUsing(function ($data) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->getSerializedPropertyValue($value);
+            }
+
+            return $data;
+        });
+
+        SerializableClosure::resolveUseVariablesUsing(function ($data) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->getRestoredPropertyValue($value);
+            }
+
+            return $data;
+        });
     }
 
-//    /**
-//     * Register the command.
-//     *
-//     * @return void
-//     */
-//    protected function registerMigrateFreshCommand()
-//    {
-//        return $this->container->make(FreshCommand::class);
-//    }
-
-//    /**
-//     * Register the command.
-//     *
-//     * @return void
-//     */
-//    protected function registerMigrateInstallCommand()
-//    {
-//        return $this->container->make(InstallCommand::class);
-//    }
-
     /**
-     * Register the command.
+     * Register the queue manager.
      *
      * @return void
      */
-    protected function registerMigrateMakeCommand()
+    public function registerManager()
     {
-        return $this->container->make(MigrateMakeCommand::class);
+        $this->container->registerServiceInstance(
+            'queue',
+            $this->queueManager = Helpers::tap(new QueueManager($this->container), function ($manager) {
+                $this->registerConnectors($manager);
+            })
+        );
+        $this->container->setAlias(FactoryInterface::class, 'queue');
     }
 
-//    /**
-//     * Register the command.
-//     *
-//     * @return void
-//     */
-//    protected function registerMigrateRefreshCommand()
-//    {
-//        return $this->container->make(RefreshCommand::class);
-//    }
-
-//    /**
-//     * Register the command.
-//     *
-//     * @return void
-//     */
-//    protected function registerMigrateResetCommand()
-//    {
-//        return $this->container->make(ResetCommand::class);
-//    }
-
     /**
-     * Register the command.
+     * Register the default queue connection binding.
      *
      * @return void
      */
-    protected function registerMigrateRollbackCommand()
+    protected function registerConnection()
     {
-        return $this->container->make(RollbackCommand::class);
+        $this->container->registerServiceInstance('queue.connection', $this->queueManager->connection());
     }
 
-//    /**
-//     * Register the command.
-//     *
-//     * @return void
-//     */
-//    protected function registerMigrateStatusCommand()
-//    {
-//        return $this->container->make(StatusCommand::class);
-//    }
+    /**
+     * Register the connectors on the queue manager.
+     *
+     * @param QueueManager $manager
+     * @return void
+     */
+    public function registerConnectors($manager)
+    {
+        $this->registerNullConnector($manager);
+        $this->registerSyncConnector($manager);
+        $this->registerDatabaseConnector($manager);
+    }
+
+    /**
+     * Register the Null queue connector.
+     *
+     * @param QueueManager $manager
+     * @return void
+     */
+    protected function registerNullConnector($manager)
+    {
+        $manager->addConnector('null', function () {
+            return new NullConnector();
+        });
+    }
+
+    /**
+     * Register the Sync queue connector.
+     *
+     * @param QueueManager $manager
+     * @return void
+     */
+    protected function registerSyncConnector($manager)
+    {
+        $manager->addConnector('sync', function () {
+            return new SyncConnector();
+        });
+    }
+
+    /**
+     * Register the database queue connector.
+     *
+     * @param QueueManager $manager
+     * @return void
+     */
+    protected function registerDatabaseConnector($manager)
+    {
+        $manager->addConnector('database', function () {
+            return new DatabaseConnector($this->container);
+        });
+    }
+
+    /**
+     * Register the queue worker.
+     *
+     * @return void
+     */
+    protected function registerWorker()
+    {
+        $workerResolver = function () {
+            $isDownForMaintenance = function () {
+                return $this->getKernel()->isDownForMaintenance();
+            };
+
+            $resetScope = function () {
+                // TODO: implement reset scope
+            };
+
+            return new Worker(
+                $this->container->get('queue'),
+                $this->getKernel()->getEventDispatcher(),
+                $this->getKernel()->getExceptionHandler(),
+                $isDownForMaintenance,
+                $resetScope
+            );
+        };
+        $this->container->registerServiceInstance('queue.worker', $workerResolver());
+    }
+
+    /**
+     * Register the queue listener.
+     *
+     * @return void
+     */
+    protected function registerListener()
+    {
+        $this->container->registerServiceInstance('queue.listener', new Listener($this->getKernel()->getProjectDir()));
+    }
+
+    /**
+     * Register the failed job services.
+     *
+     * @return void
+     */
+    protected function registerFailedJobServices()
+    {
+        $failerResolver = function () {
+            $config = $this->getKernel()->getConfig()->get('queue.failed', []);
+
+            if (
+                array_key_exists('driver', $config) &&
+                (is_null($config['driver']) || $config['driver'] === 'null')
+            ) {
+                return new NullFailedJobProvider();
+            }
+
+            if (isset($config['driver']) && $config['driver'] === 'database-uuids') {
+                return $this->databaseUuidFailedJobProvider($config);
+            } elseif (isset($config['table'])) {
+                return $this->databaseFailedJobProvider($config);
+            } else {
+                return new NullFailedJobProvider();
+            }
+        };
+        $this->container->registerServiceInstance('queue.failer', $failerResolver());
+    }
+
+    /**
+     * Create a new database failed job provider.
+     *
+     * @param array $config
+     * @return DatabaseFailedJobProvider
+     */
+    protected function databaseFailedJobProvider($config)
+    {
+        return new DatabaseFailedJobProvider(
+            $this->container->get('database.connection.' . $config['database']),
+            $config['database'],
+            $config['table']
+        );
+    }
+
+    /**
+     * Create a new database failed job provider that uses UUIDs as IDs.
+     *
+     * @param array $config
+     * @return DatabaseUuidFailedJobProvider
+     */
+    protected function databaseUuidFailedJobProvider($config)
+    {
+        return new DatabaseUuidFailedJobProvider(
+            $this->container->get('database.connection.' . $config['database']),
+            $config['database'],
+            $config['table']
+        );
+    }
 }

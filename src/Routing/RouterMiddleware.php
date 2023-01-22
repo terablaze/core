@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Routing;
+namespace Terablaze\Routing;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Kernel\Handler;
-use TeraBlaze\HttpBase\Request;
+use Terablaze\Container\Container;
+use Terablaze\Core\Kernel\Handler;
+use Terablaze\HttpBase\Request;
 
 class RouterMiddleware implements MiddlewareInterface
 {
@@ -27,8 +27,8 @@ class RouterMiddleware implements MiddlewareInterface
      * @return ResponseInterface
      * @throws Exception\ImplementationException
      * @throws \ReflectionException
-     * @throws \TeraBlaze\Container\Exception\ContainerException
-     * @throws \TeraBlaze\Container\Exception\ParameterNotFoundException
+     * @throws \Terablaze\Container\Exception\ContainerException
+     * @throws \Terablaze\Container\Exception\ParameterNotFoundException
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

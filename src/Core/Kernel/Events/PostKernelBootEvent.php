@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel\Events;
+namespace Terablaze\Core\Kernel\Events;
 
-use TeraBlaze\Core\Kernel\HttpKernelInterface;
-use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\EventDispatcher\Event;
-use TeraBlaze\HttpBase\Request;
+use Terablaze\Core\Kernel\HttpKernelInterface;
+use Terablaze\Core\Kernel\KernelInterface;
+use Terablaze\EventDispatcher\Event;
+use Terablaze\HttpBase\Request;
 
 class PostKernelBootEvent extends Event
 {

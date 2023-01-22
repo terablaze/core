@@ -1,15 +1,15 @@
 <?php
 
-namespace TeraBlaze\EventDispatcher;
+namespace Terablaze\EventDispatcher;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Support\ArrayMethods;
 
 /**
  * Class Dispatcher
- * @package TeraBlaze\Events
+ * @package Terablaze\Events
  */
 class Dispatcher implements EventDispatcherInterface
 {

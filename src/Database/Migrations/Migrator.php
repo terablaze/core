@@ -1,22 +1,22 @@
 <?php
 
-namespace TeraBlaze\Database\Migrations;
+namespace Terablaze\Database\Migrations;
 
 use Symfony\Component\Console\Output\OutputInterface;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Events\MigrationEnded;
-use TeraBlaze\Database\Events\MigrationsEnded;
-use TeraBlaze\Database\Events\MigrationsStarted;
-use TeraBlaze\Database\Events\MigrationStarted;
-use TeraBlaze\Database\Events\NoPendingMigrations;
-use TeraBlaze\Database\Exception\Exception;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\Filesystem\Files;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Events\MigrationEnded;
+use Terablaze\Database\Events\MigrationsEnded;
+use Terablaze\Database\Events\MigrationsStarted;
+use Terablaze\Database\Events\MigrationStarted;
+use Terablaze\Database\Events\NoPendingMigrations;
+use Terablaze\Database\Exception\Exception;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Filesystem\Files;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
 
 class Migrator
 {

@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Routing\Generator;
+namespace Terablaze\Routing\Generator;
 
-use TeraBlaze\Collection\Exceptions\TypeException;
-use TeraBlaze\Routing\Exception as Exception;
-use TeraBlaze\Routing\Exception\RouteNotFoundException;
+use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\Routing\Exception as Exception;
+use Terablaze\Routing\Exception\RouteNotFoundException;
 
 /**
  * Interface UrlGeneratorInterface
- * @package TeraBlaze\Routing\Generator
+ * @package Terablaze\Routing\Generator
  */
 interface UrlGeneratorInterface
 {

@@ -1,0 +1,53 @@
+version: "3.8"
+
+networks:
+  terablaze:
+
+services:
+  php:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: php
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - 9000:9000
+    networks:
+      - terablaze
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - 80:80 # HTTP.
+      - 443:443 # HTTPS.
+    volumes:
+      - ./:/var/www/html
+      - ./storage/nginx/:/etc/nginx/conf.d/
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - terablaze
+
+  mysql:
+    image: mysql:8
+    container_name: terablaze.mysql
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: terablaze_core
+      MYSQL_USER: tera
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - terablaze

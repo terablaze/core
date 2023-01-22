@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\View\Engine;
+namespace Terablaze\View\Engine;
 
-use TeraBlaze\View\View;
+use Terablaze\View\View;
 
 trait HasManagerTrait
 {

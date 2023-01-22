@@ -1,28 +1,28 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel;
+namespace Terablaze\Core\Kernel;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Controller\ControllerInterface;
-use TeraBlaze\Core\Kernel\Events\ExceptionEvent;
-use TeraBlaze\Core\Kernel\Events\FinishRequestEvent;
-use TeraBlaze\Core\Kernel\Events\RequestEvent;
-use TeraBlaze\Core\Kernel\Events\ResponseEvent;
-use TeraBlaze\Core\Kernel\Events\TerminateEvent;
-use TeraBlaze\ErrorHandler\Exception\Http\BadRequestHttpException;
-use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
-use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\HttpBase\Exception\RequestExceptionInterface;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Routing\Events\PostControllerEvent;
-use TeraBlaze\Routing\Events\PreControllerEvent;
-use TeraBlaze\Routing\Exception\ImplementationException;
-use TeraBlaze\Routing\Route;
+use Terablaze\Container\Container;
+use Terablaze\Controller\ControllerInterface;
+use Terablaze\Core\Kernel\Events\ExceptionEvent;
+use Terablaze\Core\Kernel\Events\FinishRequestEvent;
+use Terablaze\Core\Kernel\Events\RequestEvent;
+use Terablaze\Core\Kernel\Events\ResponseEvent;
+use Terablaze\Core\Kernel\Events\TerminateEvent;
+use Terablaze\ErrorHandler\Exception\Http\BadRequestHttpException;
+use Terablaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
+use Terablaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\HttpBase\Exception\RequestExceptionInterface;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
+use Terablaze\Routing\Events\PostControllerEvent;
+use Terablaze\Routing\Events\PreControllerEvent;
+use Terablaze\Routing\Exception\ImplementationException;
+use Terablaze\Routing\Route;
 
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {

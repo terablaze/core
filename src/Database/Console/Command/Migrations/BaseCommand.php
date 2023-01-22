@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\Console\Command\Migrations;
+namespace Terablaze\Database\Console\Command\Migrations;
 
-use TeraBlaze\Console\Command;
-use TeraBlaze\Core\Parcel\ParcelInterface;
+use Terablaze\Console\Command;
+use Terablaze\Core\Parcel\ParcelInterface;
 
 class BaseCommand extends Command
 {

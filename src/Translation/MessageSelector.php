@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Translation;
+namespace Terablaze\Translation;
 
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Support\StringMethods;
 
 class MessageSelector
 {

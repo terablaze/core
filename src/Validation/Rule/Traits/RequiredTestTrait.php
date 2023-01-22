@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule\Traits;
+namespace Terablaze\Validation\Rule\Traits;
 
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Support\ArrayMethods;
 
 trait RequiredTestTrait
 {

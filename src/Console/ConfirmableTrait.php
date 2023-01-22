@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Console;
+namespace Terablaze\Console;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,7 +33,7 @@ trait ConfirmableTrait
                 return true;
             }
 
-            $this->output->writeln("<comment>$warning</comment>");
+            $this->io->comment($warning);
 
             $confirmed = $this->confirm('Do you really wish to run this command?');
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Validation\Exception;
+namespace Terablaze\Validation\Exception;
 
 use Exception;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Validation\Validation;
+use Terablaze\HttpBase\Response;
+use Terablaze\Validation\Validation;
 
 class ValidationException extends Exception
 {

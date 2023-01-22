@@ -1,12 +1,12 @@
 <?php
 
-namespace TeraBlaze\Filesystem;
+namespace Terablaze\Filesystem;
 
 use ErrorException;
 use FilesystemIterator;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Filesystem\Exception\FileNotFoundException;
-use TeraBlaze\Support\Traits\Macroable;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Filesystem\Exception\FileNotFoundException;
+use Terablaze\Support\Traits\Macroable;
 use RuntimeException;
 use SplFileObject;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;

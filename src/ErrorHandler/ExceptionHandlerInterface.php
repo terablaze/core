@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler;
+namespace Terablaze\ErrorHandler;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
 use Throwable;
 
 interface ExceptionHandlerInterface

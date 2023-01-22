@@ -2,7 +2,7 @@
 
 // Laravel
 
-namespace TeraBlaze\Support;
+namespace Terablaze\Support;
 
 /**
  * ProcessUtils is a bunch of utility methods.

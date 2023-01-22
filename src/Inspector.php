@@ -1,15 +1,15 @@
 <?php
 
-namespace TeraBlaze;
+namespace Terablaze;
 
 use ReflectionClass;
 use ReflectionException;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
 
 /**
  * Class Inspector
- * @package TeraBlaze
+ * @package Terablaze
  *
  * handles inspection of class, method and property metas
  */

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
 class AlphaRule extends Rule implements RuleInterface
 {

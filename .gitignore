@@ -13,3 +13,4 @@ composer.lock
 /public
 /tests/Local
 .phpunit.result.cache
+*DS_Store

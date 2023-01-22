@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel;
+namespace Terablaze\Core\Kernel;
 
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
@@ -9,9 +9,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use RuntimeException;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Routing\RouterMiddleware;
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Container\Container;
+use Terablaze\Routing\RouterMiddleware;
+use Terablaze\Support\ArrayMethods;
 use function _PHPStan_76800bfb5\RingCentral\Psr7\str;
 
 class Handler implements RequestHandlerInterface

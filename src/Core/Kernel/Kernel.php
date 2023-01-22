@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel;
+namespace Terablaze\Core\Kernel;
 
 use Exception;
 use LogicException;
@@ -11,20 +11,26 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use ReflectionException;
-use TeraBlaze\Config\Config;
-use TeraBlaze\Config\ConfigInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Container\Exception\ServiceNotFoundException;
-use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
-use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
-use TeraBlaze\ErrorHandler\HandleExceptions;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\EventDispatcher\ListenerProvider;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\Cache\Driver\CacheDriverInterface;
+use Terablaze\Config\Config;
+use Terablaze\Config\ConfigInterface;
+use Terablaze\Container\Container;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Container\Exception\ServiceNotFoundException;
+use Terablaze\Core\Kernel\Events\PostKernelBootEvent;
+use Terablaze\Core\MaintenanceMode\CacheBasedMaintenanceMode;
+use Terablaze\Core\MaintenanceMode\FileBasedMaintenanceMode;
+use Terablaze\Core\MaintenanceMode\MaintenanceModeInterface;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\ErrorHandler\Exception\Http\HttpException;
+use Terablaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+use Terablaze\ErrorHandler\ExceptionHandler;
+use Terablaze\ErrorHandler\ExceptionHandlerInterface;
+use Terablaze\ErrorHandler\HandleExceptions;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\EventDispatcher\ListenerProvider;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
 
 abstract class Kernel implements KernelInterface, RebootableInterface, TerminableInterface
 {
@@ -61,11 +67,20 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     protected ConfigInterface $config;
 
     /**
+     * The array of terminating callbacks.
+     *
+     * @var callable[]
+     */
+    protected $terminatingCallbacks = [];
+
+    /**
      * Indicates if the application is running in the console.
      *
      * @var bool|null
      */
     protected $inConsole;
+
+    protected $exceptionHandler = ExceptionHandler::class;
 
     public function __construct(string $environment, bool $debug)
     {
@@ -149,6 +164,14 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
      */
     public function terminate(Request $request, Response $response): void
     {
+        $index = 0;
+
+        while ($index < count($this->terminatingCallbacks)) {
+            $this->getContainer()->call($this->terminatingCallbacks[$index]);
+
+            $index++;
+        }
+
         if (false === $this->booted) {
             return;
         }
@@ -194,7 +217,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     {
         if (class_exists(Factory::class)) {
             Factory::setFactory(new \Middlewares\Utils\FactoryDiscovery(
-                \TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory::class,
+                \Terablaze\HttpBase\Core\Psr7\Factory\Psr17Factory::class,
             ));
         }
         $this->initialRequest = $request;
@@ -271,6 +294,34 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     public function getEnvironment(): string
     {
         return $this->environment;
+    }
+
+    /**
+     * Get an instance of the maintenance mode manager implementation.
+     *
+     * @return MaintenanceModeInterface
+     */
+    public function maintenanceMode()
+    {
+        switch ($this->config->get('app.maintenance.driver')) {
+            case "cache":
+                /** @var CacheDriverInterface $cache */
+                $cache = $this->getContainer()->get(CacheDriverInterface::class);
+                return new CacheBasedMaintenanceMode($cache, "terablaze.core.down");
+            case "file":
+            default:
+                return $this->getContainer()->make(FileBasedMaintenanceMode::class);
+        }
+    }
+
+    /**
+     * Determine if the application is currently down for maintenance.
+     *
+     * @return bool
+     */
+    public function isDownForMaintenance()
+    {
+        return $this->maintenanceMode()->active();
     }
 
     /**
@@ -430,7 +481,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
                 throw new LogicException(sprintf('Trying to register two parcels with the same name "%s".', $name));
             }
             $this->parcels[$name] = $parcel;
-//            $parcel->build($this->container);
+            $parcel->build($this->container);
 //            $this->container->registerServiceInstance($name, $parcel);
         }
 
@@ -508,9 +559,6 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function getEventDispatcher(): EventDispatcherInterface
     {
-        if ($this->dispatcher instanceof EventDispatcherInterface) {
-            $this->bootEventDispatcher();
-        }
         return $this->dispatcher;
     }
 
@@ -532,5 +580,36 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         }
 
         throw new HttpException($code, $message, null, $headers);
+    }
+
+    /**
+     * Get an instance of the exception handler.
+     *
+     * @return ExceptionHandlerInterface
+     */
+    public function getExceptionHandler()
+    {
+        try {
+            $container = $this->getContainer();
+        } catch (Exception $e) {
+            $container = Container::getContainer();
+        }
+        return $container->make(ExceptionHandlerInterface::class, [
+            'class' => $this->exceptionHandler,
+            'arguments' => [$container, $this->isDebug()]
+        ]);
+    }
+
+    /**
+     * Register a terminating callback with the application.
+     *
+     * @param  callable|string  $callback
+     * @return $this
+     */
+    public function terminating($callback)
+    {
+        $this->terminatingCallbacks[] = $callback;
+
+        return $this;
     }
 }

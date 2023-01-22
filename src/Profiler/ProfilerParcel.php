@@ -1,28 +1,28 @@
 <?php
 
-namespace TeraBlaze\Profiler;
+namespace Terablaze\Profiler;
 
 use DebugBar\DataCollector\TimeDataCollector;
 use DebugBar\DebugBarException;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use ReflectionException;
-use TeraBlaze\Config\ConfigInterface;
-use TeraBlaze\Config\Exception\InvalidContextException;
-use TeraBlaze\Console\Application;
-use TeraBlaze\Core\Kernel\Events\PostKernelBootEvent;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\EventDispatcher\ListenerProvider;
-use TeraBlaze\Profiler\Console\Command\ClearCommand;
-use TeraBlaze\Profiler\DebugBar\DebugbarMiddleware;
-use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
+use Terablaze\Config\ConfigInterface;
+use Terablaze\Config\Exception\InvalidContextException;
+use Terablaze\Console\Application;
+use Terablaze\Core\Kernel\Events\PostKernelBootEvent;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\EventDispatcher\ListenerProvider;
+use Terablaze\Profiler\Console\Command\ClearCommand;
+use Terablaze\Profiler\DebugBar\DebugbarMiddleware;
+use Terablaze\Profiler\DebugBar\TerablazeDebugbar;
 
 use function in_array;
 use function ini_set;
 
 class ProfilerParcel extends Parcel implements ParcelInterface
 {
-    /** @var TeraBlazeDebugbar $debugbar */
+    /** @var TerablazeDebugbar $debugbar */
     private $debugbar;
 
     public function boot(): void

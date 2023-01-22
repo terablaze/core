@@ -1,25 +1,25 @@
 <?php
 
-namespace TeraBlaze\Controller;
+namespace Terablaze\Controller;
 
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionException;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\HttpBase\JsonResponse;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Container\ContainerAwareTrait;
-use TeraBlaze\HttpBase\Traits\ResponseTrait;
-use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
-use TeraBlaze\Routing\RouterInterface;
-use TeraBlaze\Session\Traits\SessionAwareTrait;
-use TeraBlaze\View\Template;
-use TeraBlaze\View\View;
+use Terablaze\Container\Exception\ContainerException;
+use Terablaze\Container\Exception\ParameterNotFoundException;
+use Terablaze\HttpBase\JsonResponse;
+use Terablaze\HttpBase\Response;
+use Terablaze\Container\ContainerAwareTrait;
+use Terablaze\HttpBase\Traits\ResponseTrait;
+use Terablaze\Routing\Generator\UrlGeneratorInterface;
+use Terablaze\Routing\RouterInterface;
+use Terablaze\Session\Traits\SessionAwareTrait;
+use Terablaze\View\Template;
+use Terablaze\View\View;
 
 /**
  * Class AbstractController
- * @package TeraBlaze\AbstractController
+ * @package Terablaze\AbstractController
  */
 abstract class AbstractController implements ControllerInterface
 {

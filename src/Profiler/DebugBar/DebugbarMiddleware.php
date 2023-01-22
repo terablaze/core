@@ -1,17 +1,17 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar;
+namespace Terablaze\Profiler\DebugBar;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TeraBlaze\HttpBase\Request;
+use Terablaze\HttpBase\Request;
 
 class DebugbarMiddleware implements MiddlewareInterface
 {
     /**
-     * @var TeraBlazeDebugbar|null The debugbar
+     * @var TerablazeDebugbar|null The debugbar
      */
     private $debugbar;
 
@@ -24,11 +24,11 @@ class DebugbarMiddleware implements MiddlewareInterface
 
     /**
      * Set the debug bar.
-     * @param TeraBlazeDebugbar|null $debugbar
+     * @param TerablazeDebugbar|null $debugbar
      */
-    public function __construct(TeraBlazeDebugbar $debugbar = null)
+    public function __construct(TerablazeDebugbar $debugbar = null)
     {
-        $this->debugbar = $debugbar ?: new TeraBlazeDebugbar();
+        $this->debugbar = $debugbar ?: new TerablazeDebugbar();
         $this->exclude = getConfig('profiler.debugbar.exclude') ?: [];
     }
 
@@ -52,7 +52,7 @@ class DebugbarMiddleware implements MiddlewareInterface
 
 
 
-    public function getDebugBar(): TeraBlazeDebugbar
+    public function getDebugBar(): TerablazeDebugbar
     {
         return $this->debugbar;
     }

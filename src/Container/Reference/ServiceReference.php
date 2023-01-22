@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Container\Reference;
+namespace Terablaze\Container\Reference;
 
 class ServiceReference extends AbstractReference
 {

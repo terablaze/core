@@ -1,71 +1,46 @@
 <?php
 
-namespace TeraBlaze\Database\Connection;
+namespace Terablaze\Database\Connection;
 
 use PDO;
-use TeraBlaze\Database\Query\MysqlQueryBuilder;
-use TeraBlaze\Database\Schema\MysqlSchema;
+use Terablaze\Database\Query\MysqlQueryBuilder;
+use Terablaze\Database\Schema\MysqlSchema;
 
 class MysqlConnection extends Connection implements ConnectionInterface
 {
     /**
      * Establish a database connection.
      *
-     * @param  array  $config
      * @return \PDO
      */
-    public function connect(array $config)
+    public function connect()
     {
-        $dsn = $this->getDsn($config);
+        $dsn = $this->getDsn($this->config);
 
-        $options = $this->getOptions($config);
+        $options = $this->getOptions($this->config);
 
         // We need to grab the PDO options that should be used while making the brand
         // new connection instance. The PDO options control various aspects of the
         // connection's behavior, and some might be specified by the developers.
-        $connection = $this->createConnection($dsn, $config, $options);
+        $connection = $this->createConnection($dsn, $this->config, $options);
 
-        if (! empty($config['database'])) {
-            $connection->exec("use `{$config['database']}`;");
+        if (! empty($this->config['database'])) {
+            $connection->exec("use `{$this->config['database']}`;");
         }
 
-        $this->configureIsolationLevel($connection, $config);
+        $this->configureIsolationLevel($connection, $this->config);
 
-        $this->configureEncoding($connection, $config);
+        $this->configureEncoding($connection, $this->config);
 
         // Next, we will check to see if a timezone has been specified in this config
         // and if it has we will issue a statement to modify the timezone with the
         // database. Setting this DB timezone is an optional configuration item.
-        $this->configureTimezone($connection, $config);
+        $this->configureTimezone($connection, $this->config);
 
-        $this->setModes($connection, $config);
+        $this->setModes($connection, $this->config);
 
         return $connection;
     }
-
-//    public function __construct(array $config)
-//    {
-//        parent::__construct($config);
-//        [
-//            'host' => $host,
-//            'port' => $port,
-//            'username' => $username,
-//            'password' => $password,
-//        ] = $config;
-//        $database = $config['database'] ?? $config['schema'];
-//
-//        if (empty($host) || empty($database) || empty($username)) {
-//            throw new InvalidArgumentException('Connection incorrectly configured');
-//        }
-//
-//        $this->database = $database;
-//        $this->defaultFetchMode = $config['defaultFetchMode'] ?? PDO::FETCH_ASSOC;
-//
-//        $this->pdo = new PDO("mysql:host={$host};port={$port};dbname={$database}", $username, $password);
-//        foreach ($this->options as $key => $value) {
-//            $this->pdo->setAttribute($key, $value);
-//        }
-//    }
 
     /**
      * Set the connection transaction isolation level.
@@ -244,8 +219,7 @@ class MysqlConnection extends Connection implements ConnectionInterface
 
     public function getTables(): array
     {
-        $statement = $this->pdo->prepare('SHOW TABLES');
-        $statement->execute();
+        $statement = $this->execute('SHOW TABLES');
 
         $results = $statement->fetchAll(PDO::FETCH_NUM);
         $results = array_map(fn($result) => $result[0], $results);
@@ -261,13 +235,11 @@ class MysqlConnection extends Connection implements ConnectionInterface
 
     public function dropTables(): int
     {
-        $statement = $this->pdo->prepare("
+        $statement = $this->execute("
             SELECT CONCAT('DROP TABLE IF EXISTS `', table_name, '`')
             FROM information_schema.tables
             WHERE table_schema = '{$this->database}';
         ");
-
-        $statement->execute();
 
         $dropTableClauses = $statement->fetchAll(PDO::FETCH_NUM);
         $dropTableClauses = array_map(fn($result) => $result[0], $dropTableClauses);
@@ -278,9 +250,7 @@ class MysqlConnection extends Connection implements ConnectionInterface
             'SET FOREIGN_KEY_CHECKS = 1',
         ];
 
-        $statement = $this->pdo->prepare(join(';', $clauses) . ';');
-
-        return $statement->execute();
+        return $this->execute(join(';', $clauses) . ';');
     }
 
     /**

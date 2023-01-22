@@ -1,12 +1,12 @@
 <?php
 
-namespace TeraBlaze\EventDispatcher;
+namespace Terablaze\EventDispatcher;
 
 use Psr\EventDispatcher\StoppableEventInterface;
 
 /**
  * Class EventDispatcher
- * @package TeraBlaze\Events
+ * @package Terablaze\Events
  */
 class Event implements StoppableEventInterface
 {

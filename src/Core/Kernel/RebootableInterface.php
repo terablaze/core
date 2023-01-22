@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel;
+namespace Terablaze\Core\Kernel;
 
 interface RebootableInterface
 {

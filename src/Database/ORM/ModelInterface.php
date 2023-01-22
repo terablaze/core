@@ -1,19 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
 interface ModelInterface
 {
-    public const DATA_TYPES = [
-        'autonumber' => 'autonumber',
-        'text' => 'text',
-        'integer' => 'integer',
-        'decimal' => 'decimal',
-        'boolean' => 'boolean',
-        'bool' => 'bool',
-        'datetime' => 'datetime',
-    ];
-
     public const DATE_TYPES = ['date', 'time', 'datetime', 'timestamp', 'year'];
 
     /**

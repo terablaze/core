@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Exception;
+namespace Terablaze\Session\Exception;
 
 use Psr\Http\Server\MiddlewareInterface;
-use TeraBlaze\Session\Csrf\SessionCsrfGuard;
-use TeraBlaze\Session\SessionMiddleware;
+use Terablaze\Session\Csrf\SessionCsrfGuard;
+use Terablaze\Session\SessionMiddleware;
 use RuntimeException;
 
 use function sprintf;

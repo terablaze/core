@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
-use TeraBlaze\Validation\Rule\Traits\RequiredTestTrait;
+use Terablaze\Validation\Rule\Traits\RequiredTestTrait;
 
 class RequiredWithAllRule extends Rule implements RuleInterface
 {

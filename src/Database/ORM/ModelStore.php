@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Support\ArrayMethods;
 
 class ModelStore
 {

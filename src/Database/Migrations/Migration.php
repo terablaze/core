@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\Migrations;
+namespace Terablaze\Database\Migrations;
 
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Schema\SchemaInterface;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Schema\SchemaInterface;
 
 abstract class Migration
 {

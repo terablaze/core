@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Schema\Field;
+namespace Terablaze\Database\Schema\Field;
 
 abstract class Field
 {

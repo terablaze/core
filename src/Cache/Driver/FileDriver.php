@@ -1,9 +1,15 @@
 <?php
 
-namespace TeraBlaze\Cache\Driver;
+namespace Terablaze\Cache\Driver;
+
+use Terablaze\Cache\Lock\HasCacheLock;
+use Terablaze\Cache\LockProviderInterface;
 
 class FileDriver extends CacheDriver
 {
+    use HasCacheLock;
+
+    /** @var array<string, mixed> */
     private array $cached = [];
 
     public function has($key, bool $fixKey = true): bool
@@ -61,6 +67,20 @@ class FileDriver extends CacheDriver
             return false;
         }
         return true;
+    }
+
+    public function increment(string $key, int $incrementBy = 1)
+    {
+        $raw = $this->read($this->fixKey($key));
+
+        return tap(((int) $raw['data']) + $incrementBy, function ($newValue) use ($key, $raw) {
+            $this->set($key, $newValue, $raw['time'] ?? 0);
+        });
+    }
+
+    public function decrement(string $key, int $decrementBy = 1)
+    {
+        return $this->increment($key, $decrementBy * -1);
     }
 
     public function clear(): bool

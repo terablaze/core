@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Database\Connection;
+namespace Terablaze\Database\Connection;
 
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Support\StringMethods;
 use PDOException;
 use Throwable;
 

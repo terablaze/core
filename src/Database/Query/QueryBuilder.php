@@ -1,16 +1,33 @@
 <?php
 
-namespace TeraBlaze\Database\Query;
+namespace Terablaze\Database\Query;
 
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Exception\QueryException;
-use TeraBlaze\Database\Query\Expression\CompositeExpression;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\CollectionInterface;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Exception\QueryException;
+use Terablaze\Database\Query\Expression\CompositeExpression;
 use PDOStatement;
-use TeraBlaze\Database\Query\Expression\ExpressionBuilder;
+use Terablaze\Database\Query\Expression\ExpressionBuilder;
+use Terablaze\Support\Helpers;
+use Terablaze\Support\Traits\Conditionable;
+use Terablaze\Support\Traits\ForwardsCalls;
+use Terablaze\Support\Traits\Macroable;
 
 abstract class QueryBuilder implements QueryBuilderInterface
 {
+    use Conditionable, ForwardsCalls, Macroable {
+        __call as macroCall;
+    }
+
+    /**
+     * Indicates whether row locking is being used.
+     *
+     * @var string|bool
+     */
+    public $lock;
+
     /*
      * The default values of SQL parts collection
      */
@@ -151,7 +168,11 @@ abstract class QueryBuilder implements QueryBuilderInterface
         if (!is_null($this->saveCall)) {
             $isInsert = empty($this->sqlParts['where']);
 
-            $table = $this->sqlParts['from'][0]['table'];
+            if (ArrayMethods::isAssoc($this->sqlParts['from'])) {
+                $table = $this->sqlParts['from']['table'];
+            } else {
+                $table = $this->sqlParts['from'][0]['table'];
+            }
             $this->resetQueryPart('from');
 
             if ($isInsert) {
@@ -474,6 +495,13 @@ abstract class QueryBuilder implements QueryBuilderInterface
             'parameters' => $parameters
         ];
         return $this->execute();
+    }
+
+    public function saveGetId(array $values, array $parameters = [])
+    {
+        $this->save($values, $parameters);
+        $id = $this->getLastInsertId();
+        return is_numeric($id) ? (int) $id : $id;
     }
 
     /**
@@ -1061,6 +1089,39 @@ abstract class QueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
+
+    /**
+     * Determine if the grammar supports savepoints.
+     *
+     * @return bool
+     */
+    public function supportsSavepoints()
+    {
+        return true;
+    }
+
+    /**
+     * Compile the SQL statement to define a savepoint.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    public function compileSavepoint($name)
+    {
+        return 'SAVEPOINT '.$name;
+    }
+
+    /**
+     * Compile the SQL statement to execute a savepoint rollback.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    public function compileSavepointRollBack($name)
+    {
+        return 'ROLLBACK TO SAVEPOINT '.$name;
+    }
+
     /**
      * @return string
      *
@@ -1224,6 +1285,11 @@ abstract class QueryBuilder implements QueryBuilderInterface
         return $this->execute()->fetchAll();
     }
 
+    public function get(): CollectionInterface
+    {
+        return Helpers::collect($this->all());
+    }
+
     /**
      * @return array<string|int, mixed>|null
      */
@@ -1314,6 +1380,50 @@ abstract class QueryBuilder implements QueryBuilderInterface
         return $this->type;
     }
 
+    public function explain(): CollectionInterface
+    {
+        $sql = $this->getSQL();
+
+        $bindings = $this->getParameters();
+
+        $explanation = $this->getConnection()->execute('EXPLAIN '.$sql, $bindings)->fetchAll();
+
+        return new ArrayCollection($explanation);
+    }
+
+    /**
+     * Lock the selected rows in the table.
+     *
+     * @param  string|bool  $value
+     * @return $this
+     */
+    public function lock($value = true)
+    {
+        $this->lock = $value;
+
+        return $this;
+    }
+
+    /**
+     * Lock the selected rows in the table for updating.
+     *
+     * @return $this
+     */
+    public function lockForUpdate()
+    {
+        return $this->lock(true);
+    }
+
+    /**
+     * Share lock the selected rows in the table.
+     *
+     * @return $this
+     */
+    public function sharedLock()
+    {
+        return $this->lock(false);
+    }
+
     /**
      * Add limit and offset clauses to the query
      */
@@ -1369,5 +1479,45 @@ abstract class QueryBuilder implements QueryBuilderInterface
 
             $this->params[$name] = clone $param;
         }
+    }
+
+    /**
+     * Dump the current SQL and bindings.
+     *
+     * @return $this
+     */
+    public function dump()
+    {
+        dump($this->getSQL(), $this->getParameters());
+
+        return $this;
+    }
+
+    /**
+     * Die and dump the current SQL and bindings.
+     *
+     * @return never
+     */
+    public function dd()
+    {
+        dd($this->getSQL(), $this->getParameters());
+    }
+
+    /**
+     * Handle dynamic method calls into the method.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     *
+     * @throws \BadMethodCallException
+     */
+    public function __call($method, $parameters)
+    {
+        if (static::hasMacro($method)) {
+            return $this->macroCall($method, $parameters);
+        }
+
+        static::throwBadMethodCallException($method);
     }
 }

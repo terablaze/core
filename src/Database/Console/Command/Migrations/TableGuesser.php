@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Console\Command\Migrations;
+namespace Terablaze\Database\Console\Command\Migrations;
 
 class TableGuesser
 {

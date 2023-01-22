@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\Renderer;
+namespace Terablaze\ErrorHandler\Renderer;
 
 use Psr\Log\LoggerInterface;
-use TeraBlaze\ErrorHandler\FlattenException;
-use TeraBlaze\HttpBase\Request;
+use Terablaze\ErrorHandler\FlattenException;
+use Terablaze\HttpBase\Request;
 
 class HtmlErrorRenderer
 {

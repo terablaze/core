@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Config\Exception;
+namespace Terablaze\Config\Exception;
 
 class InvalidContextException extends ConfigException
 {

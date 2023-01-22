@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Core\Console\Command;
+namespace Terablaze\Core\Console\Command;
 
 use Symfony\Component\Console\Input\InputOption;
-use TeraBlaze\Console\Command;
-use TeraBlaze\Console\ConfirmableTrait;
-use TeraBlaze\Encryption\Encrypter;
+use Terablaze\Console\Command;
+use Terablaze\Console\ConfirmableTrait;
+use Terablaze\Encryption\Encrypter;
 
 class KeyGenerateCommand extends Command
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\HttpBase;
+namespace Terablaze\HttpBase;
 
 use DateTimeInterface;
 use InvalidArgumentException;
@@ -22,19 +22,18 @@ class Cookie
      *
      * @param string $name The name of the cookie
      * @param string $value The value of the cookie
-     * @param int $expiresAt The time the cookie expires
+     * @param int|string|DateTimeInterface $expiresAt The time the cookie expires
      * @param string $path The path on the server in which the cookie will be available on
      * @param string $domain The domain that the cookie is available to
      * @param bool $secure Whether the cookie should only be transmitted over a secure HTTPS connection from the client
      * @param bool $httpOnly Whether the cookie will be made accessible only through the HTTP protocol
      * @param string $sameSite Specifies if the cookie should be send on a cross site request
      *
-     * @throws InvalidArgumentException When the cookie name is not valid
      */
     public function __construct(
         string $name,
         string $value,
-        int $expiresAt = 0,
+        int|string|\DateTimeInterface $expiresAt = 0,
         string $path = '',
         string $domain = '',
         bool $secure = false,
@@ -45,7 +44,7 @@ class Cookie
         $this->assertValidSameSite($sameSite, $secure);
         $this->name = $name;
         $this->value = $value;
-        $this->expiresAt = $expiresAt;
+        $this->expiresAt = self::expiresTimestamp($expiresAt);
         $this->path = $path;
         $this->domain = $domain;
         $this->secure = $secure;
@@ -61,29 +60,20 @@ class Cookie
         bool $httpOnly = false,
         string $sameSite = ''
     ): Cookie {
-        return new Cookie($name, 'deleted', 1, $path, $domain, $secure, $httpOnly, $sameSite);
+        return new static($name, 'deleted', 1, $path, $domain, $secure, $httpOnly, $sameSite);
     }
 
     public static function thatExpires(
         string $name,
         string $value,
-        $expiresAt,
+        int|string|\DateTimeInterface $expiresAt,
         string $path = '',
         string $domain = '',
         bool $secure = false,
         bool $httpOnly = false,
         string $sameSite = ''
     ): Cookie {
-        if (!is_numeric($expiresAt) && !$expiresAt instanceof DateTimeInterface) {
-            throw new InvalidArgumentException(
-                'Cookie expiery time must either be a numeric value or an instance of DateTimeInterface'
-            );
-        }
-        if ($expiresAt instanceof DateTimeInterface) {
-            $expiresAt = (int)$expiresAt->format('U');
-        }
-
-        return new Cookie($name, $value, (int)$expiresAt, $path, $domain, $secure, $httpOnly, $sameSite);
+        return new static($name, $value, $expiresAt, $path, $domain, $secure, $httpOnly, $sameSite);
     }
 
     public static function forever(
@@ -97,7 +87,7 @@ class Cookie
     ): Cookie {
         $expiresInFiveYear = time() + 5 * 365 * 3600 * 24;
 
-        return new Cookie($name, $value, $expiresInFiveYear, $path, $domain, $secure, $httpOnly, $sameSite);
+        return new static($name, $value, $expiresInFiveYear, $path, $domain, $secure, $httpOnly, $sameSite);
     }
 
     private function assertValidName(string $name): void
@@ -162,6 +152,25 @@ class Cookie
     public function getSameSite(): string
     {
         return $this->sameSite;
+    }
+
+    /**
+     * Converts expires formats to a unix timestamp.
+     */
+    private static function expiresTimestamp(int|string|\DateTimeInterface $expiresAt = 0): int
+    {
+        // convert expiration time to a Unix timestamp
+        if ($expiresAt instanceof \DateTimeInterface) {
+            $expiresAt = $expiresAt->format('U');
+        } elseif (!is_numeric($expiresAt)) {
+            $expiresAt = strtotime($expiresAt);
+
+            if (false === $expiresAt) {
+                throw new \InvalidArgumentException('The cookie expiration time is not valid.');
+            }
+        }
+
+        return 0 < $expiresAt ? (int) $expiresAt : 0;
     }
 
     public function toHeaderValue(): string

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Support\Traits;
+namespace Terablaze\Support\Traits;
 
 use BadMethodCallException;
 use Closure;

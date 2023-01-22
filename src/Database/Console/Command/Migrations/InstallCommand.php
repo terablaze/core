@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Database\Console\Command\Migrations;
+namespace Terablaze\Database\Console\Command\Migrations;
 
 use Symfony\Component\Console\Input\InputOption;
-use TeraBlaze\Console\Command;
-use TeraBlaze\Database\Migrations\MigrationRepository;
+use Terablaze\Console\Command;
+use Terablaze\Database\Migrations\MigrationRepository;
 
 class InstallCommand extends Command
 {
@@ -47,7 +47,7 @@ class InstallCommand extends Command
      *
      * @return int
      */
-    protected function handle(): int
+    public function handle(): int
     {
         if ($this->input->getOption('database')) {
             $connString = 'database.connection.' . $this->input->getOption('database');

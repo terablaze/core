@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel\Events;
+namespace Terablaze\Core\Kernel\Events;
 
 /**
  * Triggered whenever a request is fully processed.

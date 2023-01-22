@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Logging;
+namespace Terablaze\Database\Logging;
 
 use Exception;
 
@@ -30,6 +30,8 @@ class LoggedQuery
     protected $memoryDelta;
 
     protected $exception;
+
+    protected $preparedId;
 
     /**
      * @param string $sql
@@ -83,7 +85,7 @@ class LoggedQuery
     public function checkParameters($params)
     {
         foreach ($params as &$param) {
-            if (!mb_check_encoding($param, 'UTF-8')) {
+            if (!is_null($param) && !mb_check_encoding($param, 'UTF-8')) {
                 $param = '[BINARY DATA]';
             }
         }

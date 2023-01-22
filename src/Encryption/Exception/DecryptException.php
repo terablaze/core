@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Encryption\Exception;
+namespace Terablaze\Encryption\Exception;
 
 use RuntimeException;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Collection\Exceptions;
+namespace Terablaze\Collection\Exceptions;
 
 /**
  * Thrown when the collection type is invalid

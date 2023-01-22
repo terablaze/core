@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\Events;
+namespace Terablaze\Database\Events;
 
-use TeraBlaze\Database\Migrations\Migration;
-use TeraBlaze\EventDispatcher\Event;
+use Terablaze\Database\Migrations\Migration;
+use Terablaze\EventDispatcher\Event;
 
 abstract class MigrationEvent extends Event
 {

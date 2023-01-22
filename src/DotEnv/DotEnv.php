@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\DotEnv;
+namespace Terablaze\DotEnv;
 
 /**
  * Class DotEnv
- * @package TeraBlaze
+ * @package Terablaze
  */
 class DotEnv
 {

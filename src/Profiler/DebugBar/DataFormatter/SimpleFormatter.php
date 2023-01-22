@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataFormatter;
+namespace Terablaze\Profiler\DebugBar\DataFormatter;
 
 use DebugBar\DataFormatter\DataFormatter;
 

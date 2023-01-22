@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Core\Exception {
+namespace Terablaze\Core\Exception {
 
-    use TeraBlaze\Core as Core;
+    use Terablaze\Core as Core;
 
     class Property extends Core\Exception
     {

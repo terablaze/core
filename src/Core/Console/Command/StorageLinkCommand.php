@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Core\Console\Command;
+namespace Terablaze\Core\Console\Command;
 
 use Symfony\Component\Console\Input\InputOption;
-use TeraBlaze\Console\Command;
-use TeraBlaze\Filesystem\Files;
+use Terablaze\Console\Command;
+use Terablaze\Filesystem\Files;
 
 class StorageLinkCommand extends Command
 {

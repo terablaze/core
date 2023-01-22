@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Filesystem\Exception;
+namespace Terablaze\Filesystem\Exception;
 
 use Exception;
 

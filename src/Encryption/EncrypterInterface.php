@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Encryption;
+namespace Terablaze\Encryption;
 
-use TeraBlaze\Encryption\Exception\DecryptException;
-use TeraBlaze\Encryption\Exception\EncryptException;
+use Terablaze\Encryption\Exception\DecryptException;
+use Terablaze\Encryption\Exception\EncryptException;
 
 interface EncrypterInterface
 {

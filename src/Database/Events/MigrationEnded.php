@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Events;
+namespace Terablaze\Database\Events;
 
 class MigrationEnded extends MigrationEvent
 {

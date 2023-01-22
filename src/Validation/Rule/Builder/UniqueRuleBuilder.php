@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule\Builder;
+namespace Terablaze\Validation\Rule\Builder;
 
-use TeraBlaze\Database\ORM\Model;
-use TeraBlaze\Database\ORM\ModelInterface;
+use Terablaze\Database\ORM\Model;
+use Terablaze\Database\ORM\ModelInterface;
 
 class UniqueRuleBuilder implements RuleBuilderInterface
 {

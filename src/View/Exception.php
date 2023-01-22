@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\View;
+namespace Terablaze\View;
 
-use TeraBlaze\Core as Core;
+use Terablaze\Core as Core;
 
 class Exception extends Core\Exception
 {

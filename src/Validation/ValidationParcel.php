@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Validation;
+namespace Terablaze\Validation;
 
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
 
 class ValidationParcel extends Parcel implements ParcelInterface
 {
@@ -19,7 +19,6 @@ class ValidationParcel extends Parcel implements ParcelInterface
 
         $this->container->make('validator', [
             'class' => Validator::class,
-            'alias' => ValidatorInterface::class
         ]);
     }
 }

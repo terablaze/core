@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Routing\Events;
+namespace Terablaze\Routing\Events;
 
 use Psr\Http\Message\ServerRequestInterface;
-use TeraBlaze\Routing\Router;
+use Terablaze\Routing\Router;
 
 class PostControllerEvent extends RouterEvent
 {

@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Session;
+namespace Terablaze\Session;
 
 use stdClass;
-use TeraBlaze\Session\Csrf\CsrfGuardInterface;
-use TeraBlaze\Session\Flash\FlashMessageMiddleware;
-use TeraBlaze\Session\Flash\FlashMessagesInterface;
+use Terablaze\Session\Csrf\CsrfGuardInterface;
+use Terablaze\Session\Flash\FlashMessageMiddleware;
+use Terablaze\Session\Flash\FlashMessagesInterface;
 
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Support\ArrayMethods;
 use function array_key_exists;
 use function json_decode;
 use function json_encode;

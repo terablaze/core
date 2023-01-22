@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Support;
+namespace Terablaze\Support;
 
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Interfaces\Support\Arrayable;
-use TeraBlaze\Interfaces\Support\Jsonable;
-use TeraBlaze\Interfaces\Support\MessageBag as MessageBagContract;
-use TeraBlaze\Interfaces\Support\MessageProvider;
 use JsonSerializable;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Support\Interfaces\Arrayable;
+use Terablaze\Support\Interfaces\Jsonable;
+use Terablaze\Support\Interfaces\MessageBag as MessageBagContract;
+use Terablaze\Support\Interfaces\MessageProvider;
 
 class MessageBag implements Jsonable, JsonSerializable, MessageBagContract, MessageProvider
 {
@@ -96,7 +96,7 @@ class MessageBag implements Jsonable, JsonSerializable, MessageBagContract, Mess
     /**
      * Merge a new array of messages into the message bag.
      *
-     * @param  \TeraBlaze\Interfaces\Support\MessageProvider|array  $messages
+     * @param  \Terablaze\Support\Interfaces\MessageProvider|array  $messages
      * @return $this
      */
     public function merge($messages)
@@ -207,7 +207,7 @@ class MessageBag implements Jsonable, JsonSerializable, MessageBagContract, Mess
      * @param string $key
      * @param string|null $format
      * @return array
-     * @throws \TeraBlaze\Collection\Exceptions\InvalidTypeException
+     * @throws \Terablaze\Collection\Exceptions\InvalidTypeException
      */
     protected function getMessagesForWildcardKey($key, $format)
     {

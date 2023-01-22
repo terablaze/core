@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM\Mapping;
+namespace Terablaze\Database\ORM\Mapping;
 
 /**
  * @Annotation

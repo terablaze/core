@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Session\Exception;
+namespace Terablaze\Session\Exception;
 
-use TeraBlaze\Session\InitializePersistenceIdInterface;
+use Terablaze\Session\InitializePersistenceIdInterface;
 use RuntimeException;
-use TeraBlaze\Session\Persistence\SessionPersistenceInterface;
+use Terablaze\Session\Persistence\SessionPersistenceInterface;
 
 use function get_class;
 use function sprintf;

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\HttpBase\Exception;
+namespace Terablaze\HttpBase\Exception;
 
 /**
  * Raised when a user sends a malformed request.

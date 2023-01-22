@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Controller\Exception {
+namespace Terablaze\Controller\Exception {
 
-    use TeraBlaze\Core as Core;
+    use Terablaze\Core as Core;
 
     class Implementation extends Core\Exception\Implementation
     {

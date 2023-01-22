@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Routing\Events;
+namespace Terablaze\Routing\Events;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use TeraBlaze\EventDispatcher\Event;
-use TeraBlaze\Routing\Router;
+use Terablaze\EventDispatcher\Event;
+use Terablaze\Routing\Router;
 
 /**
  * Base class for events thrown in the Routing component.

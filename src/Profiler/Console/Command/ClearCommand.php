@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Profiler\Console\Command;
+namespace Terablaze\Profiler\Console\Command;
 
-use TeraBlaze\Console\Command;
-use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
+use Terablaze\Console\Command;
+use Terablaze\Profiler\DebugBar\TerablazeDebugbar;
 
 class ClearCommand extends Command
 {
@@ -12,7 +12,7 @@ class ClearCommand extends Command
 
     protected $debugbar;
 
-    public function __construct(TeraBlazeDebugbar $debugbar)
+    public function __construct(TerablazeDebugbar $debugbar)
     {
         $this->debugbar = $debugbar;
 

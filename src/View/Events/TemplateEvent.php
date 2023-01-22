@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\View\Events;
+namespace Terablaze\View\Events;
 
-use TeraBlaze\EventDispatcher\Event;
-use TeraBlaze\View\Template;
+use Terablaze\EventDispatcher\Event;
+use Terablaze\View\Template;
 
 class TemplateEvent extends Event
 {

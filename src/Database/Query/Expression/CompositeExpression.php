@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Query\Expression;
+namespace Terablaze\Database\Query\Expression;
 
 use Countable;
 
@@ -134,7 +134,7 @@ class CompositeExpression implements Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return count($this->parts);
     }

@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Config\Loaders;
+namespace Terablaze\Config\Loaders;
 
-use TeraBlaze\Config\Exception\InvalidFileException;
+use Terablaze\Config\Exception\InvalidFileException;
 
 class Ini extends Loader
 {

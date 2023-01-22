@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\Renderable;
-use TeraBlaze\Session\SessionInterface;
+use Terablaze\Session\SessionInterface;
 
 class SessionCollector extends DataCollector implements DataCollectorInterface, Renderable
 {

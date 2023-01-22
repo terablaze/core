@@ -1,12 +1,12 @@
 <?php
 
-namespace TeraBlaze\Session;
+namespace Terablaze\Session;
 
 use Psr\Http\Message\ServerRequestInterface;
-use TeraBlaze\Session\Csrf\CsrfGuardInterface;
-use TeraBlaze\Session\Exception\NotInitializableException;
-use TeraBlaze\Session\Flash\FlashMessagesInterface;
-use TeraBlaze\Session\Persistence\SessionPersistenceInterface;
+use Terablaze\Session\Csrf\CsrfGuardInterface;
+use Terablaze\Session\Exception\NotInitializableException;
+use Terablaze\Session\Flash\FlashMessagesInterface;
+use Terablaze\Session\Persistence\SessionPersistenceInterface;
 
 /**
  * Proxy to an underlying SessionInterface implementation.

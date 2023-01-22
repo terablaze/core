@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\ErrorHandler\Exception\Http;
+namespace Terablaze\ErrorHandler\Exception\Http;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

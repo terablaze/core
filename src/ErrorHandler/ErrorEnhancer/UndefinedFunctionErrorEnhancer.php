@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\ErrorEnhancer;
+namespace Terablaze\ErrorHandler\ErrorEnhancer;
 
-use TeraBlaze\ErrorHandler\Error\FatalError;
-use TeraBlaze\ErrorHandler\Error\UndefinedFunctionError;
+use Terablaze\ErrorHandler\Error\FatalError;
+use Terablaze\ErrorHandler\Error\UndefinedFunctionError;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

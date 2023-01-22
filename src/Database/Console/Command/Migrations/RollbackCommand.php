@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Database\Console\Command\Migrations;
+namespace Terablaze\Database\Console\Command\Migrations;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use TeraBlaze\Console\ConfirmableTrait;
-use TeraBlaze\Database\Migrations\Migrator;
+use Terablaze\Console\ConfirmableTrait;
+use Terablaze\Database\Migrations\Migrator;
 use Symfony\Component\Console\Input\InputOption;
 
 class RollbackCommand extends BaseCommand

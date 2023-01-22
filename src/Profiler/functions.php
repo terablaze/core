@@ -1,16 +1,16 @@
 <?php
 
-use TeraBlaze\Profiler\DebugBar\TeraBlazeDebugbar;
+use Terablaze\Profiler\DebugBar\TerablazeDebugbar;
 
 if (!function_exists('debugbar')) {
     /**
      * Get the DebugBar instance
      *
-     * @return TeraBlazeDebugbar
+     * @return TerablazeDebugbar
      */
-    function debugbar(): TeraBlazeDebugbar
+    function debugbar(): TerablazeDebugbar
     {
-        return container()->get(TeraBlazeDebugbar::class);
+        return container()->get(TerablazeDebugbar::class);
     }
 }
 

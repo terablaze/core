@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation;
+namespace Terablaze\Validation;
 
-use TeraBlaze\Support\MessageBag;
+use Terablaze\Support\MessageBag;
 
 interface ValidationInterface
 {

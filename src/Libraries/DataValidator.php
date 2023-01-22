@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Libraries;
+namespace Terablaze\Libraries;
 
 class DataValidator
 {

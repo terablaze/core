@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel;
+namespace Terablaze\Core\Kernel;
 
 use Exception;
 use Psr\Http\Message\ResponseInterface;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
 
 interface HttpKernelInterface
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\ErrorEnhancer;
+namespace Terablaze\ErrorHandler\ErrorEnhancer;
 
-use TeraBlaze\ErrorHandler\Error\FatalError;
-use TeraBlaze\ErrorHandler\Error\UndefinedMethodError;
+use Terablaze\ErrorHandler\Error\FatalError;
+use Terablaze\ErrorHandler\Error\UndefinedMethodError;
 
 /**
  * @author Grégoire Pineau <lyrixx@lyrixx.info>

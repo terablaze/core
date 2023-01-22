@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Database\Schema\Field;
+namespace Terablaze\Database\Schema\Field;
 
-use TeraBlaze\Database\Exception\MigrationException;
+use Terablaze\Database\Exception\MigrationException;
 
 class IdField extends Field
 {

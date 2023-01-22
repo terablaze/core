@@ -1,21 +1,21 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\Renderable;
 use DebugBar\DebugBar;
-use TeraBlaze\Core\Kernel\Kernel;
-use TeraBlaze\Core\Kernel\KernelInterface;
+use Terablaze\Core\Kernel\Kernel;
+use Terablaze\Core\Kernel\KernelInterface;
 
 /**
- * Class TeraBlazeCollector
+ * Class TerablazeCollector
  *
- * @package TeraBlaze\Profiler\DebugBar\DataCollectors
+ * @package Terablaze\Profiler\DebugBar\DataCollectors
  * @author Tomiwa Ibiwoye <tomiwa@teraboxx.com>
  */
-class TeraBlazeCollector extends DataCollector implements DataCollectorInterface, Renderable
+class TerablazeCollector extends DataCollector implements DataCollectorInterface, Renderable
 {
     private KernelInterface $kernel;
 
@@ -59,7 +59,7 @@ class TeraBlazeCollector extends DataCollector implements DataCollectorInterface
         return [
             'version' => [
                 'icon' => 'tag',
-                'tooltip' => 'TeraBlaze Version',
+                'tooltip' => 'Terablaze Version',
                 'map' => 'terablaze.version',
                 'default' => '',
             ],

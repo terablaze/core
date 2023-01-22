@@ -1,28 +1,39 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
 use DateTime;
 use Exception;
-use TeraBlaze\Database\Exception\ConnectionException;
-use TeraBlaze\Database\ORM\Exception\MappingException;
-use TeraBlaze\Encryption\Encrypter;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Config\PolymorphismTrait;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Query\QueryBuilderInterface;
-use TeraBlaze\Database\ORM\Exception\PropertyException;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Database\Exception\ConnectionException;
+use Terablaze\Database\ORM\Exception\MappingException;
+use Terablaze\Encryption\Encrypter;
+use Terablaze\Queue\QueueableEntity;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Config\PolymorphismTrait;
+use Terablaze\Container\Container;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Query\QueryBuilderInterface;
+use Terablaze\Database\ORM\Exception\PropertyException;
+use Terablaze\Support\StringMethods;
 use Throwable;
 
-abstract class Model implements ModelInterface
+abstract class Model implements ModelInterface, QueueableEntity
 {
     use PolymorphismTrait;
 
+    public function _getKey()
+    {
+        return $this->{$this->_getKeyName()};
+    }
+
+    public function _getKeyName()
+    {
+        return $this->_getPrimaryColumn()['primaryProperty'];
+    }
+
     public static function __callStatic(string $method, array $parameters = [])
     {
-        return static::query()->$method(...$parameters);
+        return static::query()->table((new static())->_getTable())->$method(...$parameters);
     }
 
     /**
@@ -128,10 +139,12 @@ abstract class Model implements ModelInterface
     public static function query(): QueryBuilderInterface
     {
         $model = new static();
-        return $model->_getConnection()->getQueryBuilder()->from($model->_getTable());
+        return $model->_getConnection()->getQueryBuilder()->table($model->_getTable());
     }
 
     /**
+     * Creates a new Model and tries to save in the database
+     *
      * @param array<int|string, mixed> $initData
      * @return static|null
      */
@@ -149,6 +162,7 @@ abstract class Model implements ModelInterface
     }
 
     /**
+     * Creates a new Model without saving in the database
      * @param array<int|string, mixed> $initData
      * @return static|null
      */
@@ -284,7 +298,7 @@ abstract class Model implements ModelInterface
         if (!empty($this->$primaryProperty)) {
             return $this->_getConnection()
                 ->getQueryBuilder()
-                ->delete($this->_getTable())
+                ->delete("`{$this->_getTable()}`")
                 ->where("$primaryColumn = :id")
                 ->setParameter("id", $this->$primaryProperty)
                 ->execute();
@@ -310,7 +324,7 @@ abstract class Model implements ModelInterface
         $limit = null,
         $offset = null,
         $page = null
-    ): ?EntityCollection {
+    ): EntityCollection {
         $model = new static();
         if (empty($fields)) {
             $fields = ['*'];
@@ -319,7 +333,7 @@ abstract class Model implements ModelInterface
     }
 
     protected function _all(
-        $where = [],
+        $where,
         $parameters = [],
         $fields = ["*"],
         $orderList = [],
@@ -332,7 +346,7 @@ abstract class Model implements ModelInterface
             ->_getConnection()
             ->getQueryBuilder()
             ->select(...$fields)
-            ->from($this->_getTable());
+            ->from("`{$this->_getTable()}`");
         $this->buildWhereQuery($where, $parameters, $query);
         $this->buildOrderQuery($orderList, $query);
         $this->buildLimitQuery($limit, $offset, $page, $query);
@@ -391,7 +405,7 @@ abstract class Model implements ModelInterface
             ->_getConnection()
             ->getQueryBuilder()
             ->select(...$fields)
-            ->from($this->_getTable());
+            ->from("`{$this->_getTable()}`");
         $this->buildWhereQuery($where, $parameters, $query);
         $this->buildOrderQuery($orderList, $query);
         $first = $query->first();
@@ -421,12 +435,32 @@ abstract class Model implements ModelInterface
         return $model->_count($where, $parameters);
     }
 
+    /**
+     * Get the queueable identity for the entity.
+     *
+     * @return mixed
+     */
+    public function getQueueableId()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Get the queueable connection for the entity.
+     *
+     * @return string|null
+     */
+    public function getQueueableConnection()
+    {
+        return $this->_getConnection()->getName();
+    }
+
     protected function _count($where = '', $parameters = [])
     {
         $query = $this
             ->_getConnection()
             ->getQueryBuilder()
-            ->from($this->_getTable());
+            ->from("`{$this->_getTable()}`");
         $this->buildWhereQuery($where, $parameters, $query);
         return $query->count();
     }
@@ -526,25 +560,24 @@ abstract class Model implements ModelInterface
 
     final public function _getClassMetadata(): ClassMetadata
     {
-        static $classMetadata;
-
-        if (!$classMetadata) {
-            // TODO: load metadata from cache
-            $class = static::class;
-            $classMetadata = $this->_getContainer()->make(
-                ClassMetadata::class . '@' . $class,
-                [
-                    'class' => ClassMetadata::class,
-                    'arguments' => [$class]
-                ]
-            );
-            $this->_getContainer()
-                ->get(AnnotationDriver::class)->loadMetadataForClass($class, $classMetadata);
+        // TODO: load metadata from cache
+        $class = static::class;
+        if ($this->_getContainer()->has(ClassMetadata::class . '@' . $class)) {
+            return $this->_getContainer()->get(ClassMetadata::class . '@' . $class);
         }
+        $classMetadata = $this->_getContainer()->make(
+            ClassMetadata::class . '@' . $class,
+            [
+                'class' => ClassMetadata::class,
+                'arguments' => [$class]
+            ]
+        );
+        $this->_getContainer()
+            ->get(AnnotationDriver::class)->loadMetadataForClass($class, $classMetadata);
         return $classMetadata;
     }
 
-    private function _getPrimaryColumn()
+    public function _getPrimaryColumn()
     {
         $primaryProperty = $this->_getClassMetadata()->getSingleIdentifierPropertyName();
         return [
@@ -554,14 +587,38 @@ abstract class Model implements ModelInterface
         ];
     }
 
+    /**
+     * Determine if two models have the same ID and belong to the same table.
+     *
+     * @param  Model|null  $model
+     * @return bool
+     */
+    public function _is($model)
+    {
+        return ! is_null($model) &&
+            $this->_getKey() === $model->_getKey() &&
+            $this->_getTable() === $model->_getTable() &&
+            $this->_getConnection() === $model->_getConnection();
+    }
+
+    /**
+     * Determine if two models are not the same.
+     *
+     * @param  Model|null  $model
+     * @return bool
+     */
+    public function _isNot($model)
+    {
+        return ! $this->_is($model);
+    }
+
     private function _loadAssociations(array $initData)
     {
-        $primaryProperty = $this->_getPrimaryColumn()['primaryProperty'];
-        ModelStore::store(static::class, $this->$primaryProperty, $this);
+        ModelStore::store(static::class, $this->_getKey(), $this);
 
         $associationMappings = $this->_getClassMetadata()->getAssociationMappings();
         foreach ($associationMappings as $property => $associationMapping) {
-            /** @var string $type */
+            /** @var string|static $type */
             $type = $this->_getClassMetadata()->getPropertyType($property);
             if (!is_a($type, Model::class, true)) {
                 continue;
@@ -590,23 +647,91 @@ abstract class Model implements ModelInterface
                 $typeInstance = (new $type());
                 $column = $typeInstance->_getClassMetadata()->getColumnForProperty($mappedProperty);
 
-                $inverseColumn = $typeInstance->_getClassMetadata()->getSingleAssociationReferencedJoinColumnName($mappedProperty);
+                $inverseColumn = $typeInstance->_getClassMetadata()
+                    ->getSingleAssociationReferencedJoinColumnName($mappedProperty);
                 $inverseProperty = $this->_getClassMetadata()->getPropertyForColumn($inverseColumn);
-                /** @var EntityCollection $many */
                 $annotWhere = $associationMapping['where'] ?? '';
                 $where = "$column = ?";
                 if (!empty($annotWhere)) {
                     $where .= " AND ($annotWhere)";
                 }
+                $pagination = $associationMapping['pagination'] ?? [];
                 $many = $type::all(
                     $where,
                     [$this->$inverseProperty],
                     ['*'],
                     $associationMapping['orderBy'] ?? [],
-                    $associationMapping['limit'] ?? null
+                    $pagination['limit'] ?? $associationMapping['limit'] ?? null,
+                    null,
+                    $pagination['query'] ?? null
                 );
 
                 $this->$property = $many;
+            } elseif ($associationMapping['type'] == ClassMetadata::MANY_TO_MANY) {
+                $joinTable = $associationMapping['joinTable'];
+                $joinTableName = $joinTable['name'];
+                $joinTableJoinColumns = $joinTable['joinColumns'];
+                $joinTableInverseColumns = $joinTable['inverseJoinColumns'];
+
+                $typeInstance = (new $type());
+                $associationTableName = $typeInstance->_getTable();
+                $resultsQuery = $this->_getConnection()->getQueryBuilder()->select(["pt.*"])
+                    ->table("`$associationTableName`", 'pt');
+                $inverseTableConditions = [];
+                foreach ($joinTableInverseColumns as $joinTableInverseColumn) {
+                    $inverseTableConditions[] =
+                        "pt.{$joinTableInverseColumn['referencedColumnName']} = st.{$joinTableInverseColumn['name']}";
+                }
+                $resultsQuery->join(
+                    'pt',
+                    "`$joinTableName`",
+                    "st",
+                    "(" . implode(" AND ", $inverseTableConditions) . ")"
+                );
+
+                $tableConditions = [];
+                foreach ($joinTableJoinColumns as $joinTableJoinColumn) {
+                    $tableConditions[] =
+                        "ct.{$joinTableJoinColumn['referencedColumnName']} = st.{$joinTableJoinColumn['name']}";
+                }
+                $resultsQuery->join(
+                    'st',
+                    "`{$this->_getTable()}`",
+                    "ct",
+                    "(" . implode(" AND ", $tableConditions) . ")"
+                );
+
+                $annotWhere = $associationMapping['where'] ?? '';
+                $column = $this->_getClassMetadata()->getSingleIdentifierColumnName();
+                $where = "ct.$column = ?";
+                if (!empty($annotWhere)) {
+                    $where .= " AND ($annotWhere)";
+                }
+
+                $resultsQuery
+                    ->where($where)
+                    ->setParameters([$this->{$this->_getClassMetadata()->getSingleIdentifierPropertyName()}]);
+                $this->buildOrderQuery($associationMapping['orderBy'] ?? [], $resultsQuery);
+
+                if ($pagination = $associationMapping['pagination'] ?? []) {
+                    if ($pagination['type'] == 'page') {
+                        $resultsQuery->limitByPage($pagination['limit'], $pagination['query']);
+                    }
+                } else {
+                    $this->buildLimitQuery($associationMapping['limit'] ?? null, null, null, $resultsQuery);
+                }
+
+                $rows = $resultsQuery->all();
+
+                $many = [];
+                foreach ($rows as $row) {
+                    $object = new $type();
+                    $object->initInternalData($row);
+                    $many[] = $object;
+                    $object = null;
+                }
+
+                $this->$property = new EntityCollection($many, $type);
             }
         }
     }

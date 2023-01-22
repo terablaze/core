@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Support;
+namespace Terablaze\Support;
 
 use Exception;
 use League\CommonMark\GithubFlavoredMarkdownConverter;
@@ -9,13 +9,16 @@ use Ramsey\Uuid\Generator\CombGenerator;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidFactory;
 use Ramsey\Uuid\UuidInterface;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\CollectionInterface;
+use Traversable;
 use voku\helper\ASCII;
 
 use function strlen;
 
 /**
  * Class StringMethods
- * @package TeraBlaze
+ * @package Terablaze
  *
  * contains various methods for string manipulation
  */
@@ -122,6 +125,17 @@ class StringMethods
     }
 
     /**
+     * Get a new stringable object from the given string.
+     *
+     * @param  string  $string
+     * @return Stringable
+     */
+    public static function of($string)
+    {
+        return new Stringable($string);
+    }
+
+    /**
      * Return the remainder of a string after the first occurrence of a given value.
      *
      * @param string $subject
@@ -225,6 +239,23 @@ class StringMethods
     }
 
     /**
+     * Get the smallest possible portion of a string between two given values.
+     *
+     * @param  string  $subject
+     * @param  string  $from
+     * @param  string  $to
+     * @return string
+     */
+    public static function betweenFirst($subject, $from, $to)
+    {
+        if ($from === '' || $to === '') {
+            return $subject;
+        }
+
+        return static::before(static::after($subject, $from), $to);
+    }
+
+    /**
      * Convert a value to camel case.
      *
      * @param string $value
@@ -294,6 +325,43 @@ class StringMethods
     }
 
     /**
+     * Extracts an excerpt from text that matches the first instance of a phrase.
+     *
+     * @param  string  $text
+     * @param  string  $phrase
+     * @param  array  $options
+     * @return string|null
+     */
+    public static function excerpt($text, $phrase = '', $options = [])
+    {
+        $radius = $options['radius'] ?? 100;
+        $omission = $options['omission'] ?? '...';
+
+        preg_match('/^(.*?)('.preg_quote((string) $phrase).')(.*)$/iu', (string) $text, $matches);
+
+        if (empty($matches)) {
+            return null;
+        }
+
+        $start = ltrim($matches[1]);
+
+        $start = str(mb_substr($start, max(mb_strlen($start, 'UTF-8') - $radius, 0), $radius, 'UTF-8'))
+            ->ltrim()->unless(
+            fn ($startWithRadius) => $startWithRadius->exactly($start),
+            fn ($startWithRadius) => $startWithRadius->prepend($omission),
+        );
+
+        $end = rtrim($matches[3]);
+
+        $end = str(mb_substr($end, 0, $radius, 'UTF-8'))->rtrim()->unless(
+            fn ($endWithRadius) => $endWithRadius->exactly($end),
+            fn ($endWithRadius) => $endWithRadius->append($omission),
+        );
+
+        return $start->append($matches[2], $end)->toString();
+    }
+
+    /**
      * Cap a string with a single instance of a given value.
      *
      * @param string $value
@@ -305,6 +373,19 @@ class StringMethods
         $quoted = preg_quote($cap, '/');
 
         return preg_replace('/(?:' . $quoted . ')+$/u', '', $value) . $cap;
+    }
+
+    /**
+     * Wrap the string with the given strings.
+     *
+     * @param  string  $value
+     * @param  string  $before
+     * @param  string|null  $after
+     * @return string
+     */
+    public static function wrap($value, $before, $after = null)
+    {
+        return $before.$value.($after ??= $before);
     }
 
     /**
@@ -354,6 +435,27 @@ class StringMethods
     public static function isAscii(string $value): bool
     {
         return ASCII::is_ascii($value);
+    }
+
+    /**
+     * Determine if a given string is valid JSON.
+     *
+     * @param  string  $value
+     * @return bool
+     */
+    public static function isJson($value)
+    {
+        if (! is_string($value)) {
+            return false;
+        }
+
+        try {
+            json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $ex) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -527,6 +629,42 @@ class StringMethods
     }
 
     /**
+     * Masks a portion of a string with a repeated character.
+     *
+     * @param  string  $string
+     * @param  string  $character
+     * @param  int  $index
+     * @param  int|null  $length
+     * @param  string  $encoding
+     * @return string
+     */
+    public static function mask($string, $character, $index, $length = null, $encoding = 'UTF-8')
+    {
+        if ($character === '') {
+            return $string;
+        }
+
+        $segment = mb_substr($string, $index, $length, $encoding);
+
+        if ($segment === '') {
+            return $string;
+        }
+
+        $strlen = mb_strlen($string, $encoding);
+        $startIndex = $index;
+
+        if ($index < 0) {
+            $startIndex = $index < -$strlen ? 0 : $strlen + $index;
+        }
+
+        $start = mb_substr($string, 0, $startIndex, $encoding);
+        $segmentLen = mb_strlen($segment, $encoding);
+        $end = mb_substr($string, $startIndex + $segmentLen);
+
+        return $start.str_repeat(mb_substr($character, 0, 1, $encoding), $segmentLen).$end;
+    }
+
+    /**
      * @param string $string
      * @param string $pattern
      * @return array<int|string, mixed>
@@ -544,6 +682,24 @@ class StringMethods
         }
 
         return [];
+    }
+
+    /**
+     * Get the string matching the given pattern.
+     *
+     * @param  string  $pattern
+     * @param  string  $subject
+     * @return CollectionInterface
+     */
+    public static function matchAll($pattern, $subject)
+    {
+        preg_match_all($pattern, $subject, $matches);
+
+        if (empty($matches[0])) {
+            return new ArrayCollection();
+        }
+
+        return new ArrayCollection($matches[1] ?? $matches[0]);
     }
 
     /**
@@ -672,15 +828,35 @@ class StringMethods
     }
 
     /**
+     * Pluralize the last word of an English, studly caps case string.
+     *
+     * @param  string  $value
+     * @param  int|array|\Countable  $count
+     * @return string
+     */
+    public static function pluralStudly($value, $count = 2)
+    {
+        $parts = preg_split('/(.)(?=[A-Z])/u', $value, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        $lastWord = array_pop($parts);
+
+        return implode('', $parts).self::plural($lastWord, $count);
+    }
+
+    /**
      * Generate a more truly "random" alpha-numeric string.
      *
-     * @param int $length
+     * @param int|array $length
      * @return string
      * @throws Exception
      */
-    public static function random(int $length = 16): string
+    public static function random(int|array $length = 16): string
     {
         $string = '';
+
+        if (is_array($length)) {
+            $length = rand($length[0] ?? 1, $length[1] ?? 16);
+        }
 
         while (($len = strlen($string)) < $length) {
             $size = $length - $len;
@@ -691,6 +867,31 @@ class StringMethods
         }
 
         return $string;
+    }
+
+    /**
+     * Replace the given value in the given string.
+     *
+     * @param  string|iterable<string>  $search
+     * @param  string|iterable<string>  $replace
+     * @param  string|iterable<string>  $subject
+     * @return string
+     */
+    public static function replace($search, $replace, $subject)
+    {
+        if ($search instanceof Traversable) {
+            $search = (new ArrayCollection($search))->all();
+        }
+
+        if ($replace instanceof Traversable) {
+            $replace = (new ArrayCollection($replace))->all();
+        }
+
+        if ($subject instanceof Traversable) {
+            $subject = (new ArrayCollection($subject))->all();
+        }
+
+        return str_replace($search, $replace, $subject);
     }
 
     /**
@@ -759,6 +960,38 @@ class StringMethods
         }
 
         return $subject;
+    }
+
+    /**
+     * Remove any occurrence of the given string in the subject.
+     *
+     * @param  string|iterable<string>  $search
+     * @param  string  $subject
+     * @param  bool  $caseSensitive
+     * @return string
+     */
+    public static function remove($search, $subject, $caseSensitive = true)
+    {
+        if ($search instanceof Traversable) {
+            $search = (new ArrayCollection($search))->all();
+        }
+
+        $subject = $caseSensitive
+            ? str_replace($search, '', $subject)
+            : str_ireplace($search, '', $subject);
+
+        return $subject;
+    }
+
+    /**
+     * Reverse the given string.
+     *
+     * @param  string  $value
+     * @return string
+     */
+    public static function reverse(string $value)
+    {
+        return implode(array_reverse(mb_str_split($value)));
     }
 
     /**
@@ -839,6 +1072,17 @@ class StringMethods
     }
 
     /**
+     * Remove all "extra" blank space from the given string.
+     *
+     * @param  string  $value
+     * @return string
+     */
+    public static function squish($value)
+    {
+        return preg_replace('~(\s|\x{3164})+~u', ' ', preg_replace('~^[\s﻿]+|[\s﻿]+$~u', '', $value));
+    }
+
+    /**
      * Convert a value to studly caps case.
      *
      * @param string $value
@@ -893,6 +1137,47 @@ class StringMethods
     }
 
     /**
+     * Replace text within a portion of a string.
+     *
+     * @param  string|string[]  $string
+     * @param  string|string[]  $replace
+     * @param  int|int[]  $offset
+     * @param  int|int[]|null  $length
+     * @return string|string[]
+     */
+    public static function substrReplace($string, $replace, $offset = 0, $length = null)
+    {
+        if ($length === null) {
+            $length = strlen($string);
+        }
+
+        return substr_replace($string, $replace, $offset, $length);
+    }
+
+    /**
+     * Swap multiple keywords in a string with other keywords.
+     *
+     * @param  array  $map
+     * @param  string  $subject
+     * @return string
+     */
+    public static function swap(array $map, $subject)
+    {
+        return strtr($subject, $map);
+    }
+
+    /**
+     * Make a string's first character lowercase.
+     *
+     * @param  string  $string
+     * @return string
+     */
+    public static function lcfirst($string)
+    {
+        return static::lower(static::substr($string, 0, 1)).static::substr($string, 1);
+    }
+
+    /**
      * Make a string's first character uppercase.
      *
      * @param string $string
@@ -901,6 +1186,29 @@ class StringMethods
     public static function ucfirst(string $string): string
     {
         return static::upper(static::substr($string, 0, 1)) . static::substr($string, 1);
+    }
+
+    /**
+     * Split a string into pieces by uppercase characters.
+     *
+     * @param  string  $string
+     * @return string[]
+     */
+    public static function ucsplit($string)
+    {
+        return preg_split('/(?=\p{Lu})/u', $string, -1, PREG_SPLIT_NO_EMPTY);
+    }
+
+    /**
+     * Get the number of words a string contains.
+     *
+     * @param  string  $string
+     * @param  string|null  $characters
+     * @return int
+     */
+    public static function wordCount($string, $characters = null)
+    {
+        return str_word_count($string, 0, $characters);
     }
 
     /**

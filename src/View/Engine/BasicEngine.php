@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\View\Engine;
+namespace Terablaze\View\Engine;
 
-use TeraBlaze\View\Engine\HasManagerTrait;
-use TeraBlaze\View\Template;
+use Terablaze\View\Engine\HasManagerTrait;
+use Terablaze\View\Template;
 
 class BasicEngine implements EngineInterface
 {

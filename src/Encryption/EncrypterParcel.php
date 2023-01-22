@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Encryption;
+namespace Terablaze\Encryption;
 
 use Exception;
 use RuntimeException;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Encryption\Exception\DecryptException;
-use TeraBlaze\Encryption\Exception\EncryptException;
-use TeraBlaze\Encryption\Exception\MissingAppKeyException;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Encryption\Exception\DecryptException;
+use Terablaze\Encryption\Exception\EncryptException;
+use Terablaze\Encryption\Exception\MissingAppKeyException;
+use Terablaze\Support\StringMethods;
 
 use function openssl_decrypt;
 use function openssl_encrypt;

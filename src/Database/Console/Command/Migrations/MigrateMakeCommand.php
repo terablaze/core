@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Database\Console\Command\Migrations;
+namespace Terablaze\Database\Console\Command\Migrations;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use TeraBlaze\Database\Migrations\MigrationCreator;
-use TeraBlaze\Support\Composer;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Database\Migrations\MigrationCreator;
+use Terablaze\Support\Composer;
+use Terablaze\Support\StringMethods;
 
 class MigrateMakeCommand extends BaseCommand
 {

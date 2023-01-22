@@ -1,11 +1,12 @@
 <?php
 
-namespace TeraBlaze\Database\Query;
+namespace Terablaze\Database\Query;
 
 use PDOStatement;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Exception\QueryException;
-use TeraBlaze\Database\Query\Expression\ExpressionBuilder;
+use Terablaze\Collection\CollectionInterface;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Exception\QueryException;
+use Terablaze\Database\Query\Expression\ExpressionBuilder;
 
 interface QueryBuilderInterface
 {
@@ -239,6 +240,8 @@ interface QueryBuilderInterface
     public function insert(string $insert = null): self;
 
     public function save(array $values, array $parameters = []);
+
+    public function saveGetId(array $values, array $parameters = []);
 
     /**
      * Creates and adds a query root corresponding to the table identified by the
@@ -642,6 +645,11 @@ interface QueryBuilderInterface
     public function all(): array;
 
     /**
+     * @return CollectionInterface
+     */
+    public function get(): CollectionInterface;
+
+    /**
      * @return array<string|int, mixed>|null
      */
     public function first(): ?array;
@@ -664,4 +672,56 @@ interface QueryBuilderInterface
     public function getLastInsertId(): string;
 
     public function getType(): int;
+
+    /**
+     * Explains the query.
+     *
+     * @return CollectionInterface
+     */
+    public function explain(): CollectionInterface;
+
+    /**
+     * Lock the selected rows in the table.
+     *
+     * @param  string|bool  $value
+     * @return $this
+     */
+    public function lock($value = true);
+
+    /**
+     * Lock the selected rows in the table for updating.
+     *
+     * @return $this
+     */
+    public function lockForUpdate();
+
+    /**
+     * Share lock the selected rows in the table.
+     *
+     * @return $this
+     */
+    public function sharedLock();
+
+    /**
+     * Determine if the grammar supports savepoints.
+     *
+     * @return bool
+     */
+    public function supportsSavepoints();
+
+    /**
+     * Compile the SQL statement to define a savepoint.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    public function compileSavepoint($name);
+
+    /**
+     * Compile the SQL statement to execute a savepoint rollback.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    public function compileSavepointRollBack($name);
 }

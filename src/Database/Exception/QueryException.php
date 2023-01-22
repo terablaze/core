@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Exception;
+namespace Terablaze\Database\Exception;
 
 use PDOException;
 use Throwable;

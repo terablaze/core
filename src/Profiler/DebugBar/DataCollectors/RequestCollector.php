@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\RequestDataCollector;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
 
 class RequestCollector extends RequestDataCollector
 {

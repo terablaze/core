@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Filesystem\Driver;
+namespace Terablaze\Filesystem\Driver;
 
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\DirectoryListing;
@@ -8,11 +8,11 @@ use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use TeraBlaze\Filesystem\Exception\UploadedFileException;
+use Terablaze\Filesystem\Exception\UploadedFileException;
 
 abstract class FileDriver implements FileDriverInterface
 {
-    protected Filesystem $filesystem;
+    protected ?Filesystem $filesystem = null;
 
     /**
      * @var array<string, mixed> $config
@@ -31,20 +31,19 @@ abstract class FileDriver implements FileDriverInterface
     {
         $this->config = $config;
         $this->root = $this->config['root'] ?? "";
-        $this->connect();
     }
 
     public function exists(string $path): bool
     {
-        return $this->filesystem->fileExists($path);
+        return $this->filesystem()->fileExists($path);
     }
 
     public function read(string $path, bool $asResource = false)
     {
         if ($asResource) {
-            return $this->filesystem->readStream($path);
+            return $this->filesystem()->readStream($path);
         }
-        return $this->filesystem->read($path);
+        return $this->filesystem()->read($path);
     }
 
     public function write(string $path, $value, array $config = []): void
@@ -52,7 +51,7 @@ abstract class FileDriver implements FileDriverInterface
         $config = array_merge($this->config, $config);
 
         if (is_string($value)) {
-            $this->filesystem->write($path, $value, $config);
+            $this->filesystem()->write($path, $value, $config);
         }
         if ($value instanceof UploadedFileInterface) {
             if ($value->getError() !== UPLOAD_ERR_OK) {
@@ -64,23 +63,23 @@ abstract class FileDriver implements FileDriverInterface
             $value = $value->detach();
         }
         if (is_resource($value)) {
-            $this->filesystem->writeStream($path, $value, $config);
+            $this->filesystem()->writeStream($path, $value, $config);
         }
     }
 
     public function delete(string $path): void
     {
-        $this->filesystem->delete($path);
+        $this->filesystem()->delete($path);
     }
 
     public function deleteDirectory(string $path): void
     {
-        $this->filesystem->deleteDirectory($path);
+        $this->filesystem()->deleteDirectory($path);
     }
 
     public function createDirectory(string $path, array $config = []): void
     {
-        $this->filesystem->createDirectory($path, $config);
+        $this->filesystem()->createDirectory($path, $config);
     }
 
     /**
@@ -92,42 +91,42 @@ abstract class FileDriver implements FileDriverInterface
      */
     public function list(string $path, bool $recursive = false)
     {
-        return $this->filesystem->listContents($path, $recursive);
+        return $this->filesystem()->listContents($path, $recursive);
     }
 
     public function move(string $source, string $destination, array $config = []): void
     {
-        $this->filesystem->move($source, $destination, $config);
+        $this->filesystem()->move($source, $destination, $config);
     }
 
     public function copy(string $source, string $destination, array $config = []): void
     {
-        $this->filesystem->copy($source, $destination, $config);
+        $this->filesystem()->copy($source, $destination, $config);
     }
 
     public function lastModified(string $path): int
     {
-        return $this->filesystem->lastModified($path);
+        return $this->filesystem()->lastModified($path);
     }
 
     public function fileSize(string $path): int
     {
-        return $this->filesystem->fileSize($path);
+        return $this->filesystem()->fileSize($path);
     }
 
     public function mimeType(string $path): string
     {
-        return $this->filesystem->mimeType($path);
+        return $this->filesystem()->mimeType($path);
     }
 
     public function setVisibility(string $path, string $visibility): void
     {
-        $this->filesystem->setVisibility($path, $visibility);
+        $this->filesystem()->setVisibility($path, $visibility);
     }
 
     public function visibility(string $path): string
     {
-        return $this->filesystem->visibility($path);
+        return $this->filesystem()->visibility($path);
     }
 
     public function getVisibility(string $path): string
@@ -137,6 +136,14 @@ abstract class FileDriver implements FileDriverInterface
 
     public function getFlysystem(): Filesystem
     {
+        return $this->filesystem();
+    }
+
+    protected function filesystem(): Filesystem
+    {
+        if (is_null($this->filesystem)) {
+            $this->connect();
+        }
         return $this->filesystem;
     }
 }

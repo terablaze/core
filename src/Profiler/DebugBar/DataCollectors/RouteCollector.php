@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollector;
 use DebugBar\DataCollector\Renderable;
-use TeraBlaze\Container\Container;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\Routing\Route;
-use TeraBlaze\Routing\Router;
+use Terablaze\Container\Container;
+use Terablaze\HttpBase\Request;
+use Terablaze\Routing\Route;
+use Terablaze\Routing\Router;
 
 class RouteCollector extends DataCollector implements Renderable
 {

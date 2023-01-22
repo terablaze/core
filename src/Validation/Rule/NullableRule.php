@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
-use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
+use Terablaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class NullableRule extends Rule implements RuleInterface
 {

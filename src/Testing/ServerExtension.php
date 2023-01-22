@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Testing;
+namespace Terablaze\Testing;
 
 use PHPUnit\Runner\BeforeFirstTestHook;
 use PHPUnit\Runner\AfterLastTestHook;

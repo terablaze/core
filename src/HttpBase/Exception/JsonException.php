@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\HttpBase\Exception;
+namespace Terablaze\HttpBase\Exception;
 
 /**
  * Thrown by Request::toArray() when the content cannot be JSON-decoded.

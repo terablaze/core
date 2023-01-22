@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Translation;
+namespace Terablaze\Translation;
 
 use ReflectionException;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
 
 class TranslationParcel extends Parcel implements ParcelInterface
 {

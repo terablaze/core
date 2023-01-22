@@ -1,25 +1,32 @@
 <?php
 
-namespace TeraBlaze\Database\Connection;
+namespace Terablaze\Database\Connection;
 
 use Closure;
 use PDO;
 use PDOException;
 use PDOStatement;
-use TeraBlaze\Database\Events\QueryExecuted;
-use TeraBlaze\Database\Exception\ConnectionLost;
-use TeraBlaze\Database\Exception\QueryException;
-use TeraBlaze\Database\Query\Expression\ExpressionBuilder;
-use TeraBlaze\Database\Query\QueryBuilderInterface;
-use TeraBlaze\Database\Logging\QueryLogger;
-use TeraBlaze\Database\Schema\SchemaInterface;
-use TeraBlaze\EventDispatcher\Dispatcher;
+use Terablaze\Database\Events\QueryExecuted;
+use Terablaze\Database\Events\TransactionBeginning;
+use Terablaze\Database\Events\TransactionCommitted;
+use Terablaze\Database\Events\TransactionCommitting;
+use Terablaze\Database\Events\TransactionRolledBack;
+use Terablaze\Database\Exception\ConnectionLost;
+use Terablaze\Database\Exception\QueryException;
+use Terablaze\Database\Query\DatabaseTransactionsManager;
+use Terablaze\Database\Query\Expression\ExpressionBuilder;
+use Terablaze\Database\Query\QueryBuilderInterface;
+use Terablaze\Database\Logging\QueryLogger;
+use Terablaze\Database\Schema\SchemaInterface;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Support\ArrayMethods;
 use Throwable;
 
 abstract class Connection implements ConnectionInterface
 {
     use DetectsConcurrencyErrors,
-        DetectsLostConnections;
+        DetectsLostConnections,
+        ManagesTransactions;
 
     /**
      * The default PDO connection options.
@@ -37,7 +44,7 @@ abstract class Connection implements ConnectionInterface
     /** @var QueryLogger $queryLogger */
     protected $queryLogger;
 
-    protected ?PDO $pdo;
+    protected ?PDO $pdo = null;
 
     /**
      * The name of the connected database.
@@ -49,7 +56,7 @@ abstract class Connection implements ConnectionInterface
     protected array $config;
 
     /**
-     * All of the queries run against the connection.
+     * All the queries run against the connection.
      *
      * @var array
      */
@@ -70,6 +77,13 @@ abstract class Connection implements ConnectionInterface
     protected $pretending = false;
 
     /**
+     * All of the callbacks that should be invoked before a query is executed.
+     *
+     * @var \Closure[]
+     */
+    protected $beforeExecutingCallbacks = [];
+
+    /**
      * The event dispatcher instance.
      *
      * @var Dispatcher
@@ -77,6 +91,20 @@ abstract class Connection implements ConnectionInterface
     protected $dispatcher;
 
     protected $name;
+
+    /**
+     * The number of active transactions.
+     *
+     * @var int
+     */
+    protected $transactions = 0;
+
+    /**
+     * The transaction manager instance.
+     *
+     * @var DatabaseTransactionsManager
+     */
+    protected $transactionsManager;
 
     /** @var int */
     protected int $defaultFetchMode = PDO::FETCH_ASSOC;
@@ -86,7 +114,6 @@ abstract class Connection implements ConnectionInterface
     {
         $this->config = $config;
         $this->expr = new ExpressionBuilder($this);
-        $this->pdo = $this->connect($config);
         $this->database = $config['database'] ?? '';
     }
 
@@ -209,6 +236,27 @@ abstract class Connection implements ConnectionInterface
     }
 
     /**
+     * Get an option from the configuration options.
+     *
+     * @param  string|null  $option
+     * @return mixed
+     */
+    public function getConfig($option = null)
+    {
+        return ArrayMethods::get($this->config, $option);
+    }
+
+    /**
+     * Get the PDO driver name.
+     *
+     * @return string
+     */
+    public function getDriverName()
+    {
+        return $this->getConfig('driver');
+    }
+
+    /**
      * Gets the ExpressionBuilder for the connection.
      *
      * @return ExpressionBuilder
@@ -218,24 +266,15 @@ abstract class Connection implements ConnectionInterface
         return $this->expr;
     }
 
-    /**
-     * Executes an, optionally parametrized, SQL query.
-     *
-     * If the query is parametrized, a prepared statement is used.runQueryCallback
-     * If an SQLLogger is configured, the execution is logged.
-     *
-     * @param string $sql SQL query
-     * @param array<string, mixed> $params Query parameters
-     *
-     * @return PDOStatement|bool The executed statement.
-     *
-     * @throws QueryException
-     */
     public function execute($sql, array $params = [])
     {
-        $start = microtime(true);
+        foreach ($this->beforeExecutingCallbacks as $beforeExecutingCallback) {
+            $beforeExecutingCallback($sql, $params, $this);
+        }
 
         $pdo = $this->pdo();
+
+        $start = microtime(true);
 
         ['sql' => $sql, 'params' => $params] = $this->fixSqlAndParams($sql, $params);
 
@@ -272,7 +311,7 @@ abstract class Connection implements ConnectionInterface
 
     public function quote($value, $type = PDO::PARAM_STR)
     {
-        return $this->pdo->quote($value, $type);
+        return $this->pdo()->quote($value, $type);
     }
 
     public function escape($value, $type = PDO::PARAM_STR)
@@ -299,6 +338,9 @@ abstract class Connection implements ConnectionInterface
 
     public function pdo(): PDO
     {
+        if (is_null($this->pdo)) {
+            $this->pdo = $this->connect();
+        }
         return $this->pdo;
     }
 
@@ -456,7 +498,7 @@ abstract class Connection implements ConnectionInterface
      */
     protected function event($event)
     {
-        if (isset($this->dispatcher)) {
+        if (isset($this->dispatcher) && !is_null($event)) {
             $this->dispatcher->dispatch($event);
         }
     }
@@ -599,6 +641,80 @@ abstract class Connection implements ConnectionInterface
     public function disableForeignKeyConstraints()
     {
         return $this->execute($this->compileDisableForeignKeyConstraints());
+    }
+
+    /**
+     * Disconnect from the underlying PDO connection.
+     *
+     * @return void
+     */
+    public function disconnect()
+    {
+        $this->close();
+    }
+
+    /**
+     * Register a hook to be run just before a database query is executed.
+     *
+     * @param  \Closure  $callback
+     * @return $this
+     */
+    public function beforeExecuting(Closure $callback)
+    {
+        $this->beforeExecutingCallbacks[] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Register a database query listener with the connection.
+     *
+     * @param  \Closure  $callback
+     * @return void
+     */
+    public function listen(Closure $callback)
+    {
+        $this->dispatcher->listen(QueryExecuted::class, $callback);
+    }
+
+    /**
+     * Set the transaction manager instance on the connection.
+     *
+     * @param  DatabaseTransactionsManager  $manager
+     * @return $this
+     */
+    public function setTransactionManager(DatabaseTransactionsManager $manager)
+    {
+        $this->transactionsManager = $manager;
+
+        return $this;
+    }
+
+    /**
+     * Unset the transaction manager for this connection.
+     *
+     * @return void
+     */
+    public function unsetTransactionManager()
+    {
+        $this->transactionsManager = null;
+    }
+
+    /**
+     * Fire an event for this connection.
+     *
+     * @param  string  $event
+     * @return void
+     */
+    protected function fireConnectionEvent($event)
+    {
+        $this->event(match ($event) {
+            'beganTransaction' => new TransactionBeginning($this),
+            'committed' => new TransactionCommitted($this),
+            'committing' => new TransactionCommitting($this),
+            'rollingBack' => new TransactionRolledBack($this),
+            default => null,
+        });
     }
 
     /**

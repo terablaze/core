@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\ErrorEnhancer;
+namespace Terablaze\ErrorHandler\ErrorEnhancer;
 
 interface ErrorEnhancerInterface
 {

@@ -2,26 +2,26 @@
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
-use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Log\LogManager;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Config\Config;
-use TeraBlaze\Config\ConfigInterface;
-use TeraBlaze\Config\Exception\InvalidContextException;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Core\Exception\JsonDecodeException;
-use TeraBlaze\Core\Exception\JsonEncodeException;
-use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\Support\HigherOrderTapProxy;
-use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
-use TeraBlaze\Routing\Router;
-use TeraBlaze\Routing\RouterInterface;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Validation\Validator;
+use Terablaze\Config\Config;
+use Terablaze\Config\ConfigInterface;
+use Terablaze\Config\Exception\InvalidContextException;
+use Terablaze\Container\Container;
+use Terablaze\Container\Exception\ContainerException;
+use Terablaze\Container\Exception\ParameterNotFoundException;
+use Terablaze\Core\Exception\JsonDecodeException;
+use Terablaze\Core\Exception\JsonEncodeException;
+use Terablaze\Core\Kernel\KernelInterface;
+use Terablaze\ErrorHandler\Exception\Http\HttpException;
+use Terablaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+use Terablaze\HttpBase\Response;
+use Terablaze\Log\LogManager;
+use Terablaze\Routing\Generator\UrlGeneratorInterface;
+use Terablaze\Routing\Router;
+use Terablaze\Routing\RouterInterface;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\HigherOrderTapProxy;
+use Terablaze\Support\StringMethods;
+use Terablaze\Validation\Validator;
 
 if (!function_exists('container')) {
     /**
@@ -98,7 +98,7 @@ if (! function_exists('abort')) {
     function abort($code, string $message = '', array $headers = [])
     {
         if ($code instanceof Response) {
-            throw new \TeraBlaze\ErrorHandler\Exception\Http\HttpResponseException($code);
+            throw new \Terablaze\ErrorHandler\Exception\Http\HttpResponseException($code);
         }
 
         kernel()->abort($code, $message, $headers);
@@ -151,14 +151,63 @@ if (! function_exists('abortUnless')) {
 
 if (!function_exists('request')) {
     /**
-     * Gets the current request instance instance from the kernel
+     * Gets the current request instance from the kernel
      *
-     * @return \TeraBlaze\HttpBase\Request
+     * @return \Terablaze\HttpBase\Request
      * @throws ReflectionException
      */
     function request()
     {
         return kernel()->getCurrentRequest();
+    }
+}
+
+if (! function_exists('report')) {
+    /**
+     * Report an exception.
+     *
+     * @param  \Throwable|string  $exception
+     * @return void
+     */
+    function report($exception)
+    {
+        if (is_string($exception)) {
+            $exception = new Exception($exception);
+        }
+
+        (kernel()->getExceptionHandler())->report($exception);
+    }
+}
+
+if (! function_exists('report_if')) {
+    /**
+     * Report an exception if the given condition is true.
+     *
+     * @param  bool  $boolean
+     * @param  \Throwable|string  $exception
+     * @return void
+     */
+    function report_if($boolean, $exception)
+    {
+        if ($boolean) {
+            report($exception);
+        }
+    }
+}
+
+if (! function_exists('report_unless')) {
+    /**
+     * Report an exception unless the given condition is true.
+     *
+     * @param  bool  $boolean
+     * @param  \Throwable|string  $exception
+     * @return void
+     */
+    function report_unless($boolean, $exception)
+    {
+        if (! $boolean) {
+            report($exception);
+        }
     }
 }
 
@@ -483,6 +532,22 @@ if (!function_exists('jsonEncode')) {
     }
 }
 
+if (! function_exists('collect')) {
+    /**
+     * Create a collection from the given value.
+     *
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param  \Terablaze\Support\Interfaces\Arrayable<TKey, TValue>|iterable<TKey, TValue>|null  $value
+     * @return \Terablaze\Collection\ArrayCollection<TKey, TValue>
+     */
+    function collect($value = null)
+    {
+        return new \Terablaze\Collection\ArrayCollection($value);
+    }
+}
+
 if (!function_exists('dataSet')) {
     /**
      * Set an item on an array or object using dot notation.
@@ -564,7 +629,7 @@ if (!function_exists('dataGet')) {
 
         while (!is_null($segment = array_shift($key))) {
             if ($segment === '*') {
-                if ($target instanceof TeraBlaze\Collection\CollectionInterface) {
+                if ($target instanceof Terablaze\Collection\CollectionInterface) {
                     $target = $target->all();
                 } elseif (!is_array($target)) {
                     return value($default);
@@ -627,6 +692,34 @@ if (! function_exists('value')) {
     }
 }
 
+if (! function_exists('str')) {
+    /**
+     * Get a new stringable object from the given string.
+     *
+     * @param  string|null  $string
+     * @return Stringable|mixed
+     */
+    function str($string = null)
+    {
+        if (func_num_args() === 0) {
+            return new class
+            {
+                public function __call($method, $parameters)
+                {
+                    return StringMethods::$method(...$parameters);
+                }
+
+                public function __toString()
+                {
+                    return '';
+                }
+            };
+        }
+
+        return StringMethods::of($string);
+    }
+}
+
 if (!function_exists('tap')) {
     /**
      * Call the given Closure with the given value then return the value.
@@ -646,6 +739,34 @@ if (!function_exists('tap')) {
         return $value;
     }
 }
+
+
+if (! function_exists('e')) {
+    /**
+     * Encode HTML special characters in a string.
+     *
+     * @param  \Terablaze\Support\Interfaces\DeferringDisplayableValue|\Terablaze\Support\Interfaces\Htmlable|\BackedEnum|string|null  $value
+     * @param  bool  $doubleEncode
+     * @return string
+     */
+    function e($value, $doubleEncode = true)
+    {
+        if ($value instanceof \Terablaze\Support\Interfaces\DeferringDisplayableValue) {
+            $value = $value->resolveDisplayableValue();
+        }
+
+        if ($value instanceof \Terablaze\Support\Interfaces\Htmlable) {
+            return $value->toHtml();
+        }
+
+        if ($value instanceof BackedEnum) {
+            $value = $value->value;
+        }
+
+        return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8', $doubleEncode);
+    }
+}
+
 
 if (!function_exists('env')) {
     /**
@@ -935,7 +1056,7 @@ if (!function_exists('validate')) {
 }
 
 if (!function_exists('encrypter')) {
-    function encrypter(): \TeraBlaze\Encryption\Encrypter
+    function encrypter(): \Terablaze\Encryption\Encrypter
     {
         if (!container()->has("encrypter")) {
             throw new RuntimeException("Encryption service not found, ensure it has been loaded in parcels");
@@ -969,5 +1090,20 @@ if (!function_exists('decryptString')) {
     function decryptString(string $payload)
     {
         return encrypter()->decryptString($payload);
+    }
+}
+
+if (! function_exists('classBasename')) {
+    /**
+     * Get the class "basename" of the given object / class.
+     *
+     * @param  string|object  $class
+     * @return string
+     */
+    function classBasename($class)
+    {
+        $class = is_object($class) ? get_class($class) : $class;
+
+        return basename(str_replace('\\', '/', $class));
     }
 }

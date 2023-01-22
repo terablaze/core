@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\TeraBlaze\Unit\Collection;
+namespace Tests\Terablaze\Unit\Collection;
 
 class TestClass
 {

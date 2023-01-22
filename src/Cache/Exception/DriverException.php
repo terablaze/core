@@ -1,10 +1,11 @@
 <?php
 
-namespace TeraBlaze\Cache\Exception;
+namespace Terablaze\Cache\Exception;
 
-use Psr\SimpleCache\CacheException;
+use Psr\SimpleCache\CacheException as Psr16Exception;
+use Psr\Cache\CacheException as Psr6Exception;
 use RuntimeException;
 
-class DriverException extends RuntimeException implements CacheException
+class DriverException extends RuntimeException implements Psr16Exception, Psr6Exception
 {
 }

@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\Renderer;
+namespace Terablaze\ErrorHandler\Renderer;
 
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper;
-use TeraBlaze\ErrorHandler\FlattenException;
+use Terablaze\ErrorHandler\FlattenException;
 
 // Help opcache.preload discover always-needed symbols
 class_exists(CliDumper::class);

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Filesystem\Driver;
+namespace Terablaze\Filesystem\Driver;
 
 use AsyncAws\S3\Input\GetObjectRequest;
 use AsyncAws\S3\Input\PutObjectRequest;
@@ -11,24 +11,24 @@ use DateTimeImmutable;
 use League\Flysystem\AsyncAwsS3\AsyncAwsS3Adapter;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use League\Flysystem\Filesystem;
-use TeraBlaze\Filesystem\Exception\ConfigurationException;
-use TeraBlaze\Filesystem\Exception\DriverException;
-use TeraBlaze\Filesystem\Exception\ServiceException;
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Filesystem\Exception\ConfigurationException;
+use Terablaze\Filesystem\Exception\DriverException;
+use Terablaze\Filesystem\Exception\ServiceException;
+use Terablaze\Support\ArrayMethods;
 use League\Flysystem\AwsS3V3\PortableVisibilityConverter;
 use League\Flysystem\AsyncAwsS3\PortableVisibilityConverter as AsyncPortableVisibilityConverter;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Support\StringMethods;
 
 /**
  * Class S3Driver
- * @package TeraBlaze\Filesystem\Driver
+ * @package Terablaze\Filesystem\Driver
  *
  * Only usable after installing "league/flysystem-aws-s3-v3" package
  */
 class S3FileDriver extends FileDriver implements FileDriverInterface
 {
     /** @var AsyncS3Client|SimpleS3Client|S3Client */
-    private $client;
+    private $client = null;
 
     public function connect(): void
     {
@@ -158,14 +158,17 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
     /**
      * @return AsyncS3Client|SimpleS3Client|S3Client
      */
-    public function getClient()
+    public function client()
     {
+        if (is_null($this->client)) {
+            $this->filesystem();
+        }
         return $this->client;
     }
 
     public function getObject(string $path)
     {
-        return $this->client->getObject([
+        return $this->client()->getObject([
             'Bucket' => $this->config['bucket'],
             'Key' => $this->applyPathPrefix(ltrim($path, '\\/')),
         ]);
@@ -178,10 +181,10 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
             'Bucket' => $this->config['bucket'],
             'Key' => $fileUrl,
         ], $options);
-        if ($this->client instanceof S3Client) {
+        if ($this->client() instanceof S3Client) {
             return $this->createTemporaryS3GetUrl($expiration, $options);
         }
-        if ($this->client instanceof AsyncS3Client) {
+        if ($this->client() instanceof AsyncS3Client) {
             return $this->createTemporaryAsyncS3GetUrl($expiration, $options);
         }
         return "";
@@ -196,10 +199,10 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
             'ContentType' => 'application/json',
             'Body' => '',
         ], $options);
-        if ($this->client instanceof S3Client) {
+        if ($this->client() instanceof S3Client) {
             return $this->createTemporaryS3UploadUrl($expiration, $options);
         }
-        if ($this->client instanceof AsyncS3Client) {
+        if ($this->client() instanceof AsyncS3Client) {
             return $this->createTemporaryAsyncS3UploadUrl($expiration, $options);
         }
         return "";
@@ -208,8 +211,8 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
     private function createTemporaryS3GetUrl($expiration, array $options)
     {
         // TODO: Convert DateTimeImmutable to acceptable string, e.g. +1 day
-        $command = $this->client->getCommand('getObject', $options);
-        $request = $this->client->createPresignedRequest($command, $expiration);
+        $command = $this->client()->getCommand('getObject', $options);
+        $request = $this->client()->createPresignedRequest($command, $expiration);
         return (string)$request->getUri();
     }
 
@@ -219,14 +222,14 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
             $expiration = new DateTimeImmutable($expiration);
         }
         $input = new GetObjectRequest($options);
-        return $this->client->presign($input, $expiration);
+        return $this->client()->presign($input, $expiration);
     }
 
     private function createTemporaryS3UploadUrl($expiration, $options)
     {
         // TODO: Convert DateTimeImmutable to acceptable string, e.g. +1 day
-        $command = $this->client->getCommand('putObject', $options);
-        $request = $this->client->createPresignedRequest($command, $expiration);
+        $command = $this->client()->getCommand('putObject', $options);
+        $request = $this->client()->createPresignedRequest($command, $expiration);
         return (string)$request->getUri();
     }
 
@@ -236,7 +239,7 @@ class S3FileDriver extends FileDriver implements FileDriverInterface
             $expiration = new DateTimeImmutable($expiration);
         }
         $input = new PutObjectRequest($options);
-        return $this->client->presign($input, $expiration);
+        return $this->client()->presign($input, $expiration);
     }
 
     private function applyPathPrefix(string $path): string

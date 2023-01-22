@@ -1,16 +1,16 @@
 <?php
 
-namespace TeraBlaze\Support;
+namespace Terablaze\Support;
 
 use ArrayAccess;
 use InvalidArgumentException;
 use stdClass;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Collection\CollectionInterface;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\CollectionInterface;
 
 /**
  * Class ArrayMethods
- * @package TeraBlaze
+ * @package Terablaze
  */
 class ArrayMethods
 {
@@ -390,6 +390,25 @@ class ArrayMethods
      * @param mixed $key
      * @return array
      */
+    public static function append($array, $value, $key = null)
+    {
+        if (func_num_args() == 2) {
+            array_push($array, $value);
+        } else {
+            $array = $array + [$key => $value];
+        }
+
+        return $array;
+    }
+
+    /**
+     * Push an item onto the beginning of an array.
+     *
+     * @param array $array
+     * @param mixed $value
+     * @param mixed $key
+     * @return array
+     */
     public static function prepend($array, $value, $key = null)
     {
         if (func_num_args() == 2) {
@@ -637,6 +656,20 @@ class ArrayMethods
         }
 
         return $results;
+    }
+
+    /**
+     * Get all the given array except for a specified array of keys.
+     *
+     * @param  array  $array
+     * @param  array|string|int|float  $keys
+     * @return array
+     */
+    public static function except($array, $keys)
+    {
+        static::forget($array, $keys);
+
+        return $array;
     }
 
     public static function utf8ize($data)

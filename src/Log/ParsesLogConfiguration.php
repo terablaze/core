@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Log;
+namespace Terablaze\Log;
 
 use InvalidArgumentException;
 use Monolog\Logger as Monolog;

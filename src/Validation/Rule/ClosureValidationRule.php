@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
 
-use TeraBlaze\Validation\Validation;
+use Terablaze\Validation\Validation;
 
 class ClosureValidationRule extends Rule implements RuleInterface
 {

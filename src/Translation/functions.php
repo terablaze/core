@@ -1,6 +1,6 @@
 <?php
 
-use TeraBlaze\Translation\Translator;
+use Terablaze\Translation\Translator;
 
 if (!function_exists('trans')) {
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Routing\Exception;
+namespace Terablaze\Routing\Exception;
 
 class InvalidParameterException extends Exception
 {

@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Libraries;
+namespace Terablaze\Libraries;
 
 /**
  * Class Form
- * @package TeraBlaze\Libraries
+ * @package Terablaze\Libraries
  *
  * for form creation and operations
  */

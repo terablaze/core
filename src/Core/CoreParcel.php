@@ -1,12 +1,22 @@
 <?php
 
-namespace TeraBlaze\Core;
+namespace Terablaze\Core;
 
-use TeraBlaze\Console\Application;
-use TeraBlaze\Core\Console\Command\KeyGenerateCommand;
-use TeraBlaze\Core\Console\Command\StorageLinkCommand;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
+use Terablaze\Console\Application;
+use Terablaze\Core\Console\Command\DownCommand;
+use Terablaze\Core\Console\Command\JobMakeCommand;
+use Terablaze\Core\Console\Command\KeyGenerateCommand;
+use Terablaze\Core\Console\Command\ServeCommand;
+use Terablaze\Core\Console\Command\StorageLinkCommand;
+use Terablaze\Core\Console\Command\UpCommand;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\Core\Scheduling\Console\Command\ScheduleClearCacheCommand;
+use Terablaze\Core\Scheduling\Console\Command\ScheduleFinishCommand;
+use Terablaze\Core\Scheduling\Console\Command\ScheduleListCommand;
+use Terablaze\Core\Scheduling\Console\Command\ScheduleRunCommand;
+use Terablaze\Core\Scheduling\Console\Command\ScheduleTestCommand;
+use Terablaze\Core\Scheduling\Console\Command\ScheduleWorkCommand;
 
 class CoreParcel extends Parcel implements ParcelInterface
 {
@@ -16,8 +26,19 @@ class CoreParcel extends Parcel implements ParcelInterface
      * @var array
      */
     protected array $commands = [
+        DownCommand::class,
         KeyGenerateCommand::class,
+        ServeCommand::class,
         StorageLinkCommand::class,
+        UpCommand::class,
+        JobMakeCommand::class,
+
+        ScheduleClearCacheCommand::class,
+        ScheduleFinishCommand::class,
+        ScheduleListCommand::class,
+        ScheduleRunCommand::class,
+        ScheduleTestCommand::class,
+        ScheduleWorkCommand::class,
     ];
 
     public function boot(): void

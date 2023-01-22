@@ -1,0 +1,34 @@
+<?php
+
+use Terablaze\Database\Migrations\Migration;
+
+class Create{{ tableClassName }}Table extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up(): void
+    {
+        $table = $this->createTable('{{ table }}');
+        $table->bigId();
+        $table->string('uuid')->unique();
+        $table->text('connection');
+        $table->text('queue');
+        $table->longText('payload');
+        $table->longText('exception');
+        $table->dateTime('failed_at')->useCurrent();
+        $table->build();
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down(): void
+    {
+        $this->dropTableIfExists('{{ table }}')->build();
+    }
+};

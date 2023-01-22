@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\Error;
+namespace Terablaze\ErrorHandler\Error;
 
 class UndefinedFunctionError extends \Error
 {

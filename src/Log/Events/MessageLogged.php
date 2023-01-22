@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Log\Events;
+namespace Terablaze\Log\Events;
 
-use TeraBlaze\EventDispatcher\Event;
+use Terablaze\EventDispatcher\Event;
 
 class MessageLogged extends Event
 {

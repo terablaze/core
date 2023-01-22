@@ -1,10 +1,11 @@
 <?php
 
-namespace TeraBlaze\Cache\Driver;
+namespace Terablaze\Cache\Driver;
 
 use Psr\SimpleCache\CacheInterface;
+use Terablaze\Cache\LockProviderInterface;
 
-interface CacheDriverInterface extends CacheInterface
+interface CacheDriverInterface extends CacheInterface, LockProviderInterface
 {
     /**
      * Remove a single cached value
@@ -20,4 +21,22 @@ interface CacheDriverInterface extends CacheInterface
      * @return bool
      */
     public function flush();
+
+    /**
+     * Increments the value of an item in the cache;
+     *
+     * @param string $key
+     * @param int $incrementBy
+     * @return int|bool
+     */
+    public function increment(string $key, int $incrementBy = 1);
+
+    /**
+     * Decrements the value of an item in the cache;
+     *
+     * @param string $key
+     * @param int $decrementBy
+     * @return int|bool
+     */
+    public function decrement(string $key, int $decrementBy = 1);
 }

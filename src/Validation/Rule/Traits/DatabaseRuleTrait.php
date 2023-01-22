@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule\Traits;
+namespace Terablaze\Validation\Rule\Traits;
 
-use TeraBlaze\Container\Container;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\ORM\ClassMetadata;
-use TeraBlaze\Database\ORM\Model;
-use TeraBlaze\Database\Query\QueryBuilderInterface;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Validation\Exception\RuleException;
+use Terablaze\Container\Container;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\ORM\ClassMetadata;
+use Terablaze\Database\ORM\Model;
+use Terablaze\Database\Query\QueryBuilderInterface;
+use Terablaze\Support\StringMethods;
+use Terablaze\Validation\Exception\RuleException;
 
 trait DatabaseRuleTrait
 {

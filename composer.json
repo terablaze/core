@@ -1,6 +1,6 @@
 {
   "name": "terablaze/core",
-  "description": "TeraBlaze",
+  "description": "Terablaze",
   "keywords": [
     "php",
     "mvc",
@@ -16,11 +16,11 @@
     }
   ],
   "require": {
-    "php": ">=7.4",
+    "php": "^8.2",
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-openssl": "*",
-    "laminas/laminas-httphandlerrunner": "^1.1@dev",
+    "laminas/laminas-httphandlerrunner": "2.5.x-dev",
     "league/flysystem": "^2.0",
     "monolog/monolog": "^2",
     "nesbot/carbon": "2.x-dev",
@@ -29,37 +29,46 @@
     "psr/http-server-middleware": "1.0.x-dev",
     "terablaze/psr7": "dev-master",
     "terablaze/psr7-server": "dev-master",
-    "symfony/console": "5.4.x-dev",
-    "symfony/var-dumper": "^5.1@dev",
-    "symfony/yaml": "5.4.x-dev",
     "voku/portable-ascii": "dev-master",
     "league/commonmark": "2.1.x-dev",
     "ramsey/uuid": "4.x-dev",
     "dflydev/fig-cookies": "3.0.x-dev",
-    "symfony/finder": "5.4.x-dev",
     "symfony/filesystem": "5.4.x-dev",
-    "symfony/mime": "5.4.x-dev",
-    "symfony/process": "5.4.x-dev",
+    "symfony/console": "^6.0.9",
+    "symfony/error-handler": "^6.0",
+    "symfony/finder": "^6.0",
+    "symfony/http-foundation": "^6.0",
+    "symfony/http-kernel": "^6.0",
+    "symfony/mailer": "^6.0",
+    "symfony/mime": "^6.0",
+    "symfony/process": "^6.0",
+    "symfony/routing": "^6.0",
+    "symfony/uid": "^6.0",
+    "symfony/var-dumper": "^6.0",
+    "symfony/yaml": "^6.0",
     "doctrine/annotations": "1.14.x-dev",
     "doctrine/instantiator": "1.5.x-dev",
     "psr/simple-cache": "^1.0",
-    "dragonmantank/cron-expression": "dev-master"
+    "dragonmantank/cron-expression": "dev-master",
+    "psr/cache": "^1",
+    "terablaze/serializable-closure": "^1.0@dev"
   },
   "require-dev": {
     "filp/whoops": "^2.9",
     "maximebf/debugbar": ">=1.16",
     "middlewares/utils": "dev-master",
     "phpstan/phpstan": "0.12.x-dev",
-    "phpunit/phpunit": "^9",
     "squizlabs/php_codesniffer": "3.*",
     "league/flysystem-aws-s3-v3": "2.x-dev",
     "league/flysystem-async-aws-s3": "2.x-dev",
-    "async-aws/simple-s3": "1.2.x-dev"
+    "async-aws/simple-s3": "1.2.x-dev",
+    "pestphp/pest": "1.x-dev",
+    "psy/psysh": "0.11.x-dev"
   },
   "minimum-stability": "dev",
   "autoload": {
     "psr-4": {
-      "TeraBlaze\\": "src/"
+      "Terablaze\\": "src/"
     },
     "files": [
       "src/Support/functions.php",
@@ -69,7 +78,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\TeraBlaze\\": "tests/"
+      "Tests\\Terablaze\\": "tests/"
     }
   },
   "scripts": {
@@ -111,5 +120,10 @@
     "league/flysystem-aws-s3-v3": "Required to use the Flysystem S3 driver.",
     "league/flysystem-async-aws-s3": "Required to use the Async Flysystem S3 driver.",
     "predis/predis": "Required to use the predis connector (^1.1.2)."
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
   }
 }

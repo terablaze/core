@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
 use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\MessagesCollector;

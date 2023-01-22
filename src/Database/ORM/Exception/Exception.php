@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Database\ORM\Exception;
+namespace Terablaze\Database\ORM\Exception;
 
-use TeraBlaze\Core as Core;
+use Terablaze\Core as Core;
 
 class Exception extends Core\Exception
 {

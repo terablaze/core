@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\Schema;
+namespace Terablaze\Database\Schema;
 
-use TeraBlaze\Database\Exception\MigrationException;
-use TeraBlaze\Database\Schema\Builder\SqliteBuilder;
+use Terablaze\Database\Exception\MigrationException;
+use Terablaze\Database\Schema\Builder\SqliteBuilder;
 
 class SqliteSchema extends AbstractSchema
 {

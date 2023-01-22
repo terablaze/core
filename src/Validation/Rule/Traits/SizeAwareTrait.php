@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule\Traits;
+namespace Terablaze\Validation\Rule\Traits;
 
 
 use Psr\Http\Message\UploadedFileInterface;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Support\StringMethods;
 
 trait SizeAwareTrait
 {

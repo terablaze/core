@@ -1,31 +1,34 @@
 <?php
 
-namespace TeraBlaze\Routing;
+namespace Terablaze\Routing;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
-use TeraBlaze\Collection\Exceptions\TypeException;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\Exception\ContainerException;
-use TeraBlaze\Container\Exception\ParameterNotFoundException;
-use TeraBlaze\ErrorHandler\Exception\Http\MethodNotAllowedHttpException;
-use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Routing\Events\PostDispatchEvent;
-use TeraBlaze\Routing\Events\PreDispatchEvent;
-use TeraBlaze\Routing\Exception\ImplementationException;
-use TeraBlaze\Routing\Exception\MissingParametersException;
-use TeraBlaze\Routing\Exception\RouteNotFoundException;
-use TeraBlaze\Routing\Generator\UrlGenerator;
-use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\Container\Container;
+use Terablaze\Container\Exception\ContainerException;
+use Terablaze\Container\Exception\ParameterNotFoundException;
+use Terablaze\Core\Kernel\KernelInterface;
+use Terablaze\ErrorHandler\Exception\Http\MethodNotAllowedHttpException;
+use Terablaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
+use Terablaze\Routing\Events\PostDispatchEvent;
+use Terablaze\Routing\Events\PreDispatchEvent;
+use Terablaze\Routing\Exception\ImplementationException;
+use Terablaze\Routing\Exception\MissingParametersException;
+use Terablaze\Routing\Exception\RouteNotFoundException;
+use Terablaze\Routing\Generator\UrlGenerator;
+use Terablaze\Routing\Generator\UrlGeneratorInterface;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
 
 /**
  * Class Routing
- * @package TeraBlaze\Routing
+ * @package Terablaze\Routing
  *
  * handles url routing
  */
@@ -50,13 +53,21 @@ class Router implements RouterInterface
     protected ServerRequestInterface $currentRequest;
 
     private EventDispatcherInterface $dispatcher;
+    /**
+     * @var mixed|object
+     */
+    private KernelInterface $kernel;
 
     public function __construct(
-        Container $container,
+        Container                $container,
         EventDispatcherInterface $dispatcher
-    ) {
+    )
+    {
         $this->container = $container;
         $this->dispatcher = $dispatcher;
+
+        /** @var KernelInterface $kernel */
+        $this->kernel = $this->container->get(KernelInterface::class);
     }
 
     /**
@@ -64,7 +75,7 @@ class Router implements RouterInterface
      */
     public function getCurrentRequest(): ServerRequestInterface
     {
-        return $this->currentRequest ?? kernel()->getCurrentRequest();
+        return $this->currentRequest ?? $this->kernel->getCurrentRequest();
     }
 
     /**
@@ -72,7 +83,10 @@ class Router implements RouterInterface
      */
     public function getCurrentRoute(): Route
     {
-        return $this->match(kernel()->getCurrentRequest()->getPathInfo());
+        return $this->match(
+            $this->kernel->getCurrentRequest()->getPathInfo(),
+            $this->kernel->getCurrentRequest()->getMethod()
+        );
     }
 
     /**
@@ -176,18 +190,8 @@ class Router implements RouterInterface
             return $event->getResponse();
         }
 
-        $requestMethod = $request->getMethod();
-
-        if ($this->match($path)) {
+        if ($this->match($path, $request->getMethod())) {
             $request = $request->withAttribute('route', $this->current);
-            $method = $this->current->getCleanedMethod();
-
-            if (!in_array(strtolower($requestMethod), $method) && !empty($method)) {
-                throw new MethodNotAllowedHttpException(
-                    $method,
-                    "Request method \"{$request->getMethod()}\" not implemented for this endpoint"
-                );
-            }
 
             /** @var Request $request */
             $request = $request->setExpectsJson($this->current->isExpectsJson());
@@ -209,15 +213,26 @@ class Router implements RouterInterface
         throw new NotFoundHttpException(sprintf('No route found for : "%s"', $path));
     }
 
-    private function match(string $path): ?Route
+    private function match(string $path, string $method): ?Route
     {
         if (isset($this->current)) {
             return $this->current;
         }
+        $pathMatchingRoutes = [];
         foreach ($this->routes as $route) {
             if ($route->matches($path)) {
-                return $this->current = $route;
+                $pathMatchingRoutes[] = $route;
+
+                $routeMethods = $route->getCleanedMethod();
+
+                if (in_array(strtolower($method), $routeMethods) || empty($routeMethods)) {
+                    $this->current = $route;
+                    return $this->current;
+                }
             }
+        }
+        if (!empty($pathMatchingRoutes)) {
+            $this->raiseInvalidMethod($pathMatchingRoutes, $method);
         }
 
         return null;
@@ -235,9 +250,10 @@ class Router implements RouterInterface
      */
     public function generate(
         string $name,
-        array $parameters = [],
-        int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
-    ): string {
+        array  $parameters = [],
+        int    $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
+    ): string
+    {
         return $this->getGenerator()->generate($name, $parameters, $referenceType);
     }
 
@@ -254,5 +270,26 @@ class Router implements RouterInterface
             ]);
         }
         return $this->container->get(UrlGenerator::class);
+    }
+
+    /**
+     * @param array $pathMatchingRoutes
+     * @param string $method
+     * @return mixed
+     * @throws \Terablaze\Collection\Exceptions\InvalidTypeException
+     */
+    private function raiseInvalidMethod(array $pathMatchingRoutes, string $method)
+    {
+        $allowedMethods = [];
+        foreach ($pathMatchingRoutes as $pathMatchingRoute) {
+            $allowedMethods = array_merge($allowedMethods, $pathMatchingRoute->getMethod());
+        }
+        $allowedMethods = (new ArrayCollection($allowedMethods))->unique()
+            ->map(fn($method) => StringMethods::upper($method))->toArray();
+        $allowedMethodsString = implode(", ", $allowedMethods);
+        throw new MethodNotAllowedHttpException(
+            $allowedMethods,
+            "Request method \"{$method}\" not implemented for this endpoint, only \"$allowedMethodsString\" allowed"
+        );
     }
 }

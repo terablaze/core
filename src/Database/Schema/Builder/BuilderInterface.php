@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\Schema\Builder;
+namespace Terablaze\Database\Schema\Builder;
 
 interface BuilderInterface
 {

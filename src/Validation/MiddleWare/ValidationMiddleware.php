@@ -1,24 +1,24 @@
 <?php
 
-namespace TeraBlaze\Validation\MiddleWare;
+namespace Terablaze\Validation\MiddleWare;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\HttpBase\RedirectResponse;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\HttpBase\Traits\ResponseTrait;
-use TeraBlaze\Routing\Generator\UrlGenerator;
-use TeraBlaze\Routing\Generator\UrlGeneratorInterface;
-use TeraBlaze\Routing\Router;
-use TeraBlaze\Routing\RouterInterface;
-use TeraBlaze\Validation\Exception\AuthorizationException;
-use TeraBlaze\Validation\Exception\ValidationException;
-use TeraBlaze\Validation\Validation;
-use TeraBlaze\Validation\Validator;
+use Terablaze\Container\Container;
+use Terablaze\HttpBase\RedirectResponse;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
+use Terablaze\HttpBase\Traits\ResponseTrait;
+use Terablaze\Routing\Generator\UrlGenerator;
+use Terablaze\Routing\Generator\UrlGeneratorInterface;
+use Terablaze\Routing\Router;
+use Terablaze\Routing\RouterInterface;
+use Terablaze\Validation\Exception\AuthorizationException;
+use Terablaze\Validation\Exception\ValidationException;
+use Terablaze\Validation\Validation;
+use Terablaze\Validation\Validator;
 
 abstract class ValidationMiddleware implements MiddlewareInterface
 {
@@ -67,9 +67,9 @@ abstract class ValidationMiddleware implements MiddlewareInterface
      *
      * @return string
      * @throws \ReflectionException
-     * @throws \TeraBlaze\Collection\Exceptions\TypeException
-     * @throws \TeraBlaze\Routing\Exception\MissingParametersException
-     * @throws \TeraBlaze\Routing\Exception\RouteNotFoundException
+     * @throws \Terablaze\Collection\Exceptions\TypeException
+     * @throws \Terablaze\Routing\Exception\MissingParametersException
+     * @throws \Terablaze\Routing\Exception\RouteNotFoundException
      */
     protected function getRedirectUrl()
     {

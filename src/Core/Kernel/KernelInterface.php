@@ -1,15 +1,17 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel;
+namespace Terablaze\Core\Kernel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use TeraBlaze\Config\ConfigInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
-use TeraBlaze\ErrorHandler\Exception\Http\NotFoundHttpException;
-use TeraBlaze\HttpBase\Request;
+use Terablaze\Config\ConfigInterface;
+use Terablaze\Container\Container;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Core\MaintenanceMode\MaintenanceModeInterface;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\ErrorHandler\Exception\Http\HttpException;
+use Terablaze\ErrorHandler\Exception\Http\NotFoundHttpException;
+use Terablaze\ErrorHandler\ExceptionHandlerInterface;
+use Terablaze\HttpBase\Request;
 
 interface KernelInterface extends HttpKernelInterface
 {
@@ -39,6 +41,20 @@ interface KernelInterface extends HttpKernelInterface
      * @return string The current environment
      */
     public function getEnvironment(): string;
+
+    /**
+     * Get an instance of the maintenance mode manager implementation.
+     *
+     * @return MaintenanceModeInterface
+     */
+    public function maintenanceMode();
+
+    /**
+     * Determine if the application is currently down for maintenance.
+     *
+     * @return bool
+     */
+    public function isDownForMaintenance();
 
     /**
      * Checks if debug mode is enabled.
@@ -129,4 +145,13 @@ interface KernelInterface extends HttpKernelInterface
      * @throws NotFoundHttpException
      */
     public function abort(int $code, string $message = '', array $headers = []): void;
+
+    /**
+     * Get an instance of the exception handler.
+     *
+     * @return ExceptionHandlerInterface
+     */
+    public function getExceptionHandler();
+
+    public function terminating(\Closure $param);
 }

@@ -1,28 +1,43 @@
 <?php
 
-namespace TeraBlaze\Database\Connection;
+namespace Terablaze\Database\Connection;
 
 use Closure;
 use PDO;
-use TeraBlaze\Database\Query\Expression\ExpressionBuilder;
-use TeraBlaze\Database\Query\QueryBuilderInterface;
-use TeraBlaze\Database\Logging\QueryLogger;
-use TeraBlaze\Database\Schema\SchemaInterface;
-use TeraBlaze\EventDispatcher\Dispatcher;
+use Terablaze\Database\Exception\QueryException;
+use Terablaze\Database\Query\Expression\ExpressionBuilder;
+use Terablaze\Database\Query\QueryBuilderInterface;
+use Terablaze\Database\Logging\QueryLogger;
+use Terablaze\Database\Schema\SchemaInterface;
+use Terablaze\EventDispatcher\Dispatcher;
 
 interface ConnectionInterface
 {
     /**
      * Establish a database connection.
      *
-     * @param  array  $config
      * @return \PDO
      */
-    public function connect(array $config);
+    public function connect();
 
     public function setName(string $name): self;
 
     public function getName(): string;
+
+    /**
+     * Get an option from the configuration options.
+     *
+     * @param  string|null  $option
+     * @return mixed
+     */
+    public function getConfig($option = null);
+
+    /**
+     * Get the PDO driver name.
+     *
+     * @return string
+     */
+    public function getDriverName();
 
     public function getMigrationsTable(): string;
 
@@ -45,6 +60,19 @@ interface ConnectionInterface
      */
     public function getLastInsertId(): string;
 
+    /**
+     * Executes an optionally parametrized, SQL query.
+     *
+     * If the query is parametrized, a prepared statement is used.runQueryCallback
+     * If an SQLLogger is configured, the execution is logged.
+     *
+     * @param string $sql SQL query
+     * @param array<string, mixed> $params Query parameters
+     *
+     * @return \PDOStatement|bool The executed statement.
+     *
+     * @throws QueryException
+     */
     public function execute($sql, array $params = []);
 
     public function getExpressionBuilder(): ExpressionBuilder;

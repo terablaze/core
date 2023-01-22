@@ -1,29 +1,29 @@
 <?php
 
-namespace TeraBlaze\HttpBase;
+namespace Terablaze\HttpBase;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use TeraBlaze\Container\Container;
-use TeraBlaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
-use TeraBlaze\HttpBase\Exception\ConflictingHeadersException;
-use TeraBlaze\HttpBase\Exception\SuspiciousOperationException;
-use TeraBlaze\HttpBase\Utils\HeaderUtils;
-use TeraBlaze\HttpBase\Utils\IpUtils;
-use TeraBlaze\Psr7\ServerRequest as Psr7ServerRequest;
-use TeraBlaze\Psr7Server\ServerRequestCreator;
-use TeraBlaze\Session\Csrf\CsrfGuardInterface;
-use TeraBlaze\Session\Csrf\CsrfMiddleware;
-use TeraBlaze\Session\Flash\FlashMessageMiddleware;
-use TeraBlaze\Session\Flash\FlashMessagesInterface;
-use TeraBlaze\Session\SessionInterface;
-use TeraBlaze\Session\SessionMiddleware;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\MessageBag;
-use TeraBlaze\Support\StringMethods;
+use Terablaze\Container\Container;
+use Terablaze\HttpBase\Core\Psr7\Factory\Psr17Factory;
+use Terablaze\HttpBase\Exception\ConflictingHeadersException;
+use Terablaze\HttpBase\Exception\SuspiciousOperationException;
+use Terablaze\HttpBase\Utils\HeaderUtils;
+use Terablaze\HttpBase\Utils\IpUtils;
+use Terablaze\Psr7\ServerRequest as Psr7ServerRequest;
+use Terablaze\Psr7Server\ServerRequestCreator;
+use Terablaze\Session\Csrf\CsrfGuardInterface;
+use Terablaze\Session\Csrf\CsrfMiddleware;
+use Terablaze\Session\Flash\FlashMessageMiddleware;
+use Terablaze\Session\Flash\FlashMessagesInterface;
+use Terablaze\Session\SessionInterface;
+use Terablaze\Session\SessionMiddleware;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\MessageBag;
+use Terablaze\Support\StringMethods;
 
-use TeraBlaze\Validation\Validation;
-use TeraBlaze\Validation\Validator;
+use Terablaze\Validation\Validation;
+use Terablaze\Validation\Validator;
 use function dirname;
 
 class Request extends Psr7ServerRequest

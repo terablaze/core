@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler;
+namespace Terablaze\ErrorHandler;
 
 use Exception;
 use Psr\Container\ContainerInterface;
@@ -8,20 +8,20 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Output\OutputInterface;
-use TeraBlaze\ErrorHandler\Error\OutOfMemoryError;
-use TeraBlaze\ErrorHandler\ErrorEnhancer\ClassNotFoundErrorEnhancer;
-use TeraBlaze\ErrorHandler\ErrorEnhancer\ErrorEnhancerInterface;
-use TeraBlaze\ErrorHandler\ErrorEnhancer\UndefinedFunctionErrorEnhancer;
-use TeraBlaze\ErrorHandler\ErrorEnhancer\UndefinedMethodErrorEnhancer;
-use TeraBlaze\ErrorHandler\Exception\Http\HttpException;
-use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
-use TeraBlaze\ErrorHandler\Renderer\CliErrorRenderer;
-use TeraBlaze\ErrorHandler\Renderer\HtmlErrorRenderer;
-use TeraBlaze\HttpBase\JsonResponse;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\View\View;
+use Terablaze\ErrorHandler\Error\OutOfMemoryError;
+use Terablaze\ErrorHandler\ErrorEnhancer\ClassNotFoundErrorEnhancer;
+use Terablaze\ErrorHandler\ErrorEnhancer\ErrorEnhancerInterface;
+use Terablaze\ErrorHandler\ErrorEnhancer\UndefinedFunctionErrorEnhancer;
+use Terablaze\ErrorHandler\ErrorEnhancer\UndefinedMethodErrorEnhancer;
+use Terablaze\ErrorHandler\Exception\Http\HttpException;
+use Terablaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
+use Terablaze\ErrorHandler\Renderer\CliErrorRenderer;
+use Terablaze\ErrorHandler\Renderer\HtmlErrorRenderer;
+use Terablaze\HttpBase\JsonResponse;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\View\View;
 use Throwable;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run as Whoops;
@@ -351,9 +351,9 @@ class ExceptionHandler implements ExceptionHandlerInterface
         try {
             return $this->debugMode && class_exists(Whoops::class)
                 ? $this->renderExceptionWithWhoops($e)
-                : $this->renderExceptionWithTeraBlaze($e, $this->debugMode);
+                : $this->renderExceptionWithTerablaze($e, $this->debugMode);
         } catch (Exception $e) {
-            return $this->renderExceptionWithTeraBlaze($e, $this->debugMode);
+            return $this->renderExceptionWithTerablaze($e, $this->debugMode);
         }
     }
 
@@ -373,13 +373,13 @@ class ExceptionHandler implements ExceptionHandlerInterface
     }
 
     /**
-     * Render an exception to a string using TeraBlaze.
+     * Render an exception to a string using Terablaze.
      *
      * @param Throwable $e
      * @param bool $debug
      * @return string
      */
-    protected function renderExceptionWithTeraBlaze(Throwable $e, $debug)
+    protected function renderExceptionWithTerablaze(Throwable $e, $debug)
     {
         $renderer = new HtmlErrorRenderer($debug);
 

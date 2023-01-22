@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Database\Migrations;
+namespace Terablaze\Database\Migrations;
 
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Query\QueryBuilderInterface;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Query\QueryBuilderInterface;
 
 class MigrationRepository
 {

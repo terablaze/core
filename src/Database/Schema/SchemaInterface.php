@@ -1,26 +1,28 @@
 <?php
 
-namespace TeraBlaze\Database\Schema;
+namespace Terablaze\Database\Schema;
 
-use TeraBlaze\Database\Connection\ConnectionInterface;
-use TeraBlaze\Database\Schema\Field\BoolField;
-use TeraBlaze\Database\Schema\Field\DateTimeField;
-use TeraBlaze\Database\Schema\Field\DecimalField;
-use TeraBlaze\Database\Schema\Field\EnumField;
-use TeraBlaze\Database\Schema\Field\Field;
-use TeraBlaze\Database\Schema\Field\FloatField;
-use TeraBlaze\Database\Schema\Field\IdField;
-use TeraBlaze\Database\Schema\Field\IntField;
-use TeraBlaze\Database\Schema\Field\JsonField;
-use TeraBlaze\Database\Schema\Field\StringField;
-use TeraBlaze\Database\Schema\Field\TextField;
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Database\Connection\ConnectionInterface;
+use Terablaze\Database\Schema\Field\BoolField;
+use Terablaze\Database\Schema\Field\DateTimeField;
+use Terablaze\Database\Schema\Field\DecimalField;
+use Terablaze\Database\Schema\Field\EnumField;
+use Terablaze\Database\Schema\Field\Field;
+use Terablaze\Database\Schema\Field\FloatField;
+use Terablaze\Database\Schema\Field\IdField;
+use Terablaze\Database\Schema\Field\IntField;
+use Terablaze\Database\Schema\Field\JsonField;
+use Terablaze\Database\Schema\Field\StringField;
+use Terablaze\Database\Schema\Field\TextField;
+use Terablaze\Database\Schema\Field\TimeStampField;
 
 interface SchemaInterface
 {
-    public function id(string $column = 'id', string $type = 'INT', ?int $length = null): IdField;
+    public function id(string $column = 'id', string $type = 'INT', int $length = 11): IdField;
 
-    public function bigId(string $column = 'id', string $type = 'BIGINT', ?int $length = null): IdField;
+    public function bigId(string $column = 'id', string $type = 'BIGINT', int $length = 21): IdField;
+
+    public function stringId(string $column = 'id', string $type = 'VARCHAR', int $length = 255): IdField;
 
     public function tinyInt(string $column, int $length = 4): IntField;
 
@@ -42,7 +44,7 @@ interface SchemaInterface
 
     public function year(string $column): DateTimeField;
 
-    public function timestamp(string $column): IntField;
+    public function timestamp(string $column): TimeStampField;
 
     public function float(string $column): FloatField;
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Encryption;
+namespace Terablaze\Encryption;
 
 use Exception;
 use RuntimeException;
-use TeraBlaze\Encryption\Exception\DecryptException;
-use TeraBlaze\Encryption\Exception\EncryptException;
+use Terablaze\Encryption\Exception\DecryptException;
+use Terablaze\Encryption\Exception\EncryptException;
 
 use function openssl_decrypt;
 use function openssl_encrypt;

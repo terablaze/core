@@ -1,12 +1,15 @@
 <?php
 
-namespace TeraBlaze\Collection;
+namespace Terablaze\Collection;
 
 use ArrayAccess;
 use Countable;
 use IteratorAggregate;
+use JsonSerializable;
+use Terablaze\Support\Interfaces\Arrayable;
+use Terablaze\Support\Interfaces\Jsonable;
 
-interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
+interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess, Arrayable, Jsonable, JsonSerializable
 {
     public const BASIC_TYPES = [
         'string',
@@ -111,8 +114,8 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     /**
      * Sets an element in the collection at the specified key/index.
      *
-     * @param string|int $key   The key/index of the element to set.
-     * @param mixed      $value The element to set.
+     * @param string|int $key The key/index of the element to set.
+     * @param mixed $value The element to set.
      *
      * @return void
      */
@@ -135,8 +138,8 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     /**
      * Get the first item from the collection passing the given truth test.
      *
-     * @param  callable|null  $callback
-     * @param  mixed  $default
+     * @param callable|null $callback
+     * @param mixed $default
      * @return mixed
      */
     public function first(callable $callback = null, $default = null);
@@ -144,8 +147,8 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     /**
      * Get the last item from the collection.
      *
-     * @param  callable|null  $callback
-     * @param  mixed  $default
+     * @param callable|null $callback
+     * @param mixed $default
      * @return mixed
      */
     public function last(callable $callback = null, $default = null);
@@ -209,10 +212,19 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      * e.g. new Collection([1, 2, 3])->zip([4, 5, 6]);
      *      => [[1, 4], [2, 5], [3, 6]]
      *
-     * @param  mixed  ...$items
+     * @param mixed ...$items
      * @return static
      */
     public function zip($items);
+
+    /**
+     * Pad collection to the specified length with a value.
+     *
+     * @param int $size
+     * @param $value
+     * @return static
+     */
+    public function pad($size, $value);
 
     /**
      * Applies the given function to each element in the collection and returns
@@ -227,7 +239,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      *
      * The callback should return an associative array with a single key/value pair.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      * @return static
      */
     public function mapToDictionary(callable $callback);
@@ -237,7 +249,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      *
      * The callback should return an associative array with a single key/value pair.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      * @return static
      */
     public function mapWithKeys(callable $callback);
@@ -245,7 +257,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     /**
      * Map a collection and flatten the result by a single level.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      * @return static
      */
     public function flatMap(callable $callback);
@@ -261,13 +273,18 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      * Partitions this collection in two collections according to a predicate.
      * Keys are preserved in the resulting collections.
      *
-     * @param callable $p The predicate on which to partition.
+     *
+     * * Partition the collection into two arrays using the given callback or key.
+     * @param $key
+     * @param $operator
+     * @param $value
+     * @return $this|ArrayCollection[]
      *
      * @return static[] An array with two elements. The first element contains the collection
      *                      of elements where the predicate returned TRUE, the second element
      *                      contains the collection of elements where the predicate returned FALSE.
      */
-    public function partition(callable $p);
+    public function partition($key, $operator = null, $value = null);
 
     /**
      * Gets the index/key of a given element. The comparison of two elements is strict,
@@ -287,7 +304,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
      * Keys have to be preserved by this method. Calling this method will only return the
      * selected slice and NOT change the elements contained in the collection slice is called on.
      *
-     * @param int      $offset The offset to start from.
+     * @param int $offset The offset to start from.
      * @param int|null $length The maximum number of elements to return, or null for no limit.
      *
      * @return array
@@ -299,11 +316,171 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess
     /**
      * Reduce the collection to a single value.
      *
-     * @param  callable  $callback
-     * @param  mixed $initial
+     * @param callable $callback
+     * @param mixed $initial
      * @return mixed
      */
     public function reduce(callable $callback, $initial = null);
 
+    public static function range($from, $to);
+
+    public function avg($callback = null);
+
+    public function median($key = null);
+
+    public function mode($key = null);
+
+    public function flatten($depth = INF);
+
+    public function prepend($value, $key = null);
+
+    public function push(...$values);
+
+    public function each(callable $callback);
+
+    public function merge($elements);
+
+    public function mergeRecursive($elements);
+
+    public function combine($values);
+
+    public function union($elements);
+
+    public function nth($step, $offset = 0);
+
+    public function only($keys);
+
+    public function pop($count = 1);
+
+    public function concat($source);
+
+    public function pull($key, $default = null);
+
+    public function put($key, $value);
+
+    public function random($number = null);
+
+    public function replace($elements);
+
+    public function replaceRecursive($elements);
+
+    public function reverse();
+
+    public function search($value, $strict = false);
+
+    public function implode($value, $glue = null);
+
+    public function reject($callback = true);
+
+    public function undot();
+
+    public function unique($key = null, $strict = false);
+
+    public function values();
+
+    public function forget($keys);
+
+    public function sort($callback = null);
+
+    public function sortDesc($options = SORT_REGULAR);
+
+    public function sortBy($callback, $options = SORT_REGULAR, $descending = false);
+
+    public function sortByDesc($callback, $options = SORT_REGULAR);
+
+    public function sortKeys($options = SORT_REGULAR, $descending = false);
+
+    public function sortKeysDesc($options = SORT_REGULAR);
+
+    public function splice($offset, $length = null, $replacement = []);
+
+    public function dd(...$args);
+
     public function dump();
+
+    public static function make($items = []);
+
+    public static function wrap($value);
+
+    public static function unwrap($value);
+
+    public static function empty();
+
+    public static function times($number, callable $callback = null);
+
+    public function average($callback = null);
+
+    public function some($key, $operator = null, $value = null);
+
+    public function eachSpread(callable $callback);
+
+    public function every($key, $operator = null, $value = null);
+
+    public function firstWhere($key, $operator = null, $value = null);
+
+    public function value($key, $default = null);
+
+    public function isNotEmpty();
+
+    public function mapSpread(callable $callback);
+
+    public function mapToGroups(callable $callback);
+
+    public function mapInto($class);
+
+    public function min($callback = null);
+
+    public function max($callback = null);
+
+    public function forPage($page, $perPage);
+
+    public function sum($callback = null);
+
+    public function whenEmpty(callable $callback, callable $default = null);
+
+    public function whenNotEmpty(callable $callback, callable $default = null);
+
+    public function unlessEmpty(callable $callback, callable $default = null);
+
+    public function unlessNotEmpty(callable $callback, callable $default = null);
+
+    public function where($key, $operator = null, $value = null);
+
+    public function whereNull($key = null);
+
+    public function whereNotNull($key = null);
+
+    public function whereStrict($key, $value);
+
+    public function whereIn($key, $values, $strict = false);
+
+    public function whereInStrict($key, $values);
+
+    public function whereBetween($key, $values);
+
+    public function whereNotBetween($key, $values);
+
+    public function whereNotIn($key, $values, $strict = false);
+
+    public function whereNotInStrict($key, $values);
+
+    public function whereInstanceOf($type);
+
+    public function pipe(callable $callback);
+
+    public function pipeInto($class);
+
+    public function pipeThrough($callbacks);
+
+    public function reduceSpread(callable $callback, ...$initial);
+
+    public function tap(callable $callback);
+
+    public function uniqueStrict($key = null);
+
+    public function collect();
+
+    public function getCachingIterator($flags = \CachingIterator::CALL_TOSTRING);
+
+    public function escapeWhenCastingToString($escape = true);
 }

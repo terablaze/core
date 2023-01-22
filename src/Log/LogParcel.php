@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Log;
+namespace Terablaze\Log;
 
 use Psr\Log\LoggerInterface;
 use ReflectionException;
-use TeraBlaze\Config\Exception\InvalidContextException;
-use TeraBlaze\Core\Parcel\Parcel;
+use Terablaze\Config\Exception\InvalidContextException;
+use Terablaze\Core\Parcel\Parcel;
 
 class LogParcel extends Parcel
 {

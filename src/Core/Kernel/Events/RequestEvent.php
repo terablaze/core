@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel\Events;
+namespace Terablaze\Core\Kernel\Events;
 
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Response;
 
 /**
  * Allows to create a response for a request.

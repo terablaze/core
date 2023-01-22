@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Database\Events;
+namespace Terablaze\Database\Events;
 
-use TeraBlaze\EventDispatcher\Event;
+use Terablaze\EventDispatcher\Event;
 
 class MigrationsStarted extends Event
 {

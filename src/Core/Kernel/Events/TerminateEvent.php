@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\Core\Kernel\Events;
+namespace Terablaze\Core\Kernel\Events;
 
-use TeraBlaze\Core\Kernel\HttpKernelInterface;
-use TeraBlaze\HttpBase\Request;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\Core\Kernel\HttpKernelInterface;
+use Terablaze\HttpBase\Request;
+use Terablaze\HttpBase\Response;
 
 final class TerminateEvent extends KernelEvent
 {

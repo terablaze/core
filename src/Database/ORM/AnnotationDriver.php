@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\Reader;
-use TeraBlaze\Database\ORM\Exception\MappingException;
+use Terablaze\Database\ORM\Exception\MappingException;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -381,7 +381,7 @@ class AnnotationDriver
                 ) {
                     $metadata->setIdGeneratorType(
                         constant(
-                            'TeraBlaze\Database\ORM\ClassMetadata::GENERATOR_TYPE_' . $generatedValueAnnot->strategy
+                            'Terablaze\Database\ORM\ClassMetadata::GENERATOR_TYPE_' . $generatedValueAnnot->strategy
                         )
                     );
                 }
@@ -416,6 +416,30 @@ class AnnotationDriver
 
                 if ($limitAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Limit::class)) {
                     $mapping['limit'] = $limitAnnot->value;
+                }
+
+                if ($paginationAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Pagination::class)) {
+                    $query = null;
+                    switch ($paginationAnnot->source) {
+                        case "request.post":
+                            $query = request()->getPostParam($paginationAnnot->query, 1);
+                            break;
+                        case "cookie":
+                            $query = request()->getCookieParam($paginationAnnot->query, 1);
+                            break;
+                        case "session":
+                            $query = request()->getSession()->get($paginationAnnot->query, 1);
+                            break;
+                        case "request.get":
+                        default:
+                            $query = request()->getQueryParam($paginationAnnot->query, 1);
+                            break;
+                    }
+                    $mapping['pagination'] = [
+                        "limit" => $paginationAnnot->limit,
+                        "type" => $paginationAnnot->type,
+                        "query" => $query,
+                    ];
                 }
 
                 $metadata->mapOneToMany($mapping);
@@ -470,6 +494,30 @@ class AnnotationDriver
                     $mapping['limit'] = $limitAnnot->value;
                 }
 
+                if ($paginationAnnot = $this->reader->getPropertyAnnotation($property, Mapping\Pagination::class)) {
+                    $query = null;
+                    switch ($paginationAnnot->source) {
+                        case "request.post":
+                            $query = request()->getPostParam($paginationAnnot->query, 1);
+                            break;
+                        case "cookie":
+                            $query = request()->getCookieParam($paginationAnnot->query, 1);
+                            break;
+                        case "session":
+                            $query = request()->getSession()->get($paginationAnnot->query, 1);
+                            break;
+                        case "request.get":
+                        default:
+                            $query = request()->getQueryParam($paginationAnnot->query, 1);
+                            break;
+                    }
+                    $mapping['pagination'] = [
+                        "limit" => $paginationAnnot->limit,
+                        "type" => $paginationAnnot->type,
+                        "query" => $query,
+                    ];
+                }
+
                 $metadata->mapManyToMany($mapping);
             }
         }
@@ -487,11 +535,11 @@ class AnnotationDriver
      */
     private function getFetchMode($className, $fetchMode)
     {
-        if (!defined('TeraBlaze\Database\ORM\ClassMetadata::FETCH_' . $fetchMode)) {
+        if (!defined('Terablaze\Database\ORM\ClassMetadata::FETCH_' . $fetchMode)) {
             throw MappingException::invalidFetchMode($className, $fetchMode);
         }
 
-        return constant('TeraBlaze\Database\ORM\ClassMetadata::FETCH_' . $fetchMode);
+        return constant('Terablaze\Database\ORM\ClassMetadata::FETCH_' . $fetchMode);
     }
 
     /**

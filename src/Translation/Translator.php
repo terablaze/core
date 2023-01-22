@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Translation;
+namespace Terablaze\Translation;
 
 use Countable;
 use InvalidArgumentException;
-use TeraBlaze\Collection\ArrayCollection;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\NamespacedItemResolver;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Support\Traits\Macroable;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\NamespacedItemResolver;
+use Terablaze\Support\StringMethods;
+use Terablaze\Support\Traits\Macroable;
 
 class Translator extends NamespacedItemResolver implements TranslatorInterface
 {

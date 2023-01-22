@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel\Events;
+namespace Terablaze\Core\Kernel\Events;
 
-use TeraBlaze\Core\Kernel\HttpKernelInterface;
-use TeraBlaze\EventDispatcher\Event;
-use TeraBlaze\HttpBase\Request;
+use Terablaze\Core\Kernel\HttpKernelInterface;
+use Terablaze\EventDispatcher\Event;
+use Terablaze\HttpBase\Request;
 
 /**
  * Base class for events thrown in the HttpKernel component.

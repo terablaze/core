@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Session;
+namespace Terablaze\Session;
 
 interface SessionIdentifierAwareInterface
 {

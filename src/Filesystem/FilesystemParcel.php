@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Filesystem;
+namespace Terablaze\Filesystem;
 
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\Filesystem\Driver\FileDriverInterface;
-use TeraBlaze\Filesystem\Driver\LocalFileDriver;
-use TeraBlaze\Filesystem\Driver\S3FileDriver;
-use TeraBlaze\Filesystem\Exception\DriverException;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\Filesystem\Driver\FileDriverInterface;
+use Terablaze\Filesystem\Driver\LocalFileDriver;
+use Terablaze\Filesystem\Driver\S3FileDriver;
+use Terablaze\Filesystem\Exception\DriverException;
 
 class FilesystemParcel extends Parcel implements ParcelInterface
 {

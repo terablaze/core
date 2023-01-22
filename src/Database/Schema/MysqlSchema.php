@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Database\Schema;
+namespace Terablaze\Database\Schema;
 
-use TeraBlaze\Database\Schema\Builder\MysqlBuilder;
+use Terablaze\Database\Schema\Builder\MysqlBuilder;
 
 class MysqlSchema extends AbstractSchema
 {

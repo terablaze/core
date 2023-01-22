@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Session\Exception;
+namespace Terablaze\Session\Exception;
 
 /**
  * Marker interface for package exceptions.

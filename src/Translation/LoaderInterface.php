@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Translation;
+namespace Terablaze\Translation;
 
 interface LoaderInterface
 {

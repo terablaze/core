@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\ErrorEnhancer;
+namespace Terablaze\ErrorHandler\ErrorEnhancer;
 
 use Composer\Autoload\ClassLoader;
-use TeraBlaze\ErrorHandler\Error\ClassNotFoundError;
-use TeraBlaze\ErrorHandler\Error\FatalError;
+use Terablaze\ErrorHandler\Error\ClassNotFoundError;
+use Terablaze\ErrorHandler\Error\FatalError;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Profiler\Controllers\DebugBar;
+namespace Terablaze\Profiler\Controllers\DebugBar;
 
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Response;
 
 class AssetController extends BaseController
 {

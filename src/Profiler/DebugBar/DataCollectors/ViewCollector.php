@@ -1,16 +1,19 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors;
+namespace Terablaze\Profiler\DebugBar\DataCollectors;
 
-use DebugBar\Bridge\Twig\TwigCollector;
-use TeraBlaze\Profiler\DebugBar\DataFormatter\SimpleFormatter;
-use TeraBlaze\View\Template;
-use TeraBlaze\Support\StringMethods;
+use DebugBar\DataCollector\AssetProvider;
+use DebugBar\DataCollector\DataCollector;
+use DebugBar\DataCollector\Renderable;
+use Terablaze\Profiler\DebugBar\DataFormatter\SimpleFormatter;
+use Terablaze\View\Template;
+use Terablaze\Support\StringMethods;
 
-class ViewCollector extends TwigCollector
+class ViewCollector extends DataCollector implements Renderable, AssetProvider
 {
     protected $templates = [];
     protected $collect_data;
+    protected $name;
 
     /**
      * Create a ViewCollector
@@ -44,6 +47,14 @@ class ViewCollector extends TwigCollector
                 'default' => 0
             ]
         ];
+    }
+
+    function getAssets()
+    {
+        return array(
+            'css' => 'widgets/templates/widget.css',
+            'js' => 'widgets/templates/widget.js'
+        );
     }
 
     /**

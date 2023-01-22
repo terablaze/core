@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Session;
+namespace Terablaze\Session;
 
 /**
  * Allow marking session cookies as persistent.

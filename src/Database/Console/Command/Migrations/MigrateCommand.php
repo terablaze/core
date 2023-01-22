@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Database\Console\Command\Migrations;
+namespace Terablaze\Database\Console\Command\Migrations;
 
 use ReflectionException;
-use TeraBlaze\Console\Command;
-use TeraBlaze\Console\ConfirmableTrait;
+use Terablaze\Console\Command;
+use Terablaze\Console\ConfirmableTrait;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use TeraBlaze\Database\Migrations\Migrator;
+use Terablaze\Database\Migrations\Migrator;
 
 class MigrateCommand extends BaseCommand
 {
@@ -38,7 +38,7 @@ class MigrateCommand extends BaseCommand
             ->setHelp('This command looks for all migration files and runs them');
     }
 
-    protected function handle(): int
+    public function handle(): int
     {
         if (!$this->confirmToProceed()) {
             return 1;

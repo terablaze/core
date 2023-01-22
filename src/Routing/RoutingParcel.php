@@ -1,11 +1,11 @@
 <?php
 
-namespace TeraBlaze\Routing;
+namespace Terablaze\Routing;
 
 use ReflectionException;
-use TeraBlaze\Config\Exception\InvalidContextException;
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
+use Terablaze\Config\Exception\InvalidContextException;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
 
 class RoutingParcel extends Parcel implements ParcelInterface
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\View\Engine;
+namespace Terablaze\View\Engine;
 
-use TeraBlaze\View\View;
-use TeraBlaze\View\Template;
+use Terablaze\View\View;
+use Terablaze\View\Template;
 
 interface EngineInterface
 {

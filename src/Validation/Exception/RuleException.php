@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\Validation\Exception;
+namespace Terablaze\Validation\Exception;
 
-use TeraBlaze\Core\Exception;
+use Terablaze\Core\Exception;
 
 class RuleException extends Exception
 {

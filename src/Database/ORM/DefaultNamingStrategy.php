@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Database\ORM;
+namespace Terablaze\Database\ORM;
 
 /**
  * The default NamingStrategy

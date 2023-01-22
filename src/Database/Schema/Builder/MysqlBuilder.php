@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\Schema\Builder;
+namespace Terablaze\Database\Schema\Builder;
 
-use TeraBlaze\Database\Exception\MigrationException;
-use TeraBlaze\Database\Schema\Field\Field;
+use Terablaze\Database\Exception\MigrationException;
+use Terablaze\Database\Schema\Field\Field;
 
 class MysqlBuilder extends AbstractBuilder
 {

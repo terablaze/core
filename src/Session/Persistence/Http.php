@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Session\Persistence;
+namespace Terablaze\Session\Persistence;
 
 /**
  * Provides commonly used HTTP related constants.

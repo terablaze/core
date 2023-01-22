@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar;
+namespace Terablaze\Profiler\DebugBar;
 
 use DebugBar\DebugBar;
 use DebugBar\JavascriptRenderer as BaseJavascriptRenderer;

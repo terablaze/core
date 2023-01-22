@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Config\Loaders;
+namespace Terablaze\Config\Loaders;
 
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml as YamlParser;
-use TeraBlaze\Config\Exception\InvalidFileException;
+use Terablaze\Config\Exception\InvalidFileException;
 
 class Yaml extends Loader
 {

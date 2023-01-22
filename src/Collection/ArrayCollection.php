@@ -1,14 +1,20 @@
 <?php
 
-namespace TeraBlaze\Collection;
+namespace Terablaze\Collection;
 
 use ArrayIterator;
-use TeraBlaze\Collection\Exceptions\InvalidTypeException;
-use TeraBlaze\Interfaces\Support\Arrayable;
-use TeraBlaze\Interfaces\Support\Jsonable;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Collection\Exceptions\TypeException;
-
+use CachingIterator;
+use JsonSerializable;
+use Symfony\Component\VarDumper\VarDumper;
+use Terablaze\Collection\Exceptions\InvalidTypeException;
+use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\Helpers;
+use Terablaze\Support\Interfaces\Arrayable;
+use Terablaze\Support\Interfaces\Jsonable;
+use Terablaze\Support\Traits\Conditionable;
+use Traversable;
+use UnitEnum;
 use function array_filter;
 use function array_key_exists;
 use function array_keys;
@@ -18,14 +24,12 @@ use function array_slice;
 use function array_values;
 use function count;
 use function current;
-use function end;
+use function dump;
 use function in_array;
 use function key;
 use function next;
 use function reset;
 use function spl_object_hash;
-use function dump;
-
 use const ARRAY_FILTER_USE_BOTH;
 
 /**
@@ -38,26 +42,35 @@ use const ARRAY_FILTER_USE_BOTH;
  */
 class ArrayCollection implements CollectionInterface
 {
+    use Conditionable;
+
+    /**
+     * Indicates that the object's string representation should be escaped when __toString is invoked.
+     *
+     * @var bool
+     */
+    protected $escapeWhenCastingToString = false;
+
     /**
      * An array containing the entries of this collection.
      *
      * @var array
      */
-    private $elements;
+    protected $elements;
 
     /**
      *
      * @var string|null $type
      */
-    private $type;
+    protected $type;
 
     /**
      * Initializes a new ArrayCollection.
      *
-     * @param array $elements
+     * @param array|Traversable $elements
      * @param string|null $type
      */
-    public function __construct(array $elements = [], ?string $type = null)
+    public function __construct($elements = [], ?string $type = null)
     {
         $this->elements = $elements;
         if ($type != null) {
@@ -73,6 +86,18 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
+     * Create a collection with the given range.
+     *
+     * @param int $from
+     * @param int $to
+     * @return static<int, int>
+     */
+    public static function range($from, $to)
+    {
+        return new static(range($from, $to));
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function all()
@@ -80,9 +105,81 @@ class ArrayCollection implements CollectionInterface
         return $this->elements;
     }
 
-    public function toArray()
+    /**
+     * Get the average value of a given key.
+     * @param $callback
+     * @return float|int|null
+     */
+    public function avg($callback = null)
     {
-        return $this->all();
+        $callback = $this->valueRetriever($callback);
+
+        $items = $this->map(function ($value) use ($callback) {
+            return $callback($value);
+        })->filter(function ($value) {
+            return !is_null($value);
+        });
+
+        if ($count = $items->count()) {
+            return $items->sum() / $count;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the median of a given key.
+     *
+     * @param string|array<array-key, string>|null $key
+     * @return float|int|null
+     */
+    public function median($key = null)
+    {
+        $values = (isset($key) ? $this->pluck($key) : $this)
+            ->filter(fn($item) => !is_null($item))
+            ->sort()->values();
+
+        $count = $values->count();
+
+        if ($count === 0) {
+            return null;
+        }
+
+        $middle = (int)($count / 2);
+
+        if ($count % 2) {
+            return $values->get($middle);
+        }
+
+        return (new static([
+            $values->get($middle - 1), $values->get($middle),
+        ]))->average();
+    }
+
+    /**
+     * Get the mode of a given key.
+     *
+     * @param string|array<array-key, string>|null $key
+     * @return array<int, float|int>|null
+     */
+    public function mode($key = null)
+    {
+        if ($this->count() === 0) {
+            return null;
+        }
+
+        $collection = isset($key) ? $this->pluck($key) : $this;
+
+        $counts = new static;
+
+        $collection->each(fn($value) => $counts[$value] = isset($counts[$value]) ? $counts[$value] + 1 : 1);
+
+        $sorted = $counts->sort();
+
+        $highestValue = $sorted->last();
+
+        return $sorted->filter(fn($value) => $value == $highestValue)
+            ->sort()->keys()->all();
     }
 
     /**
@@ -94,11 +191,67 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
+     * Get a flattened array of the items in the collection.
+     *
+     * @param int $depth
+     * @return static<int, mixed>
+     */
+    public function flatten($depth = INF)
+    {
+        return new static(ArrayMethods::flatten($this->elements, $depth));
+    }
+
+    /**
+     * Flip the items in the collection.
+     *
+     * @return static
+     */
+    public function flip()
+    {
+        return new static(array_flip($this->elements));
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function last(callable $callback = null, $default = null)
     {
         return ArrayMethods::last($this->elements, $callback, $default);
+    }
+
+    /**
+     * Get the keys of the collection items.
+     * @return $this
+     * @throws InvalidTypeException
+     */
+    public function keys()
+    {
+        return new static(array_keys($this->elements));
+    }
+
+    /**
+     * Key an associative array by a field or using a callback.
+     *
+     * @param  callable|array|string  $keyBy
+     * @return static
+     */
+    public function keyBy($keyBy)
+    {
+        $keyBy = $this->valueRetriever($keyBy);
+
+        $results = [];
+
+        foreach ($this->elements as $key => $item) {
+            $resolvedKey = $keyBy($item, $key);
+
+            if (is_object($resolvedKey)) {
+                $resolvedKey = (string) $resolvedKey;
+            }
+
+            $results[$resolvedKey] = $item;
+        }
+
+        return new static($results);
     }
 
     /**
@@ -177,7 +330,7 @@ class ArrayCollection implements CollectionInterface
      *
      * {@inheritDoc}
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return $this->containsKey($offset);
     }
@@ -187,6 +340,7 @@ class ArrayCollection implements CollectionInterface
      *
      * {@inheritDoc}
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->get($offset);
@@ -197,7 +351,7 @@ class ArrayCollection implements CollectionInterface
      *
      * {@inheritDoc}
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if (!isset($offset)) {
             $this->add($value);
@@ -213,7 +367,7 @@ class ArrayCollection implements CollectionInterface
      *
      * {@inheritDoc}
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $this->remove($offset);
     }
@@ -312,8 +466,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Push an item onto the beginning of the collection.
      *
-     * @param  mixed  $value
-     * @param  mixed  $key
+     * @param mixed $value
+     * @param mixed $key
      * @return $this
      */
     public function prepend($value, $key = null)
@@ -326,7 +480,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Push one or more items onto the end of the collection.
      *
-     * @param  mixed  $values [optional]
+     * @param mixed $values [optional]
      * @return $this
      */
     public function push(...$values)
@@ -350,8 +504,9 @@ class ArrayCollection implements CollectionInterface
      * Required by interface IteratorAggregate.
      *
      * {@inheritDoc}
+     *
      */
-    public function getIterator()
+    public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->elements);
     }
@@ -362,7 +517,7 @@ class ArrayCollection implements CollectionInterface
      * e.g. new Collection([1, 2, 3])->zip([4, 5, 6]);
      *      => [[1, 4], [2, 5], [3, 6]]
      *
-     * @param  mixed  ...$items
+     * @param mixed ...$items
      * @return static
      */
     public function zip($items)
@@ -376,6 +531,18 @@ class ArrayCollection implements CollectionInterface
         }, $this->elements], $arrayableItems);
 
         return new static(array_map(...$params));
+    }
+
+    /**
+     * Pad collection to the specified length with a value.
+     *
+     * @param int $size
+     * @param  $value
+     * @return static
+     */
+    public function pad($size, $value)
+    {
+        return new static(array_pad($this->elements, $size, $value));
     }
 
     /**
@@ -393,11 +560,27 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
+     * Execute a callback over each item.
+     * @param callable $callback
+     * @return $this
+     */
+    public function each(callable $callback)
+    {
+        foreach ($this as $key => $item) {
+            if ($callback($item, $key) === false) {
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Run a dictionary map over the items.
      *
      * The callback should return an associative array with a single key/value pair.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      * @return static
      */
     public function mapToDictionary(callable $callback)
@@ -411,7 +594,7 @@ class ArrayCollection implements CollectionInterface
 
             $value = reset($pair);
 
-            if (! isset($dictionary[$key])) {
+            if (!isset($dictionary[$key])) {
                 $dictionary[$key] = [];
             }
 
@@ -426,7 +609,7 @@ class ArrayCollection implements CollectionInterface
      *
      * The callback should return an associative array with a single key/value pair.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      * @return static
      */
     public function mapWithKeys(callable $callback)
@@ -447,7 +630,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Merge the collection with the given items.
      *
-     * @param  mixed  $elements
+     * @param mixed $elements
      * @return static
      */
     public function merge($elements)
@@ -458,7 +641,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Recursively merge the collection with the given items.
      *
-     * @param  mixed  $elements
+     * @param mixed $elements
      * @return static
      */
     public function mergeRecursive($elements)
@@ -469,7 +652,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Create a collection by using this collection for keys and another for its values.
      *
-     * @param  mixed  $values
+     * @param mixed $values
      * @return static
      */
     public function combine($values)
@@ -480,7 +663,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Union the collection with the given items.
      *
-     * @param  mixed  $elements
+     * @param mixed $elements
      * @return static
      */
     public function union($elements)
@@ -491,8 +674,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Create a new collection consisting of every n-th element.
      *
-     * @param  int  $step
-     * @param  int  $offset
+     * @param int $step
+     * @param int $offset
      * @return static
      */
     public function nth($step, $offset = 0)
@@ -515,7 +698,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Get the items with the specified keys.
      *
-     * @param  mixed  $keys
+     * @param mixed $keys
      * @return static
      */
     public function only($keys)
@@ -532,7 +715,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Get and remove the last N items from the collection.
      *
-     * @param  int  $count
+     * @param int $count
      * @return mixed
      */
     public function pop($count = 1)
@@ -559,7 +742,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Push all of the given items onto the collection.
      *
-     * @param  iterable  $source
+     * @param iterable $source
      * @return static
      */
     public function concat($source)
@@ -576,8 +759,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Get and remove an item from the collection.
      *
-     * @param  mixed  $key
-     * @param  mixed  $default
+     * @param mixed $key
+     * @param mixed $default
      * @return mixed
      */
     public function pull($key, $default = null)
@@ -588,8 +771,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Put an item in the collection by key.
      *
-     * @param  mixed  $key
-     * @param  mixed  $value
+     * @param mixed $key
+     * @param mixed $value
      * @return $this
      */
     public function put($key, $value)
@@ -602,7 +785,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Get one or a specified number of items randomly from the collection.
      *
-     * @param  int|null  $number
+     * @param int|null $number
      * @return static|mixed
      *
      * @throws \InvalidArgumentException
@@ -619,7 +802,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Replace the collection items with the given items.
      *
-     * @param  mixed  $elements
+     * @param mixed $elements
      * @return static
      */
     public function replace($elements)
@@ -630,7 +813,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Recursively replace the collection items with the given items.
      *
-     * @param  mixed  $elements
+     * @param mixed $elements
      * @return static
      */
     public function replaceRecursive($elements)
@@ -651,13 +834,13 @@ class ArrayCollection implements CollectionInterface
     /**
      * Search the collection for a given value and return the corresponding key if successful.
      *
-     * @param  mixed  $value
-     * @param  bool  $strict
+     * @param mixed $value
+     * @param bool $strict
      * @return mixed
      */
     public function search($value, $strict = false)
     {
-        if (! $this->useAsCallable($value)) {
+        if (!$this->useAsCallable($value)) {
             return array_search($value, $this->elements, $strict);
         }
 
@@ -671,9 +854,134 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
+     * Get and remove the first N items from the collection.
+     *
+     * @param int $count
+     * @return static<int, TValue>|TValue|null
+     */
+    public function shift($count = 1)
+    {
+        if ($count === 1) {
+            return array_shift($this->elements);
+        }
+
+        if ($this->isEmpty()) {
+            return new static;
+        }
+
+        $results = [];
+
+        $collectionCount = $this->count();
+
+        foreach (range(1, min($count, $collectionCount)) as $item) {
+            array_push($results, array_shift($this->elements));
+        }
+
+        return new static($results);
+    }
+
+    /**
+     * Shuffle the items in the collection.
+     *
+     * @param int|null $seed
+     * @return static
+     */
+    public function shuffle($seed = null)
+    {
+        return new static(ArrayMethods::shuffle($this->elements, $seed));
+    }
+
+    /**
+     * Create chunks representing a "sliding window" view of the items in the collection.
+     *
+     * @param int $size
+     * @param int $step
+     * @return static<int, static>
+     */
+    public function sliding($size = 2, $step = 1)
+    {
+        $chunks = floor(($this->count() - $size) / $step) + 1;
+
+        return static::times($chunks, function ($number) use ($size, $step) {
+            return $this->slice(($number - 1) * $step, $size);
+        });
+    }
+
+    /**
+     * Skip the first {$count} items.
+     *
+     * @param int $count
+     * @return static
+     */
+    public function skip($count)
+    {
+        return $this->slice($count);
+    }
+
+    /**
+     * Slice the underlying collection array.
+     *
+     * @param int $offset
+     * @param int|null $length
+     * @return static
+     */
+    public function slice($offset, $length = null)
+    {
+        return new static(array_slice($this->elements, $offset, $length, true));
+    }
+
+    /**
+     * Split a collection into a certain number of groups.
+     *
+     * @param int $numberOfGroups
+     * @return static<int, static>
+     */
+    public function split($numberOfGroups)
+    {
+        if ($this->isEmpty()) {
+            return new static;
+        }
+
+        $groups = new static;
+
+        $groupSize = floor($this->count() / $numberOfGroups);
+
+        $remain = $this->count() % $numberOfGroups;
+
+        $start = 0;
+
+        for ($i = 0; $i < $numberOfGroups; $i++) {
+            $size = $groupSize;
+
+            if ($i < $remain) {
+                $size++;
+            }
+
+            if ($size) {
+                $groups->push(new static(array_slice($this->items, $start, $size)));
+
+                $start += $size;
+            }
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Split a collection into a certain number of groups, and fill the first groups completely.
+     *
+     * @param int $numberOfGroups
+     * @return static<int, static>
+     */
+    public function splitIn($numberOfGroups)
+    {
+        return $this->chunk(ceil($this->count() / $numberOfGroups));
+    }
+
+    /**
      * Map a collection and flatten the result by a single level.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      * @return static
      */
     public function flatMap(callable $callback)
@@ -718,37 +1026,19 @@ class ArrayCollection implements CollectionInterface
     /**
      * Concatenate values of a given key as a string.
      *
-     * @param  string  $value
-     * @param  string|null  $glue
+     * @param string $value
+     * @param string|null $glue
      * @return string
      */
     public function implode($value, $glue = null)
     {
         $first = $this->first();
 
-        if (is_array($first) || (is_object($first) && ! $first instanceof \Stringable)) {
+        if (is_array($first) || (is_object($first) && !$first instanceof \Stringable)) {
             return implode($glue ?? '', $this->pluck($value)->all());
         }
 
         return implode($value ?? '', $this->elements);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function partition(callable $p)
-    {
-        $matches = $noMatches = [];
-
-        foreach ($this->elements as $key => $element) {
-            if ($p($key, $element)) {
-                $matches[$key] = $element;
-            } else {
-                $noMatches[$key] = $element;
-            }
-        }
-
-        return [$this->createFrom($matches), $this->createFrom($noMatches)];
     }
 
     /**
@@ -762,7 +1052,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Create a collection of all elements that do not pass a given truth test.
      *
-     * @param  callable|mixed  $callback
+     * @param callable|mixed $callback
      * @return static
      */
     public function reject($callback = true)
@@ -771,7 +1061,7 @@ class ArrayCollection implements CollectionInterface
 
         return $this->filter(function ($value, $key) use ($callback, $useAsCallable) {
             return $useAsCallable
-                ? ! $callback($value, $key)
+                ? !$callback($value, $key)
                 : $value != $callback;
         });
     }
@@ -789,8 +1079,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Return only unique items from the collection array.
      *
-     * @param  string|callable|null  $key
-     * @param  bool  $strict
+     * @param string|callable|null $key
+     * @param bool $strict
      * @return static
      */
     public function unique($key = null, $strict = false)
@@ -813,18 +1103,20 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Reset the keys on the underlying array.
+     * @return $this
+     * @throws InvalidTypeException
      */
-    public function slice($offset, $length = null)
+    public function values()
     {
-        return new static(array_slice($this->elements, $offset, $length, true));
+        return new static(array_values($this->elements));
     }
 
     /**
      * Get the values of a given key.
      *
-     * @param  string|array  $value
-     * @param  string|null  $key
+     * @param string|array $value
+     * @param string|null $key
      * @return static
      */
     public function pluck($value, $key = null)
@@ -833,24 +1125,14 @@ class ArrayCollection implements CollectionInterface
     }
 
     /**
-     * Flip the items in the collection.
-     *
-     * @return static
-     */
-    public function flip()
-    {
-        return new static(array_flip($this->elements));
-    }
-
-    /**
      * Remove an item from the collection by key.
      *
-     * @param  string|array  $keys
+     * @param string|array $keys
      * @return $this
      */
     public function forget($keys)
     {
-        foreach ((array) $keys as $key) {
+        foreach ((array)$keys as $key) {
             $this->offsetUnset($key);
         }
 
@@ -860,8 +1142,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Reduce the collection to a single value.
      *
-     * @param  callable  $callback
-     * @param  mixed $initial
+     * @param callable $callback
+     * @param mixed $initial
      * @return mixed
      */
     public function reduce(callable $callback, $initial = null)
@@ -878,7 +1160,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Sort through each item with a callback.
      *
-     * @param  callable|int|null  $callback
+     * @param callable|int|null $callback
      * @return static
      */
     public function sort($callback = null)
@@ -895,7 +1177,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Sort items in descending order.
      *
-     * @param  int  $options
+     * @param int $options
      * @return static
      */
     public function sortDesc($options = SORT_REGULAR)
@@ -910,14 +1192,14 @@ class ArrayCollection implements CollectionInterface
     /**
      * Sort the collection using the given callback.
      *
-     * @param  callable|array|string  $callback
-     * @param  int  $options
-     * @param  bool  $descending
+     * @param callable|array|string $callback
+     * @param int $options
+     * @param bool $descending
      * @return static
      */
     public function sortBy($callback, $options = SORT_REGULAR, $descending = false)
     {
-        if (is_array($callback) && ! is_callable($callback)) {
+        if (is_array($callback) && !is_callable($callback)) {
             return $this->sortByMany($callback);
         }
 
@@ -948,7 +1230,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Sort the collection using multiple comparisons.
      *
-     * @param  array  $comparisons
+     * @param array $comparisons
      * @return static
      */
     protected function sortByMany(array $comparisons = [])
@@ -971,7 +1253,7 @@ class ArrayCollection implements CollectionInterface
                 } else {
                     $values = [dataGet($a, $prop), dataGet($b, $prop)];
 
-                    if (! $ascending) {
+                    if (!$ascending) {
                         $values = array_reverse($values);
                     }
 
@@ -992,8 +1274,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Sort the collection in descending order using the given callback.
      *
-     * @param  callable|string  $callback
-     * @param  int  $options
+     * @param callable|string $callback
+     * @param int $options
      * @return static
      */
     public function sortByDesc($callback, $options = SORT_REGULAR)
@@ -1004,8 +1286,8 @@ class ArrayCollection implements CollectionInterface
     /**
      * Sort the collection keys.
      *
-     * @param  int  $options
-     * @param  bool  $descending
+     * @param int $options
+     * @param bool $descending
      * @return static
      */
     public function sortKeys($options = SORT_REGULAR, $descending = false)
@@ -1020,7 +1302,7 @@ class ArrayCollection implements CollectionInterface
     /**
      * Sort the collection keys in descending order.
      *
-     * @param  int  $options
+     * @param int $options
      * @return static
      */
     public function sortKeysDesc($options = SORT_REGULAR)
@@ -1031,9 +1313,9 @@ class ArrayCollection implements CollectionInterface
     /**
      * Splice a portion of the underlying collection array.
      *
-     * @param  int  $offset
-     * @param  int|null  $length
-     * @param  mixed  $replacement
+     * @param int $offset
+     * @param int|null $length
+     * @param mixed $replacement
      * @return static
      */
     public function splice($offset, $length = null, $replacement = [])
@@ -1045,22 +1327,832 @@ class ArrayCollection implements CollectionInterface
         return new static(array_splice($this->elements, $offset, $length, $replacement));
     }
 
-    public function dump()
+    /**
+     * Dump the items and end the script.
+     *
+     * @param mixed ...$args
+     * @return never
+     */
+    public function dd(...$args)
     {
-        dump($this->elements);
+        $this->dump(...$args);
+
+        exit(1);
     }
 
     /**
-     * Returns a string representation of this object.
+     * Dump the items.
      *
-     * @return string
+     * @return $this
      */
-    public function __toString()
+    public function dump()
     {
-        return self::class . '@' . spl_object_hash($this);
+        (new ArrayCollection(func_get_args()))
+            ->push($this->all())
+            ->each(function ($item) {
+                VarDumper::dump($item);
+            });
+
+        return $this;
     }
 
-    private function verifyType()
+    /**
+     * Create a new collection instance if the value isn't one already.
+     *
+     * @template TMakeKey of array-key
+     * @template TMakeValue
+     *
+     * @param Arrayable<TMakeKey, TMakeValue>|iterable<TMakeKey, TMakeValue>|null $items
+     * @return static<TMakeKey, TMakeValue>
+     */
+    public static function make($items = [])
+    {
+        return new static($items);
+    }
+
+    /**
+     * Wrap the given value in a collection if applicable.
+     *
+     * @template TWrapKey of array-key
+     * @template TWrapValue
+     *
+     * @param iterable<TWrapKey, TWrapValue> $value
+     * @return static<TWrapKey, TWrapValue>
+     */
+    public static function wrap($value)
+    {
+        return $value instanceof CollectionInterface
+            ? new static($value)
+            : new static(ArrayMethods::wrap($value));
+    }
+
+    /**
+     * Get the underlying items from the given collection if applicable.
+     *
+     * @template TUnwrapKey of array-key
+     * @template TUnwrapValue
+     *
+     * @param array<TUnwrapKey, TUnwrapValue>|static<TUnwrapKey, TUnwrapValue> $value
+     * @return array<TUnwrapKey, TUnwrapValue>
+     */
+    public static function unwrap($value)
+    {
+        return $value instanceof CollectionInterface ? $value->all() : $value;
+    }
+
+    /**
+     * Create a new instance with no items.
+     *
+     * @return static
+     */
+    public static function empty()
+    {
+        return new static([]);
+    }
+
+    /**
+     * Create a new collection by invoking the callback a given amount of times.
+     *
+     * @template TTimesValue
+     *
+     * @param int $number
+     * @param (callable(int): TTimesValue)|null $callback
+     * @return static<int, TTimesValue>
+     */
+    public static function times($number, callable $callback = null)
+    {
+        if ($number < 1) {
+            return new static;
+        }
+
+        return static::range(1, $number)
+            ->unless($callback == null)
+            ->map($callback);
+    }
+
+    /**
+     * Alias for the "avg" method.
+     *
+     * @param (callable(TValue): float|int)|string|null $callback
+     * @return float|int|null
+     */
+    public function average($callback = null)
+    {
+        return $this->avg($callback);
+    }
+
+    /**
+     * Alias for the "contains" method.
+     *
+     * @param  $key
+     * @param mixed $operator
+     * @param mixed $value
+     * @return bool
+     */
+    public function some($key, $operator = null, $value = null)
+    {
+        return $this->contains(...func_get_args());
+    }
+
+    /**
+     * Execute a callback over each nested chunk of items.
+     *
+     * @param callable(...mixed): mixed  $callback
+     * @return static
+     */
+    public function eachSpread(callable $callback)
+    {
+        return $this->each(function ($chunk, $key) use ($callback) {
+            $chunk[] = $key;
+
+            return $callback(...$chunk);
+        });
+    }
+
+    /**
+     * Determine if all items pass the given truth test.
+     *
+     * @param $key
+     * @param $operator
+     * @param $value
+     * @return bool
+     */
+    public function every($key, $operator = null, $value = null)
+    {
+        if (func_num_args() === 1) {
+            $callback = $this->valueRetriever($key);
+
+            foreach ($this as $k => $v) {
+                if (!$callback($v, $k)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return $this->every($this->operatorForWhere(...func_get_args()));
+    }
+
+    /**
+     * Get the first item by the given key value pair.
+     *
+     * @param $key
+     * @param $operator
+     * @param $value
+     * @return mixed|null
+     */
+    public function firstWhere($key, $operator = null, $value = null)
+    {
+        return $this->first($this->operatorForWhere(...func_get_args()));
+    }
+
+    /**
+     * Get a single key's value from the first matching item in the collection.
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function value($key, $default = null)
+    {
+        if ($value = $this->firstWhere($key)) {
+            return dataGet($value, $key, $default);
+        }
+
+        return value($default);
+    }
+
+    /**
+     * Determine if the collection is not empty.
+     *
+     * @return bool
+     */
+    public function isNotEmpty()
+    {
+        return !$this->isEmpty();
+    }
+
+    /**
+     * Run a map over each nested chunk of items
+     *
+     * @param callable $callback
+     * @return $this
+     */
+    public function mapSpread(callable $callback)
+    {
+        return $this->map(function ($chunk, $key) use ($callback) {
+            $chunk[] = $key;
+
+            return $callback(...$chunk);
+        });
+    }
+
+    /**
+     * Run a grouping map over the items.
+     *
+     * The callback should return an associative array with a single key/value pair.
+     *
+     * @param callable $callback
+     * @return ArrayCollection
+     */
+    public function mapToGroups(callable $callback)
+    {
+        $groups = $this->mapToDictionary($callback);
+
+        return $groups->map([$this, 'make']);
+    }
+
+    /**
+     * Map the values into a new class.
+     *
+     * @param $class
+     * @return $this
+     */
+    public function mapInto($class)
+    {
+        return $this->map(fn($value, $key) => new $class($value, $key));
+    }
+
+    /**
+     * Get the min value of a given key.
+     *
+     * @param $callback
+     * @return mixed|null
+     */
+    public function min($callback = null)
+    {
+        $callback = $this->valueRetriever($callback);
+
+        return $this->map(fn($value) => $callback($value))
+            ->filter(fn($value) => !is_null($value))
+            ->reduce(fn($result, $value) => is_null($result) || $value < $result ? $value : $result);
+    }
+
+    /**
+     * Get the max value of a given key.
+     *
+     * @param $callback
+     * @return \Closure|mixed|null
+     */
+    public function max($callback = null)
+    {
+        $callback = $this->valueRetriever($callback);
+
+        return $this->filter(fn($value) => !is_null($value))->reduce(function ($result, $item) use ($callback) {
+            $value = $callback($item);
+
+            return is_null($result) || $value > $result ? $value : $result;
+        });
+    }
+
+    /**
+     * "Paginate" the collection by slicing it into a smaller collection.
+     *
+     * @param int $page
+     * @param int $perPage
+     * @return static
+     */
+    public function forPage($page, $perPage)
+    {
+        $offset = max(0, ($page - 1) * $perPage);
+
+        return $this->slice($offset, $perPage);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function partition($key, $operator = null, $value = null)
+    {
+        $passed = [];
+        $failed = [];
+
+        $callback = func_num_args() === 1
+            ? $this->valueRetriever($key)
+            : $this->operatorForWhere(...func_get_args());
+
+        foreach ($this as $key => $item) {
+            if ($callback($item, $key)) {
+                $passed[$key] = $item;
+            } else {
+                $failed[$key] = $item;
+            }
+        }
+
+        return new static([new static($passed), new static($failed)]);
+    }
+
+    /**
+     * Get the sum of the given values.
+     *
+     * @param $callback
+     * @return mixed|null
+     */
+    public function sum($callback = null)
+    {
+        $callback = is_null($callback)
+            ? $this->identity()
+            : $this->valueRetriever($callback);
+
+        return $this->reduce(fn($result, $item) => $result + $callback($item), 0);
+    }
+
+    /**
+     * Apply the callback if the collection is empty.
+     *
+     * @template TWhenEmptyReturnType
+     *
+     * @param (callable($this): TWhenEmptyReturnType) $callback
+     * @param (callable($this): TWhenEmptyReturnType)|null $default
+     * @return $this|TWhenEmptyReturnType
+     */
+    public function whenEmpty(callable $callback, callable $default = null)
+    {
+        return $this->when($this->isEmpty(), $callback, $default);
+    }
+
+    /**
+     * Apply the callback if the collection is not empty.
+     *
+     * @template TWhenNotEmptyReturnType
+     *
+     * @param callable($this): TWhenNotEmptyReturnType $callback
+     * @param (callable($this): TWhenNotEmptyReturnType)|null $default
+     * @return $this|TWhenNotEmptyReturnType
+     */
+    public function whenNotEmpty(callable $callback, callable $default = null)
+    {
+        return $this->when($this->isNotEmpty(), $callback, $default);
+    }
+
+    /**
+     * Apply the callback unless the collection is empty.
+     *
+     * @template TUnlessEmptyReturnType
+     *
+     * @param callable($this): TUnlessEmptyReturnType $callback
+     * @param (callable($this): TUnlessEmptyReturnType)|null $default
+     * @return $this|TUnlessEmptyReturnType
+     */
+    public function unlessEmpty(callable $callback, callable $default = null)
+    {
+        return $this->whenNotEmpty($callback, $default);
+    }
+
+    /**
+     * Apply the callback unless the collection is not empty.
+     *
+     * @template TUnlessNotEmptyReturnType
+     *
+     * @param callable($this): TUnlessNotEmptyReturnType $callback
+     * @param (callable($this): TUnlessNotEmptyReturnType)|null $default
+     * @return $this|TUnlessNotEmptyReturnType
+     */
+    public function unlessNotEmpty(callable $callback, callable $default = null)
+    {
+        return $this->whenEmpty($callback, $default);
+    }
+
+    /**
+     * Filter items by the given key value pair.
+     *
+     * @param callable|string $key
+     * @param mixed $operator
+     * @param mixed $value
+     * @return static
+     */
+    public function where($key, $operator = null, $value = null)
+    {
+        return $this->filter($this->operatorForWhere(...func_get_args()));
+    }
+
+    /**
+     * Filter items where the value for the given key is null.
+     *
+     * @param string|null $key
+     * @return static
+     */
+    public function whereNull($key = null)
+    {
+        return $this->whereStrict($key, null);
+    }
+
+    /**
+     * Filter items where the value for the given key is not null.
+     *
+     * @param string|null $key
+     * @return static
+     */
+    public function whereNotNull($key = null)
+    {
+        return $this->where($key, '!==', null);
+    }
+
+    /**
+     * Filter items by the given key value pair using strict comparison.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return static
+     */
+    public function whereStrict($key, $value)
+    {
+        return $this->where($key, '===', $value);
+    }
+
+    /**
+     * Filter items by the given key value pair.
+     *
+     * @param string $key
+     * @param Arrayable|iterable $values
+     * @param bool $strict
+     * @return static
+     */
+    public function whereIn($key, $values, $strict = false)
+    {
+        $values = $this->getArrayableItems($values);
+
+        return $this->filter(fn($item) => in_array(dataGet($item, $key), $values, $strict));
+    }
+
+    /**
+     * Filter items by the given key value pair using strict comparison.
+     *
+     * @param string $key
+     * @param Arrayable|iterable $values
+     * @return static
+     */
+    public function whereInStrict($key, $values)
+    {
+        return $this->whereIn($key, $values, true);
+    }
+
+    /**
+     * Filter items such that the value of the given key is between the given values.
+     *
+     * @param string $key
+     * @param Arrayable|iterable $values
+     * @return static
+     */
+    public function whereBetween($key, $values)
+    {
+        return $this->where($key, '>=', reset($values))->where($key, '<=', end($values));
+    }
+
+    /**
+     * Filter items such that the value of the given key is not between the given values.
+     *
+     * @param string $key
+     * @param Arrayable|iterable $values
+     * @return static
+     */
+    public function whereNotBetween($key, $values)
+    {
+        return $this->filter(
+            fn($item) => dataGet($item, $key) < reset($values) || dataGet($item, $key) > end($values)
+        );
+    }
+
+    /**
+     * Filter items by the given key value pair.
+     *
+     * @param string $key
+     * @param Arrayable|iterable $values
+     * @param bool $strict
+     * @return static
+     */
+    public function whereNotIn($key, $values, $strict = false)
+    {
+        $values = $this->getArrayableItems($values);
+
+        return $this->reject(fn($item) => in_array(dataGet($item, $key), $values, $strict));
+    }
+
+    /**
+     * Filter items by the given key value pair using strict comparison.
+     *
+     * @param string $key
+     * @param Arrayable|iterable $values
+     * @return static
+     */
+    public function whereNotInStrict($key, $values)
+    {
+        return $this->whereNotIn($key, $values, true);
+    }
+
+    /**
+     * Filter the items, removing any items that don't match the given type(s).
+     *
+     * @template TWhereInstanceOf
+     *
+     * @param class-string<TWhereInstanceOf>|array<array-key, class-string<TWhereInstanceOf>> $type
+     * @return static
+     */
+    public function whereInstanceOf($type)
+    {
+        return $this->filter(function ($value) use ($type) {
+            if (is_array($type)) {
+                foreach ($type as $classType) {
+                    if ($value instanceof $classType) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            return $value instanceof $type;
+        });
+    }
+
+    /**
+     * Pass the collection to the given callback and return the result.
+     *
+     * @template TPipeReturnType
+     *
+     * @param callable($this): TPipeReturnType $callback
+     * @return TPipeReturnType
+     */
+    public function pipe(callable $callback)
+    {
+        return $callback($this);
+    }
+
+    /**
+     * Pass the collection into a new class.
+     *
+     * @param class-string $class
+     * @return mixed
+     */
+    public function pipeInto($class)
+    {
+        return new $class($this);
+    }
+
+    /**
+     * Pass the collection through a series of callable pipes and return the result.
+     *
+     * @param array<callable> $callbacks
+     * @return mixed
+     */
+    public function pipeThrough($callbacks)
+    {
+        return ArrayCollection::make($callbacks)->reduce(
+            fn($carry, $callback) => $callback($carry),
+            $this,
+        );
+    }
+
+    /**
+     * Reduce the collection to multiple aggregate values.
+     *
+     * @param callable $callback
+     * @param mixed ...$initial
+     * @return array
+     *
+     * @throws \UnexpectedValueException
+     */
+    public function reduceSpread(callable $callback, ...$initial)
+    {
+        $result = $initial;
+
+        foreach ($this as $key => $value) {
+            $result = call_user_func_array($callback, array_merge($result, [$value, $key]));
+
+            if (!is_array($result)) {
+                throw new \UnexpectedValueException(sprintf(
+                    "%s::reduceSpread expects reducer to return an array, but got a '%s' instead.",
+                    classBasename(static::class), gettype($result)
+                ));
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Pass the collection to the given callback and then return it.
+     *
+     * @param callable($this): mixed $callback
+     * @return $this
+     */
+    public function tap(callable $callback)
+    {
+        $callback($this);
+
+        return $this;
+    }
+
+    /**
+     * Return only unique items from the collection array using strict comparison.
+     *
+     * @param callable|string|null $key
+     * @return static
+     */
+    public function uniqueStrict($key = null)
+    {
+        return $this->unique($key, true);
+    }
+
+    /**
+     * Collect the values into a collection.
+     *
+     * @return ArrayCollection
+     */
+    public function collect()
+    {
+        return new ArrayCollection($this->all());
+    }
+
+    /**
+     * Get the collection of items as a plain array.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->map(fn($value) => $value instanceof Arrayable ? $value->toArray() : $value)->all();
+    }
+
+    /**
+     * Convert the object into something JSON serializable.
+     *
+     * @return array
+     */
+    public function jsonSerialize(): array
+    {
+        return array_map(function ($value) {
+            if ($value instanceof JsonSerializable) {
+                return $value->jsonSerialize();
+            } elseif ($value instanceof Jsonable) {
+                return json_decode($value->toJson(), true);
+            } elseif ($value instanceof Arrayable) {
+                return $value->toArray();
+            }
+
+            return $value;
+        }, $this->all());
+    }
+
+    /**
+     * Get the collection of items as JSON.
+     *
+     * @param int $options
+     * @return string
+     */
+    public function toJson($options = 0)
+    {
+        return json_encode($this->jsonSerialize(), $options);
+    }
+
+    /**
+     * Get a CachingIterator instance.
+     *
+     * @param int $flags
+     * @return CachingIterator
+     */
+    public function getCachingIterator($flags = CachingIterator::CALL_TOSTRING)
+    {
+        return new CachingIterator($this->getIterator(), $flags);
+    }
+
+    /**
+     * Indicate that the model's string representation should be escaped when __toString is invoked.
+     *
+     * @param bool $escape
+     * @return $this
+     */
+    public function escapeWhenCastingToString($escape = true)
+    {
+        $this->escapeWhenCastingToString = $escape;
+
+        return $this;
+    }
+
+    /**
+     * Results array of items from Collection or Arrayable.
+     *
+     * @param mixed $items
+     * @return array
+     */
+    protected function getArrayableItems($items)
+    {
+        if (is_array($items)) {
+            return $items;
+        } elseif ($items instanceof CollectionInterface) {
+            return $items->all();
+        } elseif ($items instanceof Arrayable) {
+            return $items->toArray();
+        } elseif ($items instanceof Traversable) {
+            return iterator_to_array($items);
+        } elseif ($items instanceof Jsonable) {
+            return json_decode($items->toJson(), true);
+        } elseif ($items instanceof JsonSerializable) {
+            return (array)$items->jsonSerialize();
+        } elseif ($items instanceof UnitEnum) {
+            return [$items];
+        }
+
+        return (array)$items;
+    }
+
+    /**
+     * Get an operator checker callback.
+     *
+     * @param callable|string $key
+     * @param string|null $operator
+     * @param mixed $value
+     * @return \Closure
+     */
+    protected function operatorForWhere($key, $operator = null, $value = null)
+    {
+        if ($this->useAsCallable($key)) {
+            return $key;
+        }
+
+        if (func_num_args() === 1) {
+            $value = true;
+
+            $operator = '=';
+        }
+
+        if (func_num_args() === 2) {
+            $value = $operator;
+
+            $operator = '=';
+        }
+
+        return function ($item) use ($key, $operator, $value) {
+            $retrieved = dataGet($item, $key);
+
+            $strings = array_filter([$retrieved, $value], function ($value) {
+                return is_string($value) || (is_object($value) && method_exists($value, '__toString'));
+            });
+
+            if (count($strings) < 2 && count(array_filter([$retrieved, $value], 'is_object')) == 1) {
+                return in_array($operator, ['!=', '<>', '!==']);
+            }
+
+            switch ($operator) {
+                default:
+                case '=':
+                case '==':
+                    return $retrieved == $value;
+                case '!=':
+                case '<>':
+                    return $retrieved != $value;
+                case '<':
+                    return $retrieved < $value;
+                case '>':
+                    return $retrieved > $value;
+                case '<=':
+                    return $retrieved <= $value;
+                case '>=':
+                    return $retrieved >= $value;
+                case '===':
+                    return $retrieved === $value;
+                case '!==':
+                    return $retrieved !== $value;
+                case '<=>':
+                    return $retrieved <=> $value;
+            }
+        };
+    }
+
+    /**
+     * Make a function to check an item's equality.
+     *
+     * @param mixed $value
+     * @return \Closure(mixed): bool
+     */
+    protected function equality($value)
+    {
+        return fn($item) => $item === $value;
+    }
+
+    /**
+     * Make a function using another function, by negating its result.
+     *
+     * @param \Closure $callback
+     * @return \Closure
+     */
+    protected function negate(\Closure $callback)
+    {
+        return fn(...$params) => !$callback(...$params);
+    }
+
+    /**
+     * Make a function that returns what's passed to it.
+     *
+     * @return \Closure
+     */
+    protected function identity()
+    {
+        return fn($value) => $value;
+    }
+
+    protected function verifyType()
     {
         foreach ($this->elements as $key => $element) {
             $isType = false;
@@ -1090,18 +2182,18 @@ class ArrayCollection implements CollectionInterface
     /**
      * Determine if the given value is callable, but not a string.
      *
-     * @param  mixed  $value
+     * @param mixed $value
      * @return bool
      */
     protected function useAsCallable($value)
     {
-        return ! is_string($value) && is_callable($value);
+        return !is_string($value) && is_callable($value);
     }
 
     /**
      * Get a value retrieving callback.
      *
-     * @param  callable|string|null  $value
+     * @param callable|string|null $value
      * @return callable
      */
     protected function valueRetriever($value)
@@ -1110,31 +2202,18 @@ class ArrayCollection implements CollectionInterface
             return $value;
         }
 
-        return function ($item) use ($value) {
-            return dataGet($item, $value);
-        };
+        return fn ($item) => Helpers::dataGet($item, $value);
     }
 
     /**
-     * Results array of items from Collection or Arrayable.
+     * Convert the collection to its string representation.
      *
-     * @param  mixed  $elements
-     * @return array
+     * @return string
      */
-    protected function getArrayableItems($elements)
+    public function __toString()
     {
-        if (is_array($elements)) {
-            return $elements;
-        } elseif ($elements instanceof Arrayable) {
-            return $elements->toArray();
-        } elseif ($elements instanceof Jsonable) {
-            return json_decode($elements->toJson(), true);
-        } elseif ($elements instanceof \JsonSerializable) {
-            return (array) $elements->jsonSerialize();
-        } elseif ($elements instanceof \Traversable) {
-            return iterator_to_array($elements);
-        }
-
-        return (array) $elements;
+        return $this->escapeWhenCastingToString
+            ? e($this->toJson())
+            : $this->toJson();
     }
 }

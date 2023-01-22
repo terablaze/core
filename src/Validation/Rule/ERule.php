@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
 use InvalidArgumentException;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class ERule extends Rule implements RuleInterface
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\EventDispatcher;
+namespace Terablaze\EventDispatcher;
 
 use Psr\EventDispatcher\ListenerProviderInterface;
 
@@ -9,7 +9,7 @@ use function is_int;
 
 /**
  * Class ListenerProvider
- * @package TeraBlaze\Events
+ * @package Terablaze\Events
  */
 class ListenerProvider implements ListenerProviderInterface
 {

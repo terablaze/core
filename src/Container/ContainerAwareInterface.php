@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Container;
+namespace Terablaze\Container;
 
 interface ContainerAwareInterface
 {

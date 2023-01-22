@@ -1,12 +1,12 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
 use Psr\Http\Message\UploadedFileInterface;
 use Symfony\Component\Mime\MimeTypes;
-use TeraBlaze\Filesystem\Files;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Validation\Validation;
+use Terablaze\Filesystem\Files;
+use Terablaze\Support\StringMethods;
+use Terablaze\Validation\Validation;
 
 class MimeRule extends Rule
 {

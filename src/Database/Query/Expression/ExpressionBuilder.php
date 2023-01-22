@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Database\Query\Expression;
+namespace Terablaze\Database\Query\Expression;
 
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Database\Connection\ConnectionInterface;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Database\Connection\ConnectionInterface;
 
 use function func_get_arg;
 use function func_get_args;
@@ -305,6 +305,6 @@ class ExpressionBuilder
      */
     public function literal($input, $type = null)
     {
-        return $this->connection->query($input, $type);
+        return $this->connection->quote($input, $type);
     }
 }

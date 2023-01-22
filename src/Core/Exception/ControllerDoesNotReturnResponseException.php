@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Core\Exception;
+namespace Terablaze\Core\Exception;
 
 class ControllerDoesNotReturnResponseException extends \LogicException
 {

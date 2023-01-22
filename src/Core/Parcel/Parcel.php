@@ -1,23 +1,24 @@
 <?php
 
-namespace TeraBlaze\Core\Parcel;
+namespace Terablaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use ReflectionException;
-use TeraBlaze\Console\Application;
-use TeraBlaze\Core\Exception\ParcelNotLoadedException;
-use TeraBlaze\Routing\Router;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Config\Config;
-use TeraBlaze\Config\Exception\InvalidContextException;
-use TeraBlaze\Container\Container;
-use TeraBlaze\Container\ContainerInterface;
-use TeraBlaze\Core\Kernel\KernelInterface;
-use TeraBlaze\EventDispatcher\Dispatcher;
-use TeraBlaze\Routing\RouterInterface;
-use TeraBlaze\Translation\TranslationParcel;
-use TeraBlaze\Translation\Translator;
-use TeraBlaze\View\View;
+use Terablaze\Console\Application;
+use Terablaze\Core\Exception\ParcelNotLoadedException;
+use Terablaze\Core\Scheduling\Schedule;
+use Terablaze\Routing\Router;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Config\Config;
+use Terablaze\Config\Exception\InvalidContextException;
+use Terablaze\Container\Container;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Core\Kernel\KernelInterface;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Routing\RouterInterface;
+use Terablaze\Translation\TranslationParcel;
+use Terablaze\Translation\Translator;
+use Terablaze\View\View;
 
 abstract class Parcel implements ParcelInterface
 {
@@ -133,6 +134,10 @@ abstract class Parcel implements ParcelInterface
     }
 
     public function registerCommands(Application $application)
+    {
+    }
+
+    public function schedule(Schedule $schedule)
     {
     }
 

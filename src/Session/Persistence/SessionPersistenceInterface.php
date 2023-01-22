@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Session\Persistence;
+namespace Terablaze\Session\Persistence;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TeraBlaze\Session\SessionInterface;
+use Terablaze\Session\SessionInterface;
 
 interface SessionPersistenceInterface
 {

@@ -1,13 +1,13 @@
 <?php
 
-namespace TeraBlaze\Routing;
+namespace Terablaze\Routing;
 
-use TeraBlaze\Container\Container;
-use TeraBlaze\Support\ArrayMethods;
+use Terablaze\Container\Container;
+use Terablaze\Support\ArrayMethods;
 
 /**
  * Class Route
- * @package TeraBlaze\Routing
+ * @package Terablaze\Routing
  */
 class Route
 {
@@ -57,7 +57,7 @@ class Route
      * @param int|string $name
      * @param callable|array<string, mixed> $route
      */
-    public function __construct(Container $container, $name, $route)
+    public function __construct(Container $container, string $name = "", $route = [])
     {
         $this->container = $container;
 
@@ -271,5 +271,21 @@ class Route
         if (!empty($locale)) {
             $this->container->get('translator')->setLocale($locale);
         }
+    }
+
+    public static function get(string $path, $action = [])
+    {
+        $route = new self(Container::getContainer());
+        $route->pattern = $path;
+        if (is_array($action)) {
+            if (is_string($action[0])) {
+                $route->controller = $action[0];
+                $route->action = $action[1];
+            }
+        }
+        /** @var RouterInterface $router */
+        $router = $route->container->get(RouterInterface::class);
+        $router->addRoute($route->getName(), $route);
+        return $route;
     }
 }

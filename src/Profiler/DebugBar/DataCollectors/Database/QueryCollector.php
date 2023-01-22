@@ -1,12 +1,13 @@
 <?php
 
-namespace TeraBlaze\Profiler\DebugBar\DataCollectors\Database;
+namespace Terablaze\Profiler\DebugBar\DataCollectors\Database;
 
 use DebugBar\DataCollector\AssetProvider;
 use DebugBar\DataCollector\DataCollector;
+use DebugBar\DataCollector\DataCollectorInterface;
 use DebugBar\DataCollector\Renderable;
 use DebugBar\DataCollector\TimeDataCollector;
-use TeraBlaze\Database\Logging\QueryLogger;
+use Terablaze\Database\Logging\QueryLogger;
 
 class QueryCollector extends DataCollector implements Renderable, AssetProvider
 {
@@ -19,7 +20,7 @@ class QueryCollector extends DataCollector implements Renderable, AssetProvider
 
     protected string $sqlQuotationChar = '<>';
 
-    public function __construct(?QueryLogger $queryLogger = null, ?TimeDataCollector $timeCollector = null)
+    public function __construct(?QueryLogger $queryLogger = null, ?DataCollectorInterface $timeCollector = null)
     {
         $this->timeCollector = $timeCollector;
         if ($queryLogger !== null) {

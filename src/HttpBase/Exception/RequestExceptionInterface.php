@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\HttpBase\Exception;
+namespace Terablaze\HttpBase\Exception;
 
 /**
  * Interface for Request exceptions.

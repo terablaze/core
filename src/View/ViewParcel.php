@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\View;
+namespace Terablaze\View;
 
-use TeraBlaze\Core\Parcel\Parcel;
-use TeraBlaze\Core\Parcel\ParcelInterface;
-use TeraBlaze\View\Engine\EngineInterface;
+use Terablaze\Core\Parcel\Parcel;
+use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\View\Engine\EngineInterface;
 
 class ViewParcel extends Parcel implements ParcelInterface
 {

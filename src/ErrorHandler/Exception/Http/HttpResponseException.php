@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\ErrorHandler\Exception\Http;
+namespace Terablaze\ErrorHandler\Exception\Http;
 
 use RuntimeException;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\HttpBase\Response;
 
 class HttpResponseException extends RuntimeException
 {

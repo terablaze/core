@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule\Traits;
+namespace Terablaze\Validation\Rule\Traits;
 
 trait DateRuleTrait
 {

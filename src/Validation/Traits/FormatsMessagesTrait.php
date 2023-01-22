@@ -1,14 +1,14 @@
 <?php
 
-namespace TeraBlaze\Validation\Traits;
+namespace Terablaze\Validation\Traits;
 
 use Closure;
 use SplFileInfo;
-use TeraBlaze\Psr7\UploadedFile;
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Support\StringMethods;
-use TeraBlaze\Validation\Rule\RuleInterface;
-use TeraBlaze\Validation\Validation;
+use Terablaze\Psr7\UploadedFile;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
+use Terablaze\Validation\Rule\RuleInterface;
+use Terablaze\Validation\Validation;
 
 trait FormatsMessagesTrait
 {

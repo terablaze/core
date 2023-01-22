@@ -1,6 +1,6 @@
 <?php
 
-namespace TeraBlaze\Routing\Events;
+namespace Terablaze\Routing\Events;
 
 class PreDispatchEvent extends RouterEvent
 {

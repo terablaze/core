@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Core\Kernel\Events;
+namespace Terablaze\Core\Kernel\Events;
 
-use TeraBlaze\Core\Kernel\HttpKernelInterface;
-use TeraBlaze\HttpBase\Request;
+use Terablaze\Core\Kernel\HttpKernelInterface;
+use Terablaze\HttpBase\Request;
 
 /**
  * Allows filtering of controller arguments.

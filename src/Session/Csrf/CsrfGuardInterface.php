@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TeraBlaze\Session\Csrf;
+namespace Terablaze\Session\Csrf;
 
 interface CsrfGuardInterface
 {

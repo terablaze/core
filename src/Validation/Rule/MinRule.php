@@ -1,9 +1,9 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
 use InvalidArgumentException;
-use TeraBlaze\Validation\Rule\Traits\SizeAwareTrait;
+use Terablaze\Validation\Rule\Traits\SizeAwareTrait;
 
 class MinRule extends Rule implements RuleInterface
 {

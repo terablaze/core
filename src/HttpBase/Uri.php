@@ -1,8 +1,8 @@
 <?php
 
-namespace TeraBlaze\HttpBase;
+namespace Terablaze\HttpBase;
 
-use TeraBlaze\Psr7\Uri as Psr7Uri;
+use Terablaze\Psr7\Uri as Psr7Uri;
 
 class Uri extends Psr7Uri
 {

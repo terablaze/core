@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace TeraBlaze\ErrorHandler;
+namespace Terablaze\ErrorHandler;
 
-use TeraBlaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
-use TeraBlaze\HttpBase\Response;
+use Terablaze\ErrorHandler\Exception\Http\HttpExceptionInterface;
+use Terablaze\HttpBase\Response;
 
 /**
  * FlattenException wraps a PHP Error or Exception to be able to serialize it.

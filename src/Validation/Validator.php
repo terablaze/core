@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Validation;
+namespace Terablaze\Validation;
 
-use TeraBlaze\Container\Container;
-use TeraBlaze\Translation\Translator;
-use TeraBlaze\Translation\TranslatorInterface;
+use Terablaze\Container\Container;
+use Terablaze\Translation\Translator;
+use Terablaze\Translation\TranslatorInterface;
 
 class Validator
 {

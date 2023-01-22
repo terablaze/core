@@ -1,10 +1,10 @@
 <?php
 
-namespace TeraBlaze\Validation\Rule;
+namespace Terablaze\Validation\Rule;
 
-use TeraBlaze\Support\ArrayMethods;
-use TeraBlaze\Validation\Rule\Builder\UniqueRuleBuilder;
-use TeraBlaze\Validation\Validation;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Validation\Rule\Builder\UniqueRuleBuilder;
+use Terablaze\Validation\Validation;
 
 abstract class Rule implements RuleInterface
 {
