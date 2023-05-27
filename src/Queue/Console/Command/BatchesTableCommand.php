@@ -99,7 +99,7 @@ class BatchesTableCommand extends Command
         $stub = str_replace(
             ['{{ table }}', '{{ tableClassName }}'],
             [$table, $tableClassName],
-            $this->files->get(__DIR__ . '/stubs/batches.stub')
+            $this->files->get(dirname(__DIR__) . '/stubs/batches.stub')
         );
 
         $this->files->put($path, $stub);
