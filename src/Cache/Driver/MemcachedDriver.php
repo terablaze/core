@@ -3,6 +3,7 @@
 namespace Terablaze\Cache\Driver;
 
 use Memcached;
+use ReflectionException;
 use Terablaze\Cache\Exception\ServiceException;
 use Terablaze\Cache\Lock\LockInterface;
 use Terablaze\Cache\Lock\MemcachedLock;
@@ -45,13 +46,13 @@ class MemcachedDriver extends CacheDriver
         return $this->memcached;
     }
 
-    public function disconnect()
+    public function disconnect(): void
     {
         $this->memcached()->resetServerList();
         $this->memcached = null;
     }
 
-    public function has($key)
+    public function has($key): bool
     {
         $key = $this->fixKey($key);
         return $this->memcached()->get($key) !== false;
@@ -67,7 +68,7 @@ class MemcachedDriver extends CacheDriver
         return $default;
     }
 
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = null): bool
     {
         $key = $this->fixKey($key);
         if (!is_int($ttl)) {
@@ -86,7 +87,7 @@ class MemcachedDriver extends CacheDriver
     /**
      * @inheritDoc
      */
-    public function increment($key, $incrementBy = 1)
+    public function increment($key, $incrementBy = 1): bool|int
     {
         $key = $this->fixKey($key);
         return $this->memcached->increment($key, $incrementBy);
@@ -95,7 +96,7 @@ class MemcachedDriver extends CacheDriver
     /**
      * @inheritDoc
      */
-    public function decrement($key, $decrementBy = 1)
+    public function decrement($key, $decrementBy = 1): bool|int
     {
         $key = $this->fixKey($key);
         return $this->memcached->decrement($key, $decrementBy);
@@ -109,12 +110,13 @@ class MemcachedDriver extends CacheDriver
     /**
      * Get a lock instance.
      *
-     * @param  string  $name
-     * @param  int  $seconds
-     * @param  string|null  $owner
+     * @param string $name
+     * @param int $seconds
+     * @param null $owner
      * @return LockInterface
+     * @throws ReflectionException
      */
-    public function lock($name, $seconds = 0, $owner = null)
+    public function lock($name, $seconds = 0, $owner = null): LockInterface
     {
         return new MemcachedLock($this->memcached, $this->fixKey($name), $seconds, $owner);
     }
@@ -126,7 +128,7 @@ class MemcachedDriver extends CacheDriver
      * @param  string  $owner
      * @return LockInterface
      */
-    public function restoreLock($name, $owner)
+    public function restoreLock($name, $owner): LockInterface
     {
         return $this->lock($name, 0, $owner);
     }

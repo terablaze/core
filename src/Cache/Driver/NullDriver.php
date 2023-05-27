@@ -7,7 +7,7 @@ use Terablaze\Cache\Lock\NullLock;
 
 class NullDriver extends CacheDriver
 {
-    public function has($key)
+    public function has($key): bool
     {
         return false;
     }
@@ -63,7 +63,7 @@ class NullDriver extends CacheDriver
     /**
      * @inheritDoc
      */
-    public function increment($key, $value = 1)
+    public function increment($key, $incrementBy = 1): bool|int
     {
         return false;
     }
@@ -71,7 +71,7 @@ class NullDriver extends CacheDriver
     /**
      * @inheritDoc
      */
-    public function decrement($key, $value = 1)
+    public function decrement($key, $decrementBy = 1): bool|int
     {
         return false;
     }
@@ -92,7 +92,7 @@ class NullDriver extends CacheDriver
      * @param  string|null  $owner
      * @return LockInterface
      */
-    public function lock($name, $seconds = 0, $owner = null)
+    public function lock($name, $seconds = 0, $owner = null): LockInterface
     {
         return new NullLock($name, $seconds, $owner);
     }
@@ -104,7 +104,7 @@ class NullDriver extends CacheDriver
      * @param  string  $owner
      * @return LockInterface
      */
-    public function restoreLock($name, $owner)
+    public function restoreLock($name, $owner): LockInterface
     {
         return $this->lock($name, 0, $owner);
     }

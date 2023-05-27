@@ -26,7 +26,7 @@ interface LockInterface
      *
      * @return bool
      */
-    public function release();
+    public function release(): bool;
 
     /**
      * Returns the current owner of the lock.

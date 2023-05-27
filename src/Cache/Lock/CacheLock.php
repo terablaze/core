@@ -2,6 +2,8 @@
 
 namespace Terablaze\Cache\Lock;
 
+use Exception;
+use Psr\SimpleCache\InvalidArgumentException;
 use Terablaze\Cache\Driver\CacheDriverInterface;
 
 class CacheLock extends Lock
@@ -11,7 +13,7 @@ class CacheLock extends Lock
      *
      * @var CacheDriverInterface
      */
-    protected $driver;
+    protected CacheDriverInterface $driver;
 
     /**
      * Create a new lock instance.
@@ -21,8 +23,9 @@ class CacheLock extends Lock
      * @param int $seconds
      * @param string|null $owner
      * @return void
+     * @throws Exception
      */
-    public function __construct($driver, $name, $seconds, $owner = null)
+    public function __construct($driver, $name, $seconds, ?string $owner = null)
     {
         parent::__construct($name, $seconds, $owner);
 
@@ -33,6 +36,7 @@ class CacheLock extends Lock
      * Attempt to acquire the lock.
      *
      * @return bool
+     * @throws InvalidArgumentException
      */
     public function acquire()
     {
@@ -56,7 +60,7 @@ class CacheLock extends Lock
      *
      * @return bool
      */
-    public function release()
+    public function release(): bool
     {
         if ($this->isOwnedByCurrentProcess()) {
             return $this->driver->forget($this->name);

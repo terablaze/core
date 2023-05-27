@@ -19,47 +19,47 @@ class SimpleCache implements SimpleCacheInterface
         return $this->cacheDriver->get($key);
     }
 
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = null): bool
     {
         return $this->cacheDriver->set($key, $value);
     }
 
-    public function delete($key)
+    public function delete($key): bool
     {
         return $this->cacheDriver->delete($key);
     }
 
-    public function clear()
+    public function clear(): bool
     {
         return $this->cacheDriver->clear();
     }
 
-    public function getMultiple($keys, $default = null)
+    public function getMultiple($keys, $default = null): iterable
     {
         return $this->cacheDriver->getMultiple($keys, $default);
     }
 
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple($values, $ttl = null): bool
     {
         return $this->cacheDriver->setMultiple($values, $ttl);
     }
 
-    public function deleteMultiple($keys)
+    public function deleteMultiple($keys): bool
     {
         return $this->cacheDriver->deleteMultiple($keys);
     }
 
-    public function has($key)
+    public function has($key): bool
     {
         return $this->cacheDriver->has($key);
     }
 
-    public function forget(string $key)
+    public function forget(string $key): bool
     {
         return $this->cacheDriver->forget($key);
     }
 
-    public function flush()
+    public function flush(): bool
     {
         return $this->cacheDriver->flush();
     }
@@ -69,12 +69,12 @@ class SimpleCache implements SimpleCacheInterface
         return $this->cacheDriver;
     }
 
-    public function increment(string $key, int $incrementBy = 1)
+    public function increment(string $key, int $incrementBy = 1): bool|int
     {
         return $this->cacheDriver->increment($key, $incrementBy);
     }
 
-    public function decrement(string $key, int $decrementBy = 1)
+    public function decrement(string $key, int $decrementBy = 1): bool|int
     {
         return $this->cacheDriver->decrement($key, $decrementBy);
     }

@@ -13,14 +13,14 @@ interface CacheDriverInterface extends CacheInterface, LockProviderInterface
      * @param string $key
      * @return bool
      */
-    public function forget(string $key);
+    public function forget(string $key): bool;
 
     /**
      * Remove all cached values
      *
      * @return bool
      */
-    public function flush();
+    public function flush(): bool;
 
     /**
      * Increments the value of an item in the cache;
@@ -29,7 +29,7 @@ interface CacheDriverInterface extends CacheInterface, LockProviderInterface
      * @param int $incrementBy
      * @return int|bool
      */
-    public function increment(string $key, int $incrementBy = 1);
+    public function increment(string $key, int $incrementBy = 1): bool|int;
 
     /**
      * Decrements the value of an item in the cache;
@@ -38,5 +38,5 @@ interface CacheDriverInterface extends CacheInterface, LockProviderInterface
      * @param int $decrementBy
      * @return int|bool
      */
-    public function decrement(string $key, int $decrementBy = 1);
+    public function decrement(string $key, int $decrementBy = 1): bool|int;
 }

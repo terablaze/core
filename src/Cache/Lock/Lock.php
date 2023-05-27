@@ -2,6 +2,7 @@
 
 namespace Terablaze\Cache\Lock;
 
+use Exception;
 use Terablaze\Cache\Exception\LockTimeoutException;
 use Terablaze\Support\StringMethods;
 use Terablaze\Support\Traits\TimeAware;
@@ -15,38 +16,39 @@ abstract class Lock implements LockInterface
      *
      * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * The number of seconds the lock should be maintained.
      *
      * @var int
      */
-    protected $seconds;
+    protected int $seconds;
 
     /**
      * The scope identifier of this lock.
      *
-     * @var string
+     * @var string|null
      */
-    protected $owner;
+    protected ?string $owner;
 
     /**
      * The number of milliseconds to wait before re-attempting to acquire a lock while blocking.
      *
      * @var int
      */
-    protected $sleepMilliseconds = 250;
+    protected int $sleepMilliseconds = 250;
 
     /**
      * Create a new lock instance.
      *
-     * @param  string  $name
-     * @param  int  $seconds
-     * @param  string|null  $owner
+     * @param string $name
+     * @param int $seconds
+     * @param string|null $owner
      * @return void
+     * @throws Exception
      */
-    public function __construct($name, $seconds, $owner = null)
+    public function __construct(string $name, int $seconds, ?string $owner = null)
     {
         if (is_null($owner)) {
             $owner = StringMethods::random();
@@ -69,7 +71,7 @@ abstract class Lock implements LockInterface
      *
      * @return bool
      */
-    abstract public function release();
+    abstract public function release(): bool;
 
     /**
      * Returns the owner value written into the driver for this lock.

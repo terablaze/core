@@ -2,7 +2,9 @@
 
 namespace Terablaze\Cache\Driver;
 
+use ReflectionException;
 use Terablaze\Cache\Exception\InvalidArgumentException;
+use Terablaze\Support\Helpers;
 
 abstract class CacheDriver implements CacheDriverInterface
 {
@@ -37,9 +39,9 @@ abstract class CacheDriver implements CacheDriverInterface
      * @return void
      * @throws InvalidArgumentException When the key is not valid.
      */
-    protected function ensureValidKey($key): void
+    protected function ensureValidKey(string $key): void
     {
-        if (!is_string($key) || strlen($key) === 0) {
+        if (strlen($key) === 0) {
             throw new InvalidArgumentException('A cache key must be a non-empty string.');
         }
     }
@@ -52,15 +54,8 @@ abstract class CacheDriver implements CacheDriverInterface
      * @return void
      * @throws InvalidArgumentException
      */
-    protected function ensureValidType($iterable, string $check = self::CHECK_VALUE): void
+    protected function ensureValidType(iterable $iterable, string $check = self::CHECK_VALUE): void
     {
-        if (!is_iterable($iterable)) {
-            throw new InvalidArgumentException(sprintf(
-                'A cache %s must be either an array or a Traversable.',
-                $check === self::CHECK_VALUE ? 'key set' : 'set'
-            ));
-        }
-
         foreach ($iterable as $key => $value) {
             if ($check === self::CHECK_VALUE) {
                 $this->ensureValidKey($value);
@@ -151,15 +146,16 @@ abstract class CacheDriver implements CacheDriverInterface
      * @param string $key the key passed over
      * @return string Prefixed key with potentially unsafe characters replaced.
      * @throws InvalidArgumentException If key's value is invalid.
+     * @throws ReflectionException
      */
-    protected function fixKey($key): string
+    protected function fixKey(string $key): string
     {
         $this->ensureValidKey($key);
 
-        $key = preg_replace('/[\s]+/', '_', $key);
+        $key = preg_replace('/\s+/', '_', $key);
 
         return (
-                getConfig('cache.prefix', '') .
+                Helpers::getConfig('cache.prefix', '') .
                 ($this->config['prefix'] ?? '')
             ) . $key;
     }
@@ -169,12 +165,15 @@ abstract class CacheDriver implements CacheDriverInterface
         return (int)($this->config['ttl'] ?? $this->config['seconds'] ?? $this->config['expires'] ?? 3600);
     }
 
-    public function forget(string $key)
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function forget(string $key): bool
     {
         return $this->delete($key);
     }
 
-    public function flush()
+    public function flush(): bool
     {
         return $this->clear();
     }

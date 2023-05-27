@@ -2,6 +2,7 @@
 
 namespace Terablaze\Cache\Driver;
 
+use Psr\SimpleCache\InvalidArgumentException;
 use Terablaze\Cache\Lock\LockInterface;
 use Terablaze\Cache\Lock\MemoryLock;
 
@@ -17,7 +18,7 @@ class MemoryDriver extends CacheDriver
      */
     public $locks = [];
 
-    public function has($key)
+    public function has($key): bool
     {
         return isset($this->cached[$key]) && $this->cached[$key]['expires'] > time();
     }
@@ -31,7 +32,7 @@ class MemoryDriver extends CacheDriver
         return $default;
     }
 
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = null): bool|static
     {
         if (!is_int($ttl)) {
             $seconds = (int) $this->config['seconds'];
@@ -54,11 +55,12 @@ class MemoryDriver extends CacheDriver
     /**
      * Increment the value of an item in the cache.
      *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return int
+     * @param string $key
+     * @param int $incrementBy
+     * @return bool|int
+     * @throws InvalidArgumentException
      */
-    public function increment($key, $incrementBy = 1)
+    public function increment(string $key, int $incrementBy = 1): bool|int
     {
         if (! is_null($existing = $this->get($key))) {
             return tap(((int) $existing) + $incrementBy, function ($incremented) use ($key) {
@@ -75,7 +77,7 @@ class MemoryDriver extends CacheDriver
     /**
      * @inheritDoc
      */
-    public function decrement($key, $decrementBy = 1)
+    public function decrement($key, $decrementBy = 1): bool|int
     {
         return $this->increment($key, $decrementBy * -1);
     }
@@ -94,7 +96,7 @@ class MemoryDriver extends CacheDriver
      * @param  string|null  $owner
      * @return LockInterface
      */
-    public function lock($name, $seconds = 0, $owner = null)
+    public function lock($name, $seconds = 0, $owner = null): LockInterface
     {
         return new MemoryLock($this, $name, $seconds, $owner);
     }
@@ -106,7 +108,7 @@ class MemoryDriver extends CacheDriver
      * @param  string  $owner
      * @return LockInterface
      */
-    public function restoreLock($name, $owner)
+    public function restoreLock($name, $owner): LockInterface
     {
         return $this->lock($name, 0, $owner);
     }

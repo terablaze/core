@@ -19,7 +19,7 @@ class NullLock extends Lock
      *
      * @return bool
      */
-    public function release()
+    public function release(): bool
     {
         return true;
     }

@@ -2,6 +2,8 @@
 
 namespace Terablaze\Cache\Driver;
 
+use Psr\SimpleCache\InvalidArgumentException;
+use ReflectionException;
 use Terablaze\Cache\Lock\HasCacheLock;
 use Terablaze\Cache\LockProviderInterface;
 
@@ -69,7 +71,11 @@ class FileDriver extends CacheDriver
         return true;
     }
 
-    public function increment(string $key, int $incrementBy = 1)
+    /**
+     * @throws ReflectionException
+     * @throws InvalidArgumentException
+     */
+    public function increment(string $key, int $incrementBy = 1): bool|int
     {
         $raw = $this->read($this->fixKey($key));
 
@@ -78,7 +84,7 @@ class FileDriver extends CacheDriver
         });
     }
 
-    public function decrement(string $key, int $decrementBy = 1)
+    public function decrement(string $key, int $decrementBy = 1): bool|int
     {
         return $this->increment($key, $decrementBy * -1);
     }

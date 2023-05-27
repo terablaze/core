@@ -23,8 +23,8 @@ services:
     container_name: nginx
     restart: always
     ports:
-      - 80:80 # HTTP.
-      - 443:443 # HTTPS.
+      - 8080:80 # HTTP.
+#      - 443:443 # HTTPS.
     volumes:
       - ./:/var/www/html
       - ./storage/nginx/:/etc/nginx/conf.d/
@@ -39,7 +39,7 @@ services:
     container_name: terablaze.mysql
     restart: unless-stopped
     ports:
-      - 3306:3306
+      - 3307:3306
     volumes:
       - ./storage/mysql:/var/lib/mysql
     environment:

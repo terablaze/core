@@ -13,18 +13,18 @@ interface SimpleCacheInterface extends CacheInterface
      * @param string $key
      * @return bool
      */
-    public function forget(string $key);
+    public function forget(string $key): bool;
 
     /**
      * Remove all cached values
      *
      * @return bool
      */
-    public function flush();
+    public function flush(): bool;
 
     public function getDriver(): CacheDriverInterface;
 
-    public function increment(string $key, int $incrementBy = 1);
+    public function increment(string $key, int $incrementBy = 1): bool|int;
 
-    public function decrement(string $key, int $decrementBy = 1);
+    public function decrement(string $key, int $decrementBy = 1): bool|int;
 }
