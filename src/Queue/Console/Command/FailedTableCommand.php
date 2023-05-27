@@ -98,7 +98,7 @@ class FailedTableCommand extends Command
         $stub = str_replace(
             ['{{ table }}', '{{ tableClassName }}'],
             [$table, $tableClassName],
-            $this->files->get(__DIR__ . '/stubs/failed_jobs.stub')
+            $this->files->get(dirname(__DIR__) . '/stubs/failed_jobs.stub')
         );
 
         $this->files->put($path, $stub);

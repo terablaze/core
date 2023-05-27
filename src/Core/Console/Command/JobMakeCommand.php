@@ -60,7 +60,7 @@ class JobMakeCommand extends GeneratorCommand
     {
         return file_exists($customPath = Helpers::baseDir(trim($stub, '/')))
                         ? $customPath
-                        : __DIR__.$stub;
+                        : dirname(__DIR__).$stub;
     }
 
     /**

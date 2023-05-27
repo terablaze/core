@@ -59,7 +59,7 @@ class DownCommand extends Command
 
             file_put_contents(
                 storageDir('framework/maintenance.php'),
-                file_get_contents(__DIR__.'/stubs/maintenance-mode.stub')
+                file_get_contents(dirname(__DIR__).'/stubs/maintenance-mode.stub')
             );
 
             $this->kernel->getEventDispatcher()->dispatch(new MaintenanceModeEnabled());
