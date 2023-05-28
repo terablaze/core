@@ -1,17 +1,16 @@
 <?php
 
-namespace Illuminate\Redis\Connections;
+namespace Terablaze\Redis\Connections;
 
 use Closure;
-use Illuminate\Contracts\Redis\Connection as ConnectionContract;
-use Illuminate\Support\Arr;
+use Terablaze\Support\ArrayMethods;
 use Redis;
 use RedisException;
 
 /**
  * @mixin \Redis
  */
-class PhpRedisConnection extends Connection implements ConnectionContract
+class PhpRedisConnection extends Connection implements ConnectionInterface
 {
     use PacksPhpRedisValues;
 
@@ -241,7 +240,7 @@ class PhpRedisConnection extends Connection implements ConnectionContract
      */
     public function zrangebyscore($key, $min, $max, $options = [])
     {
-        if (isset($options['limit']) && Arr::isAssoc($options['limit'])) {
+        if (isset($options['limit']) && ArrayMethods::isAssoc($options['limit'])) {
             $options['limit'] = [
                 $options['limit']['offset'],
                 $options['limit']['count'],
@@ -262,7 +261,7 @@ class PhpRedisConnection extends Connection implements ConnectionContract
      */
     public function zrevrangebyscore($key, $min, $max, $options = [])
     {
-        if (isset($options['limit']) && Arr::isAssoc($options['limit'])) {
+        if (isset($options['limit']) && ArrayMethods::isAssoc($options['limit'])) {
             $options['limit'] = [
                 $options['limit']['offset'],
                 $options['limit']['count'],
@@ -441,7 +440,7 @@ class PhpRedisConnection extends Connection implements ConnectionContract
      *
      * @param  string  $script
      * @param  int  $numberOfKeys
-     * @param  dynamic  ...$arguments
+     * @param  ...$arguments
      * @return mixed
      */
     public function eval($script, $numberOfKeys, ...$arguments)

@@ -2,7 +2,7 @@
 
 use Terablaze\Database\Migrations\Migration;
 
-class {{ class }} extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -25,4 +25,4 @@ class {{ class }} extends Migration
     {
         $this->dropTableIfExists('{{ table }}')->build();
     }
-}
+};

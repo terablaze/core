@@ -9,6 +9,7 @@ use Terablaze\Cache\Driver\MemcachedDriver;
 use Terablaze\Cache\Driver\FileDriver;
 use Terablaze\Cache\Driver\MemoryDriver;
 use Terablaze\Cache\Driver\NullDriver;
+use Terablaze\Cache\Driver\RedisDriver;
 use Terablaze\Cache\Exception\InvalidArgumentException;
 use Terablaze\Cache\Exception\DriverException;
 use Terablaze\Cache\Psr16\SimpleCache;
@@ -57,6 +58,9 @@ class CacheParcel extends Parcel implements ParcelInterface
                 break;
             case "memory":
                 $cacheDriver = new MemoryDriver($config);
+                break;
+            case "redis":
+                $cacheDriver = new RedisDriver($this->container, $config);
                 break;
             case "null":
                 $cacheDriver = new NullDriver($config);

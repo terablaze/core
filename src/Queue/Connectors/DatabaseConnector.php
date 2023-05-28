@@ -1,6 +1,6 @@
 <?php
 
-namespace Terablaze\Queue\Connector;
+namespace Terablaze\Queue\Connectors;
 
 use Terablaze\Container\ContainerInterface;
 use Terablaze\Database\Connection\ConnectionInterface as DatabaseConnectionInterface;

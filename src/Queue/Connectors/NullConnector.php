@@ -1,6 +1,6 @@
 <?php
 
-namespace Terablaze\Queue\Connector;
+namespace Terablaze\Queue\Connectors;
 
 use Terablaze\Queue\NullQueue;
 use Terablaze\Queue\QueueInterface;

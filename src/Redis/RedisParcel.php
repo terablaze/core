@@ -4,6 +4,7 @@ namespace Terablaze\Redis;
 
 use Terablaze\Core\Parcel\Parcel;
 use Terablaze\Core\Parcel\ParcelInterface;
+use Terablaze\Support\ArrayMethods;
 
 class RedisParcel extends Parcel implements ParcelInterface
 {
@@ -12,26 +13,22 @@ class RedisParcel extends Parcel implements ParcelInterface
      *
      * @return void
      */
-    public function register()
+    public function boot(): void
     {
-        $this->app->singleton('redis', function ($app) {
-            $config = $app->make('config')->get('database.redis', []);
+        $parsed = $this->loadConfig('redis')->get('redis');
 
-            return new RedisManager($app, Arr::pull($config, 'client', 'phpredis'), $config);
-        });
+        $this->container->registerServiceInstance(
+            'redis',
+            new RedisManager(
+                $this->container,
+                ArrayMethods::pull($parsed, 'client', 'phpredis'),
+                $parsed
+            )
+        );
 
-        $this->app->bind('redis.connection', function ($app) {
-            return $app['redis']->connection();
-        });
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return ['redis', 'redis.connection'];
+        $this->container->registerServiceInstance(
+            'redis.connection',
+            $this->container->get('redis')->connection()
+        );
     }
 }

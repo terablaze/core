@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Redis\Limiters;
+namespace Terablaze\Redis\Limiters;
 
 use Illuminate\Contracts\Redis\LimiterTimeoutException;
 use Illuminate\Support\InteractsWithTime;

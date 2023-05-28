@@ -49,6 +49,33 @@ class ArrayMethods
     }
 
     /**
+     * Cross join the given arrays, returning all possible permutations.
+     *
+     * @param  iterable  ...$arrays
+     * @return array
+     */
+    public static function crossJoin(...$arrays)
+    {
+        $results = [[]];
+
+        foreach ($arrays as $index => $array) {
+            $append = [];
+
+            foreach ($results as $product) {
+                foreach ($array as $item) {
+                    $product[$index] = $item;
+
+                    $append[] = $product;
+                }
+            }
+
+            $results = $append;
+        }
+
+        return $results;
+    }
+
+    /**
      * Removes empty items from the array
      * @param $array
      * @return array
@@ -435,6 +462,17 @@ class ArrayMethods
         static::forget($array, $key);
 
         return $value;
+    }
+
+    /**
+     * Convert the array into a query string.
+     *
+     * @param  array  $array
+     * @return string
+     */
+    public static function query($array)
+    {
+        return http_build_query($array, '', '&', PHP_QUERY_RFC3986);
     }
 
     /**

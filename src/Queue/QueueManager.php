@@ -4,7 +4,7 @@ namespace Terablaze\Queue;
 
 use Closure;
 use Terablaze\EventDispatcher\Dispatcher;
-use Terablaze\Queue\Connector\ConnectorInterface;
+use Terablaze\Queue\Connectors\ConnectorInterface;
 use InvalidArgumentException;
 use Terablaze\Container\ContainerInterface;
 use Terablaze\Support\Helpers;
@@ -167,7 +167,7 @@ class QueueManager implements FactoryInterface, MonitorInterface
             throw new InvalidArgumentException("The [{$name}] queue connection has not been configured.");
         }
 
-        return $this->getConnector($config['driver'])
+        return $this->getConnector($config['driver'] ?? $config['type'])
                         ->connect($config)
                         ->setConnectionName($name);
     }

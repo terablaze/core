@@ -2,9 +2,10 @@
 
 namespace Terablaze\Queue;
 
-use Terablaze\Queue\Connector\DatabaseConnector;
-use Terablaze\Queue\Connector\NullConnector;
-use Terablaze\Queue\Connector\SyncConnector;
+use Terablaze\Queue\Connectors\DatabaseConnector;
+use Terablaze\Queue\Connectors\NullConnector;
+use Terablaze\Queue\Connectors\RedisConnector;
+use Terablaze\Queue\Connectors\SyncConnector;
 use Terablaze\Console\Application;
 use Terablaze\Core\Parcel\Parcel;
 use Terablaze\Core\Parcel\ParcelInterface;
@@ -46,7 +47,7 @@ class QueueParcel extends Parcel implements ParcelInterface
 
     public function boot(): void
     {
-        Helpers::loadConfig('queue');
+        $this->loadConfig('queue');
 
         $this->configureSerializableClosureUses();
 
@@ -75,9 +76,13 @@ class QueueParcel extends Parcel implements ParcelInterface
             case "database":
                 $queueConnection = new DatabaseConnector($this->container);
                 break;
+            case "redis":
+                $queueConnection = new RedisConnector($this->container);
+                break;
             default:
                 throw new \InvalidArgumentException(sprintf("Invalid or unimplemented queue driver type: %s", $type));
         }
+
         $queue = $queueConnection->connect($conf)->setConnectionName($confKey);
         $this->container->registerServiceInstance($queueName, $queue);
         if (getConfig('queue.default') === $confKey) {
@@ -164,6 +169,7 @@ class QueueParcel extends Parcel implements ParcelInterface
         $this->registerNullConnector($manager);
         $this->registerSyncConnector($manager);
         $this->registerDatabaseConnector($manager);
+        $this->registerRedisConnector($manager);
     }
 
     /**
@@ -202,6 +208,19 @@ class QueueParcel extends Parcel implements ParcelInterface
     {
         $manager->addConnector('database', function () {
             return new DatabaseConnector($this->container);
+        });
+    }
+
+    /**
+     * Register the redis queue connector.
+     *
+     * @param QueueManager $manager
+     * @return void
+     */
+    protected function registerRedisConnector($manager)
+    {
+        $manager->addConnector('redis', function () {
+            return new RedisConnector($this->container);
         });
     }
 

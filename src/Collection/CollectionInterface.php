@@ -9,7 +9,7 @@ use JsonSerializable;
 use Terablaze\Support\Interfaces\Arrayable;
 use Terablaze\Support\Interfaces\Jsonable;
 
-interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess, Arrayable, Jsonable, JsonSerializable
+interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess, Arrayable, Jsonable, JsonSerializable, EnumerableInterface
 {
     public const BASIC_TYPES = [
         'string',
@@ -49,7 +49,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess,
      *
      * @return bool TRUE if the collection contains the element, FALSE otherwise.
      */
-    public function contains($element);
+    public function contains($key, $operator = null, $value = null);
 
     /**
      * Checks whether the collection is empty (contains no elements).
@@ -93,7 +93,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess,
      *
      * @return mixed
      */
-    public function get($key);
+    public function get($key, $default = null);
 
     /**
      * Gets all keys/indices of the collection.
@@ -212,10 +212,10 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess,
      * e.g. new Collection([1, 2, 3])->zip([4, 5, 6]);
      *      => [[1, 4], [2, 5], [3, 6]]
      *
-     * @param mixed ...$items
+     * @param mixed ...$elements
      * @return static
      */
-    public function zip($items);
+    public function zip($elements);
 
     /**
      * Pad collection to the specified length with a value.
@@ -398,7 +398,7 @@ interface CollectionInterface extends Countable, IteratorAggregate, ArrayAccess,
 
     public function dump();
 
-    public static function make($items = []);
+    public static function make($elements = []);
 
     public static function wrap($value);
 

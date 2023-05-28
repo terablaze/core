@@ -22,7 +22,6 @@ use Terablaze\Database\Migrations\MigrationRepository;
 use Terablaze\Database\Migrations\Migrator;
 use Terablaze\Database\ORM\AnnotationDriver;
 use Terablaze\Database\Query\DatabaseTransactionsManager;
-use Terablaze\Support\Helpers;
 
 class DatabaseParcel extends Parcel implements ParcelInterface
 {
@@ -50,7 +49,7 @@ class DatabaseParcel extends Parcel implements ParcelInterface
      */
     public function boot(): void
     {
-        $parsed = Helpers::loadConfig('database');
+        $parsed = $this->loadConfig('database');
 
         foreach ($parsed->get('database.connections') as $key => $conf) {
             $this->initialize($key, $conf);

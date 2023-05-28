@@ -1,29 +1,26 @@
 <?php
 
-namespace Illuminate\Redis\Connectors;
+namespace Terablaze\Redis\Connectors;
 
-use Illuminate\Contracts\Redis\Connector;
-use Illuminate\Redis\Connections\PhpRedisClusterConnection;
-use Illuminate\Redis\Connections\PhpRedisConnection;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Redis as RedisFacade;
-use Illuminate\Support\Str;
-use LogicException;
+use Terablaze\Redis\Connections\PhpRedisClusterConnection;
+use Terablaze\Redis\Connections\PhpRedisConnection;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\StringMethods;
 use Redis;
 use RedisCluster;
 
-class PhpRedisConnector implements Connector
+class PhpRedisConnector implements ConnectorInterface
 {
     /**
      * Create a new clustered PhpRedis connection.
      *
      * @param  array  $config
      * @param  array  $options
-     * @return \Illuminate\Redis\Connections\PhpRedisConnection
+     * @return \Terablaze\Redis\Connections\PhpRedisConnection
      */
     public function connect(array $config, array $options)
     {
-        $formattedOptions = Arr::pull($config, 'options', []);
+        $formattedOptions = ArrayMethods::pull($config, 'options', []);
 
         if (isset($config['prefix'])) {
             $formattedOptions['prefix'] = $config['prefix'];
@@ -44,11 +41,11 @@ class PhpRedisConnector implements Connector
      * @param  array  $config
      * @param  array  $clusterOptions
      * @param  array  $options
-     * @return \Illuminate\Redis\Connections\PhpRedisClusterConnection
+     * @return \Terablaze\Redis\Connections\PhpRedisClusterConnection
      */
     public function connectToCluster(array $config, array $clusterOptions, array $options)
     {
-        $options = array_merge($options, $clusterOptions, Arr::pull($config, 'options', []));
+        $options = array_merge($options, $clusterOptions, ArrayMethods::pull($config, 'options', []));
 
         return new PhpRedisClusterConnection($this->createRedisClusterInstance(
             array_map([$this, 'buildClusterConnectionString'], $config), $options
@@ -63,7 +60,7 @@ class PhpRedisConnector implements Connector
      */
     protected function buildClusterConnectionString(array $server)
     {
-        return $this->formatHost($server).':'.$server['port'].'?'.Arr::query(Arr::only($server, [
+        return $this->formatHost($server).':'.$server['port'].'?'.ArrayMethods::query(ArrayMethods::only($server, [
             'database', 'password', 'prefix', 'read_timeout',
         ]));
     }
@@ -79,14 +76,6 @@ class PhpRedisConnector implements Connector
     protected function createClient(array $config)
     {
         return tap(new Redis, function ($client) use ($config) {
-            if ($client instanceof RedisFacade) {
-                throw new LogicException(
-                    extension_loaded('redis')
-                        ? 'Please remove or rename the Redis facade alias in your "app" configuration file in order to avoid collision with the PHP Redis extension.'
-                        : 'Please make sure the PHP Redis extension is installed and enabled.'
-                );
-            }
-
             $this->establishConnection($client, $config);
 
             if (! empty($config['password'])) {
@@ -145,16 +134,16 @@ class PhpRedisConnector implements Connector
         $parameters = [
             $this->formatHost($config),
             $config['port'],
-            Arr::get($config, 'timeout', 0.0),
-            $persistent ? Arr::get($config, 'persistent_id', null) : null,
-            Arr::get($config, 'retry_interval', 0),
+            ArrayMethods::get($config, 'timeout', 0.0),
+            $persistent ? ArrayMethods::get($config, 'persistent_id', null) : null,
+            ArrayMethods::get($config, 'retry_interval', 0),
         ];
 
         if (version_compare(phpversion('redis'), '3.1.3', '>=')) {
-            $parameters[] = Arr::get($config, 'read_timeout', 0.0);
+            $parameters[] = ArrayMethods::get($config, 'read_timeout', 0.0);
         }
 
-        if (version_compare(phpversion('redis'), '5.3.0', '>=') && ! is_null($context = Arr::get($config, 'context'))) {
+        if (version_compare(phpversion('redis'), '5.3.0', '>=') && ! is_null($context = ArrayMethods::get($config, 'context'))) {
             $parameters[] = $context;
         }
 
@@ -182,7 +171,7 @@ class PhpRedisConnector implements Connector
             $parameters[] = $options['password'] ?? null;
         }
 
-        if (version_compare(phpversion('redis'), '5.3.2', '>=') && ! is_null($context = Arr::get($options, 'context'))) {
+        if (version_compare(phpversion('redis'), '5.3.2', '>=') && ! is_null($context = ArrayMethods::get($options, 'context'))) {
             $parameters[] = $context;
         }
 
@@ -226,7 +215,7 @@ class PhpRedisConnector implements Connector
     protected function formatHost(array $options)
     {
         if (isset($options['scheme'])) {
-            return Str::start($options['host'], "{$options['scheme']}://");
+            return StringMethods::start($options['host'], "{$options['scheme']}://");
         }
 
         return $options['host'];

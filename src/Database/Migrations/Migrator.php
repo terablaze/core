@@ -16,6 +16,7 @@ use Terablaze\Database\Exception\Exception;
 use Terablaze\EventDispatcher\Dispatcher;
 use Terablaze\Filesystem\Files;
 use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\Helpers;
 use Terablaze\Support\StringMethods;
 
 class Migrator
@@ -54,6 +55,13 @@ class Migrator
      * @var array
      */
     protected $paths = [];
+
+    /**
+     * The paths that have already been required.
+     *
+     * @var array<string, Migration|null>
+     */
+    protected static $requiredPathCache;
 
     /**
      * @var Files
@@ -187,9 +195,9 @@ class Migrator
         // First we will resolve a "real" instance of the migration class from this
         // migration file name. Once we have the instances we can run the actual
         // command such as "up" or "down", or we can just simulate the action.
-        $migration = $this->resolve(
-            $name = $this->getMigrationName($file)
-        );
+        $migration = $this->resolve($file);
+
+        $name = $this->getMigrationName($file);
 
         if ($pretend) {
             $this->pretendToRun($migration, 'up');
@@ -354,9 +362,9 @@ class Migrator
         // First we will get the file name of the migration so we can resolve out an
         // instance of the migration. Once we get an instance we can either run a
         // pretend execution of the migration or we can run the real migration.
-        $instance = $this->resolve(
-            $name = $this->getMigrationName($file)
-        );
+        $instance = $this->resolve($file);
+
+        $name = $this->getMigrationName($file);
 
         $this->note("<comment>Rolling back:</comment> {$name}");
 
@@ -448,9 +456,32 @@ class Migrator
      */
     public function resolve($file)
     {
-        $class = StringMethods::studly(implode('_', array_slice(explode('_', $file), 4)));
+        $class = $this->getMigrationClass($this->getMigrationName($file));
 
-        return new $class();
+        if (class_exists($class) && realpath($file) == (new \ReflectionClass($class))->getFileName()) {
+            return new $class;
+        }
+
+        $migration = static::$requiredPathCache[$file] ??= $this->files->getRequire($file);
+
+        if (is_object($migration)) {
+            return method_exists($migration, '__construct')
+                ? $this->files->getRequire($file)
+                : clone $migration;
+        }
+
+        return new $class;
+    }
+
+    /**
+     * Generate a migration class name based on the migration file name.
+     *
+     * @param  string  $migrationName
+     * @return string
+     */
+    protected function getMigrationClass(string $migrationName): string
+    {
+        return StringMethods::studly(implode('_', array_slice(explode('_', $migrationName), 4)));
     }
 
     /**
@@ -461,23 +492,13 @@ class Migrator
      */
     public function getMigrationFiles($paths): array
     {
-        $paths = ArrayMethods::wrap($paths);
-        $migrationFiles = [];
-        foreach ($paths as $path) {
-            if (!is_dir($path)) {
-                continue;
-            }
-            $subMigrationFiles = $this->files->glob($path . '/*_*.php');
-            if (count($subMigrationFiles) < 1) {
-                continue;
-            }
-            foreach ($subMigrationFiles as $subMigrationFile) {
-                $migrationFiles[$this->getMigrationName($subMigrationFile)] = $subMigrationFile;
-            }
-        }
-
-        ksort($migrationFiles);
-        return $migrationFiles;
+        return ArrayCollection::make($paths)->flatMap(function ($path) {
+            return str_ends_with($path, '.php') ? [$path] : $this->files->glob($path.'/*_*.php');
+        })->filter()->values()->keyBy(function ($file) {
+            return $this->getMigrationName($file);
+        })->sortBy(function ($file, $key) {
+            return $key;
+        })->all();
     }
 
     /**
@@ -577,7 +598,7 @@ class Migrator
 
         $this->setConnectionName($name);
 
-        return tap($callback(), function () use ($previousConnection) {
+        return Helpers::tap($callback(), function () use ($previousConnection) {
             $this->setConnectionName($previousConnection);
         });
     }

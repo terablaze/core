@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Redis\Connections;
+namespace Terablaze\Redis\Connections;
 
 use Predis\Command\Redis\FLUSHDB;
 use Predis\Command\ServerFlushDatabase;

@@ -1,27 +1,26 @@
 <?php
 
-namespace Illuminate\Redis;
+namespace Terablaze\Redis;
 
 use Closure;
-use Illuminate\Contracts\Redis\Factory;
-use Illuminate\Redis\Connections\Connection;
-use Illuminate\Redis\Connectors\PhpRedisConnector;
-use Illuminate\Redis\Connectors\PredisConnector;
-use Illuminate\Support\Arr;
-use Illuminate\Support\ConfigurationUrlParser;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Terablaze\Container\Container;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\Redis\Connections\ConnectionInterface;
+use Terablaze\Redis\Connectors\PhpRedisConnector;
+use Terablaze\Redis\Connectors\PredisConnector;
+use Terablaze\Support\ArrayMethods;
 use InvalidArgumentException;
+use Terablaze\Support\ConfigurationUrlParser;
 
-/**
- * @mixin \Illuminate\Redis\Connections\Connection
- */
-class RedisManager implements Factory
+class RedisManager
 {
     /**
      * The application instance.
      *
-     * @var \Illuminate\Contracts\Foundation\Application
+     * @var Container
      */
-    protected $app;
+    protected $container;
 
     /**
      * The name of the default driver.
@@ -61,14 +60,14 @@ class RedisManager implements Factory
     /**
      * Create a new Redis manager instance.
      *
-     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @param  Container $container
      * @param  string  $driver
      * @param  array  $config
      * @return void
      */
-    public function __construct($app, $driver, array $config)
+    public function __construct(ContainerInterface $container, $driver, array $config)
     {
-        $this->app = $app;
+        $this->container = $container;
         $this->driver = $driver;
         $this->config = $config;
     }
@@ -77,7 +76,7 @@ class RedisManager implements Factory
      * Get a Redis connection by name.
      *
      * @param  string|null  $name
-     * @return \Illuminate\Redis\Connections\Connection
+     * @return \Terablaze\Redis\Connections\ConnectionInterface
      */
     public function connection($name = null)
     {
@@ -96,7 +95,7 @@ class RedisManager implements Factory
      * Resolve the given connection by name.
      *
      * @param  string|null  $name
-     * @return \Illuminate\Redis\Connections\Connection
+     * @return \Terablaze\Redis\Connections\ConnectionInterface
      *
      * @throws \InvalidArgumentException
      */
@@ -109,7 +108,7 @@ class RedisManager implements Factory
         if (isset($this->config[$name])) {
             return $this->connector()->connect(
                 $this->parseConnectionConfiguration($this->config[$name]),
-                array_merge(Arr::except($options, 'parameters'), ['parameters' => Arr::get($options, 'parameters.'.$name, Arr::get($options, 'parameters', []))])
+                array_merge(ArrayMethods::except($options, 'parameters'), ['parameters' => ArrayMethods::get($options, 'parameters.'.$name, ArrayMethods::get($options, 'parameters', []))])
             );
         }
 
@@ -124,7 +123,7 @@ class RedisManager implements Factory
      * Resolve the given cluster connection by name.
      *
      * @param  string  $name
-     * @return \Illuminate\Redis\Connections\Connection
+     * @return \Terablaze\Redis\Connections\ConnectionInterface
      */
     protected function resolveCluster($name)
     {
@@ -140,16 +139,16 @@ class RedisManager implements Factory
     /**
      * Configure the given connection to prepare it for commands.
      *
-     * @param  \Illuminate\Redis\Connections\Connection  $connection
+     * @param  \Terablaze\Redis\Connections\ConnectionInterface  $connection
      * @param  string  $name
-     * @return \Illuminate\Redis\Connections\Connection
+     * @return \Terablaze\Redis\Connections\ConnectionInterface
      */
-    protected function configure(Connection $connection, $name)
+    protected function configure(ConnectionInterface $connection, $name)
     {
         $connection->setName($name);
 
-        if ($this->events && $this->app->bound('events')) {
-            $connection->setEventDispatcher($this->app->make('events'));
+        if ($this->events && $this->container->has(EventDispatcherInterface::class)) {
+            $connection->setEventDispatcher($this->container->make(EventDispatcherInterface::class));
         }
 
         return $connection;
@@ -158,7 +157,7 @@ class RedisManager implements Factory
     /**
      * Get the connector instance for the current driver.
      *
-     * @return \Illuminate\Contracts\Redis\Connector|null
+     * @return \Terablaze\Redis\Connectors\ConnectorInterface|null
      */
     protected function connector()
     {
@@ -183,7 +182,7 @@ class RedisManager implements Factory
      */
     protected function parseConnectionConfiguration($config)
     {
-        $parsed = (new ConfigurationUrlParser)->parseConfiguration($config);
+        $parsed = (new ConfigurationUrlParser())->parseConfiguration($config);
 
         $driver = strtolower($parsed['driver'] ?? '');
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace Illuminate\Redis\Connections;
+namespace Terablaze\Redis\Connections;
 
 use Closure;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Redis\Events\CommandExecuted;
-use Illuminate\Redis\Limiters\ConcurrencyLimiterBuilder;
-use Illuminate\Redis\Limiters\DurationLimiterBuilder;
-use Illuminate\Support\Traits\Macroable;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Redis\Events\CommandExecuted;
+use Terablaze\Redis\Limiters\ConcurrencyLimiterBuilder;
+use Terablaze\Redis\Limiters\DurationLimiterBuilder;
+use Terablaze\Support\Traits\Macroable;
 
 abstract class Connection
 {
@@ -32,7 +32,7 @@ abstract class Connection
     /**
      * The event dispatcher instance.
      *
-     * @var \Illuminate\Contracts\Events\Dispatcher
+     * @var Dispatcher
      */
     protected $events;
 
@@ -50,7 +50,7 @@ abstract class Connection
      * Funnel a callback for a maximum number of simultaneous executions.
      *
      * @param  string  $name
-     * @return \Illuminate\Redis\Limiters\ConcurrencyLimiterBuilder
+     * @return \Terablaze\Redis\Limiters\ConcurrencyLimiterBuilder
      */
     public function funnel($name)
     {
@@ -61,7 +61,7 @@ abstract class Connection
      * Throttle a callback for a maximum number of executions over a given duration.
      *
      * @param  string  $name
-     * @return \Illuminate\Redis\Limiters\DurationLimiterBuilder
+     * @return \Terablaze\Redis\Limiters\DurationLimiterBuilder
      */
     public function throttle($name)
     {
@@ -172,7 +172,7 @@ abstract class Connection
     /**
      * Get the event dispatcher used by the connection.
      *
-     * @return \Illuminate\Contracts\Events\Dispatcher
+     * @return \Terablaze\EventDispatcher\Dispatcher
      */
     public function getEventDispatcher()
     {
@@ -182,7 +182,7 @@ abstract class Connection
     /**
      * Set the event dispatcher instance on the connection.
      *
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  \Terablaze\EventDispatcher\Dispatcher  $events
      * @return void
      */
     public function setEventDispatcher(Dispatcher $events)

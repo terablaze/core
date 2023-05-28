@@ -63,7 +63,8 @@
     "league/flysystem-async-aws-s3": "2.x-dev",
     "async-aws/simple-s3": "1.2.x-dev",
     "pestphp/pest": "1.x-dev",
-    "psy/psysh": "0.11.x-dev"
+    "psy/psysh": "0.11.x-dev",
+    "predis/predis": "v2.x-dev"
   },
   "minimum-stability": "dev",
   "autoload": {

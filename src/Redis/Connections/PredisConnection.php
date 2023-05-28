@@ -1,14 +1,13 @@
 <?php
 
-namespace Illuminate\Redis\Connections;
+namespace Terablaze\Redis\Connections;
 
 use Closure;
-use Illuminate\Contracts\Redis\Connection as ConnectionContract;
 
 /**
  * @mixin \Predis\Client
  */
-class PredisConnection extends Connection implements ConnectionContract
+class PredisConnection extends Connection implements ConnectionInterface
 {
     /**
      * The Predis client.

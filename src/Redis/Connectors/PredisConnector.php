@@ -1,26 +1,25 @@
 <?php
 
-namespace Illuminate\Redis\Connectors;
+namespace Terablaze\Redis\Connectors;
 
-use Illuminate\Contracts\Redis\Connector;
-use Illuminate\Redis\Connections\PredisClusterConnection;
-use Illuminate\Redis\Connections\PredisConnection;
-use Illuminate\Support\Arr;
+use Terablaze\Redis\Connections\PredisClusterConnection;
+use Terablaze\Redis\Connections\PredisConnection;
+use Terablaze\Support\ArrayMethods;
 use Predis\Client;
 
-class PredisConnector implements Connector
+class PredisConnector implements ConnectorInterface
 {
     /**
      * Create a new clustered Predis connection.
      *
      * @param  array  $config
      * @param  array  $options
-     * @return \Illuminate\Redis\Connections\PredisConnection
+     * @return \Terablaze\Redis\Connections\PredisConnection
      */
     public function connect(array $config, array $options)
     {
         $formattedOptions = array_merge(
-            ['timeout' => 10.0], $options, Arr::pull($config, 'options', [])
+            ['timeout' => 10.0], $options, ArrayMethods::pull($config, 'options', [])
         );
 
         if (isset($config['prefix'])) {
@@ -36,11 +35,11 @@ class PredisConnector implements Connector
      * @param  array  $config
      * @param  array  $clusterOptions
      * @param  array  $options
-     * @return \Illuminate\Redis\Connections\PredisClusterConnection
+     * @return \Terablaze\Redis\Connections\PredisClusterConnection
      */
     public function connectToCluster(array $config, array $clusterOptions, array $options)
     {
-        $clusterSpecificOptions = Arr::pull($config, 'options', []);
+        $clusterSpecificOptions = ArrayMethods::pull($config, 'options', []);
 
         if (isset($config['prefix'])) {
             $clusterSpecificOptions['prefix'] = $config['prefix'];
