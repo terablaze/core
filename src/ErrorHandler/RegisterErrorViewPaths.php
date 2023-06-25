@@ -5,6 +5,7 @@ namespace Terablaze\ErrorHandler;
 use ReflectionException;
 use Terablaze\Collection\ArrayCollection;
 use Terablaze\Collection\Exceptions\TypeException;
+use Terablaze\Support\Helpers;
 use Terablaze\View\View;
 
 class RegisterErrorViewPaths
@@ -18,7 +19,7 @@ class RegisterErrorViewPaths
      */
     public function __invoke()
     {
-        $paths = (new ArrayCollection(getConfig('views.paths', [])))->map(function ($path) {
+        $paths = (new ArrayCollection(Helpers::getConfig('view.paths', [])))->map(function ($path) {
             return "{$path}/errors";
         })->push(__DIR__ . '/Resources/views')->all();
         View::addNamespacedPaths('errors', $paths);

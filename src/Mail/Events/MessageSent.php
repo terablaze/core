@@ -1,9 +1,9 @@
 <?php
 
-namespace Illuminate\Mail\Events;
+namespace Terablaze\Mail\Events;
 
 use Exception;
-use Illuminate\Mail\SentMessage;
+use Terablaze\Mail\SentMessage;
 
 /**
  * @property \Symfony\Component\Mime\Email $message
@@ -13,7 +13,7 @@ class MessageSent
     /**
      * The message that was sent.
      *
-     * @var \Illuminate\Mail\SentMessage
+     * @var \Terablaze\Mail\SentMessage
      */
     public $sent;
 
@@ -27,7 +27,7 @@ class MessageSent
     /**
      * Create a new event instance.
      *
-     * @param  \Illuminate\Mail\SentMessage  $message
+     * @param  \Terablaze\Mail\SentMessage  $message
      * @param  array  $data
      * @return void
      */

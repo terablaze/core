@@ -1,0 +1,198 @@
+version: '3'
+
+services:
+  traefik:
+    networks:
+      - default
+    image: traefik:v2.9
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.tcore.localhost`)"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.watch=true"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--entrypoints.https.http.tls={}"
+      - "--entrypoints.mysql.address=:3306"
+      - "--entrypoints.redis.address=:6379"
+      - "--entrypoints.rc.address=:8081"
+      - "--entrypoints.mailpit.address=:1025"
+      - "--entrypoints.minio.address=:9000"
+    ports:
+      - "80:80" # HTTP.
+      - "443:443" # HTTPS.
+      - "1025:1025" # SMTP (mailpit).
+      - "2050:2050" # Server Direct (HTTP).
+      - "8080:8080" # Traefik (Dashboard).
+      - "8083:8083" # Traefik (Dashboard).
+      - "3306:3306" # MySQL.
+      - "6379:6379" # Redis.
+      - "9000:9000" # Minio.
+      - "8081:8081" # Redis Commander
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  server-api:
+    networks:
+      - default
+    image: webdevops/php-nginx-dev:8.2-alpine
+    platform: linux/amd64
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server.rule=Host(`tcore.localhost`)"
+      - "traefik.http.services.server.loadbalancer.server.port=80"
+      - "traefik.tcp.routers.server.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.server.entrypoints=server-http"
+      - "traefik.tcp.services.server.loadbalancer.server.port=80"
+    volumes:
+      - ./:/app
+    environment:
+      WEB_DOCUMENT_ROOT: /app/tests/Local
+    depends_on:
+      - mysql
+      - redis
+      - mailpit
+      - minio
+
+  server-queue:
+    networks:
+      - default
+    image: webdevops/php-dev:8.2-alpine
+    platform: linux/amd64
+    volumes:
+      - ./:/app
+#    command:
+#      - php
+#      - /app/blaze
+#      - queue:work
+    depends_on:
+      - mysql
+      - redis
+      - mailpit
+      - minio
+      - server-api
+
+  mysql:
+    networks:
+      - default
+    image: mariadb:10.6
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    tty: true
+    #        ports:
+    #            - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: tcore
+      MYSQL_USER: tcore
+      MYSQL_PASSWORD: tcore
+      MYSQL_ROOT_PASSWORD: tcore
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.mysql.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.mysql.entrypoints=mysql"
+      - "traefik.tcp.services.mysql.loadbalancer.server.port=3306"
+    depends_on:
+      - traefik
+
+  # phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: unless-stopped
+    #        ports:
+    #            - "8090:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"
+      - "traefik.http.routers.phpmyadmin.rule=HostRegexp(`pma.tcore.localhost`, `myadmin.tcore.localhost`, `phpmyadmin.tcore.localhost`)"
+    environment:
+      PMA_HOST: "mysql"
+      PMA_USER: "root"
+      PMA_PASSWORD: "tcore"
+    networks:
+      - default
+    depends_on:
+      - mysql
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    #        ports:
+    #            - "6379:6379"
+    networks:
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tc p.routers.redis.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.redis.entrypoints=redis"
+      - "traefik.tcp.services.redis.loadbalancer.server.port=6379"
+    depends_on:
+      - traefik
+  rc:
+    image: rediscommander/redis-commander:latest
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.rc.loadbalancer.server.port=8081"
+      - "traefik.http.routers.rc.rule=Host(`rc.tcore.localhost`)"
+    depends_on:
+      - redis
+
+  mailpit:
+    image: axllent/mailpit:latest
+    networks:
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+      - "traefik.http.routers.mailpit.rule=HostRegexp(`mailpit.tcore.localhost`, `mail.tcore.localhost`)"
+      - "traefik.tcp.routers.mailpit.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.mailpit.entrypoints=mailpit"
+      - "traefik.tcp.services.mailpit.loadbalancer.server.port=1025"
+    depends_on:
+      - traefik
+
+  # minio.
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: TBCTBCTBCTBCTBCTBC
+      MINIO_SECRET_KEY: TcoreTcoreTcoreTcoreTcore
+    command:
+      - minio
+      - server
+      - /data
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+      - "traefik.http.routers.minio.rule=HostRegexp(`minio.tcore.localhost`aa, `files.tcore.localhost`, `s3.tcore.localhost`)"
+      - "traefik.tcp.routers.minio.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.minio.entrypoints=minio"
+      - "traefik.tcp.services.minio.loadbalancer.server.port=9000"
+    volumes:
+      - minio-data:/data
+
+# declare named volumes.
+volumes:
+  # data volumes.
+  mysql-data: # MySQL persistent storage.
+  redis-data: # Redis persistent storage.
+  minio-data: # Minio persistent storage.
+
+
+networks:
+  default:

@@ -80,6 +80,18 @@ class View
      * @throws NamespaceNotRegisteredException
      * @throws TemplateNotFoundException
      */
+    public function make(string $template, array $data = []): Template
+    {
+        return $this->render($template, $data);
+    }
+
+    /**
+     * @param string $template
+     * @param array<string, mixed> $data
+     * @return Template
+     * @throws NamespaceNotRegisteredException
+     * @throws TemplateNotFoundException
+     */
     public function render(string $template, array $data = []): Template
     {
         $name = $template;
@@ -108,16 +120,24 @@ class View
     public function includeFile(string $template): string
     {
         $name = $template;
-        ['paths' => $paths, 'template' => $template] = $this->resolvePathAndTemplate($template);
+        [
+            'paths' => $paths,
+            'template' => $template,
+            'namespace' => $namespace
+        ] = $this->resolvePathAndTemplate($template);
         foreach ($this->engines as $extension => $engine) {
             foreach ($paths as $path) {
                 $file = normalizeDir("$path" . DIRECTORY_SEPARATOR . "$template");
                 if (is_file($file) && StringMethods::endsWith($template, $extension)) {
+                    $templateS = new Template($engine, $name, $file, [], $namespace);
+                    $this->container->get(Dispatcher::class)->dispatch(new TemplateEvent($templateS));
                     return file_get_contents($file);
                 }
 
                 $fileWithExtension = "$file.$extension";
                 if (is_file($fileWithExtension)) {
+                    $templateS = new Template($engine, $name, $fileWithExtension, [], $namespace);
+                    $this->container->get(Dispatcher::class)->dispatch(new TemplateEvent($templateS));
                     return file_get_contents($fileWithExtension);
                 }
             }
@@ -144,7 +164,7 @@ class View
 
     public function shouldCache(): bool
     {
-        return getConfig('views.should_cache', !$this->kernel->isDebug());
+        return getConfig('view.should_cache', !$this->kernel->isDebug());
     }
 
     public function getCachePath(): string

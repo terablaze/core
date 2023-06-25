@@ -1,6 +1,6 @@
 <?php
 
-namespace Terablaze\Console;
+namespace Terablaze\Console\Concerns;
 
 use Terablaze\Support\StringMethods;
 use Symfony\Component\Console\Input\InputOption;
@@ -32,13 +32,13 @@ trait CreatesMatchingTest
      */
     protected function handleTestCreation($path)
     {
-        if (! $this->getOption('test') && ! $this->getOption('pest')) {
+        if (! $this->getInput()->getOption('test') && ! $this->getInput()->getOption('pest')) {
             return false;
         }
 
         return $this->callSilent('make:test', [
-            'name' => StringMethods::of($path)->after($this->laravel['path'])->beforeLast('.php')->append('Test')->replace('\\', '/'),
-            '--pest' => $this->getOption('pest'),
+            'name' => StringMethods::of($path)->after($this->getKernel()->getProjectDir())->beforeLast('.php')->append('Test')->replace('\\', '/'),
+            '--pest' => $this->getInput()->getOption('pest'),
         ]) == 0;
     }
 }

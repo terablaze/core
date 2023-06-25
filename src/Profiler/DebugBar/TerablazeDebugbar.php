@@ -349,7 +349,7 @@ class TerablazeDebugbar extends DebugBar
 //            }
 //        }
 //
-//        if ($this->shouldCollect('mail', true) && class_exists('Illuminate\Mail\MailServiceProvider')) {
+//        if ($this->shouldCollect('mail', true) && class_exists('Terablaze\Mail\MailParcel')) {
 //            try {
 //                $mailer = $this->app['mailer']->getSwiftMailer();
 //                $this->addCollector(new SwiftMailCollector($mailer));

@@ -1,10 +1,10 @@
 <?php
 
-namespace Illuminate\Mail\Mailables;
+namespace Terablaze\Mail\Mailables;
 
 use Closure;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Traits\Conditionable;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\Traits\Conditionable;
 
 class Envelope
 {
@@ -13,7 +13,7 @@ class Envelope
     /**
      * The address sending the message.
      *
-     * @var \Illuminate\Mail\Mailables\Address|string|null
+     * @var \Terablaze\Mail\Mailables\Address|string|null
      */
     public $from;
 
@@ -76,7 +76,7 @@ class Envelope
     /**
      * Create a new message envelope instance.
      *
-     * @param  \Illuminate\Mail\Mailables\Address|string|null  $from
+     * @param  \Terablaze\Mail\Mailables\Address|string|null  $from
      * @param  array  $to
      * @param  array  $cc
      * @param  array  $bcc
@@ -99,7 +99,7 @@ class Envelope
         $this->subject = $subject;
         $this->tags = $tags;
         $this->metadata = $metadata;
-        $this->using = Arr::wrap($using);
+        $this->using = ArrayMethods::wrap($using);
     }
 
     /**
@@ -118,7 +118,7 @@ class Envelope
     /**
      * Specify who the message will be "from".
      *
-     * @param  \Illuminate\Mail\Mailables\Address|string  $address
+     * @param  \Terablaze\Mail\Mailables\Address|string  $address
      * @param  string|null  $name
      * @return $this
      */
@@ -132,14 +132,14 @@ class Envelope
     /**
      * Add a "to" recipient to the message envelope.
      *
-     * @param  \Illuminate\Mail\Mailables\Address|array|string  $address
+     * @param  \Terablaze\Mail\Mailables\Address|array|string  $address
      * @param  string|null  $name
      * @return $this
      */
     public function to(Address|array|string $address, $name = null)
     {
         $this->to = array_merge($this->to, $this->normalizeAddresses(
-            is_string($name) ? [new Address($address, $name)] : Arr::wrap($address),
+            is_string($name) ? [new Address($address, $name)] : ArrayMethods::wrap($address),
         ));
 
         return $this;
@@ -148,14 +148,14 @@ class Envelope
     /**
      * Add a "cc" recipient to the message envelope.
      *
-     * @param  \Illuminate\Mail\Mailables\Address|array|string  $address
+     * @param  \Terablaze\Mail\Mailables\Address|array|string  $address
      * @param  string|null  $name
      * @return $this
      */
     public function cc(Address|array|string $address, $name = null)
     {
         $this->cc = array_merge($this->cc, $this->normalizeAddresses(
-            is_string($name) ? [new Address($address, $name)] : Arr::wrap($address),
+            is_string($name) ? [new Address($address, $name)] : ArrayMethods::wrap($address),
         ));
 
         return $this;
@@ -164,14 +164,14 @@ class Envelope
     /**
      * Add a "bcc" recipient to the message envelope.
      *
-     * @param  \Illuminate\Mail\Mailables\Address|array|string  $address
+     * @param  \Terablaze\Mail\Mailables\Address|array|string  $address
      * @param  string|null  $name
      * @return $this
      */
     public function bcc(Address|array|string $address, $name = null)
     {
         $this->bcc = array_merge($this->bcc, $this->normalizeAddresses(
-            is_string($name) ? [new Address($address, $name)] : Arr::wrap($address),
+            is_string($name) ? [new Address($address, $name)] : ArrayMethods::wrap($address),
         ));
 
         return $this;
@@ -180,14 +180,14 @@ class Envelope
     /**
      * Add a "reply to" recipient to the message envelope.
      *
-     * @param  \Illuminate\Mail\Mailables\Address|array|string  $address
+     * @param  \Terablaze\Mail\Mailables\Address|array|string  $address
      * @param  string|null  $name
      * @return $this
      */
     public function replyTo(Address|array|string $address, $name = null)
     {
         $this->replyTo = array_merge($this->replyTo, $this->normalizeAddresses(
-            is_string($name) ? [new Address($address, $name)] : Arr::wrap($address),
+            is_string($name) ? [new Address($address, $name)] : ArrayMethods::wrap($address),
         ));
 
         return $this;

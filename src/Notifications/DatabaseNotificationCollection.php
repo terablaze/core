@@ -1,10 +1,10 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Database\Eloquent\Collection;
+use Terablaze\Database\ORM\EntityCollection;
 
-class DatabaseNotificationCollection extends Collection
+class DatabaseNotificationCollection extends EntityCollection
 {
     /**
      * Mark all notifications as read.

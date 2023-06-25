@@ -3,7 +3,7 @@
 namespace Terablaze\Bus;
 
 use Carbon\CarbonImmutable;
-use Terablaze\Queue\FactoryInterface as QueueFactory;
+use Terablaze\Queue\QueueManagerInterface as QueueFactory;
 
 class BatchFactory
 {

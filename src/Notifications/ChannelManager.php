@@ -1,15 +1,16 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Contracts\Bus\Dispatcher as Bus;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Notifications\Dispatcher as DispatcherContract;
-use Illuminate\Contracts\Notifications\Factory as FactoryContract;
-use Illuminate\Support\Manager;
+use Terablaze\Bus\Dispatcher as Bus;
+use Terablaze\Container\ContainerInterface;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Notifications\DispatcherInterface;
+use Terablaze\Notifications\ChannelMangerInterface;
 use InvalidArgumentException;
+use Terablaze\Support\Manager;
 
-class ChannelManager extends Manager implements DispatcherContract, FactoryContract
+class ChannelManager extends Manager implements DispatcherInterface, ChannelMangerInterface
 {
     /**
      * The default channel used to deliver messages.
@@ -28,7 +29,7 @@ class ChannelManager extends Manager implements DispatcherContract, FactoryContr
     /**
      * Send the given notification to the given notifiable entities.
      *
-     * @param  \Illuminate\Support\Collection|array|mixed  $notifiables
+     * @param  \Terablaze\Collection\CollectionInterface|array|mixed  $notifiables
      * @param  mixed  $notification
      * @return void
      */
@@ -42,7 +43,7 @@ class ChannelManager extends Manager implements DispatcherContract, FactoryContr
     /**
      * Send the given notification immediately.
      *
-     * @param  \Illuminate\Support\Collection|array|mixed  $notifiables
+     * @param  \Terablaze\Collection\CollectionInterface|array|mixed  $notifiables
      * @param  mixed  $notification
      * @param  array|null  $channels
      * @return void
@@ -68,7 +69,7 @@ class ChannelManager extends Manager implements DispatcherContract, FactoryContr
     /**
      * Create an instance of the database driver.
      *
-     * @return \Illuminate\Notifications\Channels\DatabaseChannel
+     * @return \Terablaze\Notifications\Channels\DatabaseChannel
      */
     protected function createDatabaseDriver()
     {
@@ -76,19 +77,9 @@ class ChannelManager extends Manager implements DispatcherContract, FactoryContr
     }
 
     /**
-     * Create an instance of the broadcast driver.
-     *
-     * @return \Illuminate\Notifications\Channels\BroadcastChannel
-     */
-    protected function createBroadcastDriver()
-    {
-        return $this->container->make(Channels\BroadcastChannel::class);
-    }
-
-    /**
      * Create an instance of the mail driver.
      *
-     * @return \Illuminate\Notifications\Channels\MailChannel
+     * @return \Terablaze\Notifications\Channels\MailChannel
      */
     protected function createMailDriver()
     {

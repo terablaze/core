@@ -10,7 +10,7 @@ class ViewParcel extends Parcel implements ParcelInterface
 {
     public function boot(): void
     {
-        $config = loadConfigArray('views');
+        $config = loadConfigArray('view');
 
         /** @var View $manager */
         $manager = $this->container->make('view', ['class' => View::class]);

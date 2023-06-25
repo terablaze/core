@@ -9,7 +9,7 @@ use Terablaze\Bus\Pending\PendingDispatch;
 use Terablaze\Container\Container;
 use Terablaze\Support\Fluent;
 
-trait Dispatchable
+trait DispatchableTrait
 {
     use GetDispatcher;
 
@@ -70,7 +70,7 @@ trait Dispatchable
     /**
      * Dispatch a command to its appropriate handler in the current process.
      *
-     * Queueable jobs will be dispatched to the "sync" queue.
+     * QueueableTrait jobs will be dispatched to the "sync" queue.
      *
      * @return mixed
      */

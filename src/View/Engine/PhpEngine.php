@@ -10,9 +10,9 @@ class PhpEngine implements EngineInterface
 
     protected $layouts = [];
 
-    public function render(Template $view): string
+    public function render(Template $template): string
     {
-        extract($view->getData());
+        extract($template->getData());
 
         ob_start();
         include($view->getPath());

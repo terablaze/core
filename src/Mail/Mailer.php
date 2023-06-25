@@ -1,25 +1,27 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Mail\Mailable as MailableContract;
-use Illuminate\Contracts\Mail\Mailer as MailerContract;
-use Illuminate\Contracts\Mail\MailQueue as MailQueueContract;
-use Illuminate\Contracts\Queue\Factory as QueueContract;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Mail\Events\MessageSending;
-use Illuminate\Mail\Events\MessageSent;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Traits\Macroable;
+use Terablaze\Mail\PendingMail;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Terablaze\EventDispatcher\Dispatcher;
+use Terablaze\Mail\MailerInterface;
+use Terablaze\Mail\MailQueue as MailQueueContract;
+use Terablaze\Queue\QueueInterface;
+use Terablaze\Queue\QueueManagerInterface;
+use Terablaze\Queue\ShouldQueue;
+use Terablaze\Support\Interfaces\Htmlable;
+use Terablaze\View\View;
+use Terablaze\Mail\Events\MessageSending;
+use Terablaze\Mail\Events\MessageSent;
+use Terablaze\Support\HtmlString;
 use InvalidArgumentException;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\Email;
+use Terablaze\Support\Traits\Macroable;
 
-class Mailer implements MailerContract, MailQueueContract
+class Mailer implements MailerInterface, MailQueueContract
 {
     use Macroable;
 
@@ -33,7 +35,7 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * The view factory instance.
      *
-     * @var \Illuminate\Contracts\View\Factory
+     * @var \Terablaze\View\View
      */
     protected $views;
 
@@ -47,9 +49,9 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * The event dispatcher instance.
      *
-     * @var \Illuminate\Contracts\Events\Dispatcher|null
+     * @var \Terablaze\EventDispatcher\Dispatcher|null
      */
-    protected $events;
+    protected $eventDispatcher;
 
     /**
      * The global from address and name.
@@ -82,7 +84,7 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * The queue factory implementation.
      *
-     * @var \Illuminate\Contracts\Queue\Factory
+     * @var \Terablaze\Queue\QueueManagerInterface
      */
     protected $queue;
 
@@ -90,16 +92,16 @@ class Mailer implements MailerContract, MailQueueContract
      * Create a new Mailer instance.
      *
      * @param  string  $name
-     * @param  \Illuminate\Contracts\View\Factory  $views
+     * @param  \Terablaze\View\View  $views
      * @param  \Symfony\Component\Mailer\Transport\TransportInterface  $transport
-     * @param  \Illuminate\Contracts\Events\Dispatcher|null  $events
+     * @param  \Terablaze\EventDispatcher\Dispatcher|null  $events
      * @return void
      */
-    public function __construct(string $name, Factory $views, TransportInterface $transport, Dispatcher $events = null)
+    public function __construct(string $name, View $views, TransportInterface $transport, Dispatcher $eventDispatcher = null)
     {
         $this->name = $name;
         $this->views = $views;
-        $this->events = $events;
+        $this->eventDispatcher = $eventDispatcher;
         $this->transport = $transport;
     }
 
@@ -154,7 +156,7 @@ class Mailer implements MailerContract, MailQueueContract
      * Begin the process of mailing a mailable class instance.
      *
      * @param  mixed  $users
-     * @return \Illuminate\Mail\PendingMail
+     * @return \Terablaze\Mail\PendingMail
      */
     public function to($users)
     {
@@ -165,7 +167,7 @@ class Mailer implements MailerContract, MailQueueContract
      * Begin the process of mailing a mailable class instance.
      *
      * @param  mixed  $users
-     * @return \Illuminate\Mail\PendingMail
+     * @return \Terablaze\Mail\PendingMail
      */
     public function cc($users)
     {
@@ -176,7 +178,7 @@ class Mailer implements MailerContract, MailQueueContract
      * Begin the process of mailing a mailable class instance.
      *
      * @param  mixed  $users
-     * @return \Illuminate\Mail\PendingMail
+     * @return \Terablaze\Mail\PendingMail
      */
     public function bcc($users)
     {
@@ -188,7 +190,7 @@ class Mailer implements MailerContract, MailQueueContract
      *
      * @param  string  $html
      * @param  mixed  $callback
-     * @return \Illuminate\Mail\SentMessage|null
+     * @return \Terablaze\Mail\SentMessage|null
      */
     public function html($html, $callback)
     {
@@ -200,7 +202,7 @@ class Mailer implements MailerContract, MailQueueContract
      *
      * @param  string  $text
      * @param  mixed  $callback
-     * @return \Illuminate\Mail\SentMessage|null
+     * @return \Terablaze\Mail\SentMessage|null
      */
     public function raw($text, $callback)
     {
@@ -213,7 +215,7 @@ class Mailer implements MailerContract, MailQueueContract
      * @param  string  $view
      * @param  array  $data
      * @param  mixed  $callback
-     * @return \Illuminate\Mail\SentMessage|null
+     * @return \Terablaze\Mail\SentMessage|null
      */
     public function plain($view, array $data, $callback)
     {
@@ -242,14 +244,14 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Send a new message using a view.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailable|string|array  $view
+     * @param  \Terablaze\Mail\MailableInterface|string|array  $view
      * @param  array  $data
      * @param  \Closure|string|null  $callback
-     * @return \Illuminate\Mail\SentMessage|null
+     * @return \Terablaze\Mail\SentMessage|null
      */
     public function send($view, array $data = [], $callback = null)
     {
-        if ($view instanceof MailableContract) {
+        if ($view instanceof MailableInterface) {
             return $this->sendMailable($view);
         }
 
@@ -297,10 +299,10 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Send the given mailable.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailable  $mailable
-     * @return \Illuminate\Mail\SentMessage|null
+     * @param  \Terablaze\Mail\MailableInterface  $mailable
+     * @return \Terablaze\Mail\SentMessage|null
      */
-    protected function sendMailable(MailableContract $mailable)
+    protected function sendMailable(MailableInterface $mailable)
     {
         return $mailable instanceof ShouldQueue
                         ? $mailable->mailer($this->name)->queue($this->queue)
@@ -345,7 +347,7 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Add the content to a given message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @param  string  $view
      * @param  string  $plain
      * @param  string  $raw
@@ -384,7 +386,7 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Set the global "to" address on the given message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return void
      */
     protected function setGlobalToAndRemoveCcAndBcc($message)
@@ -400,7 +402,7 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Queue a new e-mail message for sending.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailable|string|array  $view
+     * @param  \Terablaze\Mail\MailableInterface|string|array  $view
      * @param  string|null  $queue
      * @return mixed
      *
@@ -408,7 +410,7 @@ class Mailer implements MailerContract, MailQueueContract
      */
     public function queue($view, $queue = null)
     {
-        if (! $view instanceof MailableContract) {
+        if (! $view instanceof MailableInterface) {
             throw new InvalidArgumentException('Only mailables may be queued.');
         }
 
@@ -423,7 +425,7 @@ class Mailer implements MailerContract, MailQueueContract
      * Queue a new e-mail message for sending on the given queue.
      *
      * @param  string  $queue
-     * @param  \Illuminate\Contracts\Mail\Mailable  $view
+     * @param  \Terablaze\Mail\MailableInterface  $view
      * @return mixed
      */
     public function onQueue($queue, $view)
@@ -437,7 +439,7 @@ class Mailer implements MailerContract, MailQueueContract
      * This method didn't match rest of framework's "onQueue" phrasing. Added "onQueue".
      *
      * @param  string  $queue
-     * @param  \Illuminate\Contracts\Mail\Mailable  $view
+     * @param  \Terablaze\Mail\MailableInterface  $view
      * @return mixed
      */
     public function queueOn($queue, $view)
@@ -449,7 +451,7 @@ class Mailer implements MailerContract, MailQueueContract
      * Queue a new e-mail message for sending after (n) seconds.
      *
      * @param  \DateTimeInterface|\DateInterval|int  $delay
-     * @param  \Illuminate\Contracts\Mail\Mailable  $view
+     * @param  \Terablaze\Mail\MailableInterface  $view
      * @param  string|null  $queue
      * @return mixed
      *
@@ -457,7 +459,7 @@ class Mailer implements MailerContract, MailQueueContract
      */
     public function later($delay, $view, $queue = null)
     {
-        if (! $view instanceof MailableContract) {
+        if (! $view instanceof MailableInterface) {
             throw new InvalidArgumentException('Only mailables may be queued.');
         }
 
@@ -471,7 +473,7 @@ class Mailer implements MailerContract, MailQueueContract
      *
      * @param  string  $queue
      * @param  \DateTimeInterface|\DateInterval|int  $delay
-     * @param  \Illuminate\Contracts\Mail\Mailable  $view
+     * @param  \Terablaze\Mail\MailableInterface  $view
      * @return mixed
      */
     public function laterOn($queue, $delay, $view)
@@ -482,7 +484,7 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Create a new message instance.
      *
-     * @return \Illuminate\Mail\Message
+     * @return \Terablaze\Mail\Message
      */
     protected function createMessage()
     {
@@ -533,11 +535,11 @@ class Mailer implements MailerContract, MailQueueContract
      */
     protected function shouldSendMessage($message, $data = [])
     {
-        if (! $this->events) {
+        if (! $this->eventDispatcher) {
             return true;
         }
 
-        return $this->events->until(
+        return $this->eventDispatcher->dispatch(
             new MessageSending($message, $data)
         ) !== false;
     }
@@ -545,14 +547,14 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Dispatch the message sent event.
      *
-     * @param  \Illuminate\Mail\SentMessage  $message
+     * @param  \Terablaze\Mail\SentMessage  $message
      * @param  array  $data
      * @return void
      */
     protected function dispatchSentEvent($message, $data = [])
     {
-        if ($this->events) {
-            $this->events->dispatch(
+        if ($this->eventDispatcher) {
+            $this->eventDispatcher->dispatch(
                 new MessageSent($message, $data)
             );
         }
@@ -571,9 +573,9 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Get the view factory instance.
      *
-     * @return \Illuminate\Contracts\View\Factory
+     * @return \Terablaze\View\View
      */
-    public function getViewFactory()
+    public function getView()
     {
         return $this->views;
     }
@@ -592,10 +594,10 @@ class Mailer implements MailerContract, MailQueueContract
     /**
      * Set the queue manager instance.
      *
-     * @param  \Illuminate\Contracts\Queue\Factory  $queue
+     * @param  \Terablaze\Queue\QueueManagerInterface  $queue
      * @return $this
      */
-    public function setQueue(QueueContract $queue)
+    public function setQueue(QueueManagerInterface $queue)
     {
         $this->queue = $queue;
 

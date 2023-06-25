@@ -31,10 +31,11 @@ use Terablaze\EventDispatcher\Dispatcher;
 use Terablaze\EventDispatcher\ListenerProvider;
 use Terablaze\HttpBase\Request;
 use Terablaze\HttpBase\Response;
+use Terablaze\Support\Helpers;
 
 abstract class Kernel implements KernelInterface, RebootableInterface, TerminableInterface
 {
-    public const TERABLAZE_VERSION = "0.1.0";
+    public const TERABLAZE_VERSION = "raw_dev";
 
     /**
      * @var ParcelInterface[] $parcels
@@ -135,7 +136,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
             include_once($constantsFile);
         }
 
-        loadConfig('app');
+        Helpers::loadConfig('app');
 
         $this->bootEventDispatcher();
 
@@ -410,6 +411,23 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         return $dir;
     }
 
+    public function resourceDir($path = ''): string
+    {
+        return $this->joinPaths(Helpers::baseDir('resources'), $path);
+    }
+
+    /**
+     * Join the given paths together.
+     *
+     * @param string $basePath
+     * @param string $path
+     * @return string
+     */
+    public function joinPaths($basePath, $path = ''): string
+    {
+        return $basePath . ($path != '' ? DIRECTORY_SEPARATOR . ltrim($path, DIRECTORY_SEPARATOR) : '');
+    }
+
     public function getCacheDir(): string
     {
         $dir = $this->getProjectDir() . '/storage/cache/' . $this->environment . '/';
@@ -519,7 +537,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
             throw new Exception("Middleware with class name: {$class} not found");
         }
         $this->container->registerService($class, ['class' => $class]);
-        if (! is_null($name)) {
+        if (!is_null($name)) {
             $this->container->setAlias($name, $class);
         }
         $this->middlewares[$name ?? $class] = $this->container->get($class);
@@ -565,9 +583,9 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     /**
      * Throw an HttpException with the given data.
      *
-     * @param  int  $code
-     * @param  string  $message
-     * @param  string[] $headers
+     * @param int $code
+     * @param string $message
+     * @param string[] $headers
      * @return void
      *
      * @throws HttpException
@@ -603,7 +621,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     /**
      * Register a terminating callback with the application.
      *
-     * @param  callable|string  $callback
+     * @param callable|string $callback
      * @return $this
      */
     public function terminating($callback)

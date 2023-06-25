@@ -2,7 +2,7 @@
 
 namespace Terablaze\Support;
 
-use Terablaze\Support\Htmlable;
+use Terablaze\Support\Interfaces\Htmlable;
 
 class HtmlString implements Htmlable
 {

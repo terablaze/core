@@ -41,7 +41,9 @@ interface RouterInterface
 
     public function addRoute(string $name, Route $route): RouterInterface;
 
-    public function removeRoute($route): RouterInterface;
+    public function removeRoute($routeName): RouterInterface;
+
+    public function syncRouteName(Route $route): RouterInterface;
 
     /**
      * @return Route[]

@@ -1,11 +1,12 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
 use Closure;
-use Illuminate\Container\Container;
-use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
-use Illuminate\Support\Traits\Macroable;
+use Terablaze\Container\Container;
+use Terablaze\Filesystem\Driver\FileDriverInterface;
+use Terablaze\Support\Traits\Macroable;
+
 
 class Attachment
 {
@@ -89,15 +90,15 @@ class Attachment
     public static function fromStorageDisk($disk, $path)
     {
         return new static(function ($attachment, $pathStrategy, $dataStrategy) use ($disk, $path) {
-            $storage = Container::getInstance()->make(
-                FilesystemFactory::class
-            )->disk($disk);
+            $disk = $disk ? ('filesystems.disk.' . $disk) : "filesystems.default";
+            /** @var FileDriverInterface $storage */
+            $storage = Container::getContainer()->get($disk);
 
             $attachment
                 ->as($attachment->as ?? basename($path))
                 ->withMime($attachment->mime ?? $storage->mimeType($path));
 
-            return $dataStrategy(fn () => $storage->get($path), $attachment);
+            return $dataStrategy(fn () => $storage->read($path), $attachment);
         });
     }
 
@@ -142,7 +143,7 @@ class Attachment
     /**
      * Attach the attachment to a built-in mail type.
      *
-     * @param  \Illuminate\Mail\Mailable|\Illuminate\Mail\Message|\Illuminate\Notifications\Messages\MailMessage  $mail
+     * @param  \Terablaze\Mail\Mailable|\Terablaze\Mail\Message|\Terablaze\Notifications\Messages\MailMessage  $mail
      * @return mixed
      */
     public function attachTo($mail)
@@ -156,7 +157,7 @@ class Attachment
     /**
      * Determine if the given attachment is equivalent to this attachment.
      *
-     * @param  \Illuminate\Mail\Attachment  $attachment
+     * @param  \Terablaze\Mail\Attachment  $attachment
      * @return bool
      */
     public function isEquivalent(Attachment $attachment)

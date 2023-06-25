@@ -24,7 +24,7 @@ class FileDriver extends CacheDriver
         return isset($data['expires']) and $data['expires'] > time();
     }
 
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         $key = $this->fixKey($key);
         if ($this->has($key, false)) {
@@ -79,7 +79,7 @@ class FileDriver extends CacheDriver
     {
         $raw = $this->read($this->fixKey($key));
 
-        return tap(((int) $raw['data']) + $incrementBy, function ($newValue) use ($key, $raw) {
+        return tap(((int)$raw['data']) + $incrementBy, function ($newValue) use ($key, $raw) {
             $this->set($key, $newValue, $raw['time'] ?? 0);
         });
     }

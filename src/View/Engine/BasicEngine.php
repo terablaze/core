@@ -9,11 +9,11 @@ class BasicEngine implements EngineInterface
 {
     use HasManagerTrait;
 
-    public function render(Template $view): string
+    public function render(Template $template): string
     {
-        $contents = file_get_contents($view->path);
+        $contents = file_get_contents($template->path);
 
-        foreach ($view->data as $key => $value) {
+        foreach ($template->data as $key => $value) {
             $contents = str_replace(
                 '{' . $key . '}',
                 '<?= $' . $key . '?>',

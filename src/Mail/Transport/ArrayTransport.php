@@ -1,8 +1,9 @@
 <?php
 
-namespace Illuminate\Mail\Transport;
+namespace Terablaze\Mail\Transport;
 
-use Illuminate\Support\Collection;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\CollectionInterface;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\TransportInterface;
@@ -13,7 +14,7 @@ class ArrayTransport implements TransportInterface
     /**
      * The collection of Symfony Messages.
      *
-     * @var \Illuminate\Support\Collection
+     * @var \Terablaze\Collection\CollectionInterface
      */
     protected $messages;
 
@@ -24,7 +25,7 @@ class ArrayTransport implements TransportInterface
      */
     public function __construct()
     {
-        $this->messages = new Collection;
+        $this->messages = new ArrayCollection();
     }
 
     /**
@@ -38,7 +39,7 @@ class ArrayTransport implements TransportInterface
     /**
      * Retrieve the collection of messages.
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Terablaze\Collection\ArrayCollection
      */
     public function messages()
     {
@@ -48,11 +49,11 @@ class ArrayTransport implements TransportInterface
     /**
      * Clear all of the messages from the local collection.
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Terablaze\Collection\ArrayCollection
      */
     public function flush()
     {
-        return $this->messages = new Collection;
+        return $this->messages = new ArrayCollection();
     }
 
     /**

@@ -145,7 +145,7 @@ class QueueParcel extends Parcel implements ParcelInterface
                 $this->registerConnectors($manager);
             })
         );
-        $this->container->setAlias(FactoryInterface::class, 'queue');
+        $this->container->setAlias(QueueManagerInterface::class, 'queue');
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Mail\Transport;
+namespace Terablaze\Mail\Transport;
 
 use Aws\Exception\AwsException;
 use Aws\Ses\SesClient;

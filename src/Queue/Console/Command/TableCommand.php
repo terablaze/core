@@ -6,6 +6,7 @@ use Terablaze\Console\Command;
 use Terablaze\Database\Migrations\MigrationCreator;
 use Terablaze\Filesystem\Files;
 use Terablaze\Support\Composer;
+use Terablaze\Support\Helpers;
 use Terablaze\Support\StringMethods;
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -88,7 +89,7 @@ class TableCommand extends Command
     protected function createBaseMigration($table = 'jobs')
     {
         return $this->migrationCreator->create(
-            'create_' . $table . '_table', baseDir('database' . DIRECTORY_SEPARATOR . 'migrations')
+            'create_' . $table . '_table', Helpers::baseDir('database' . DIRECTORY_SEPARATOR . 'migrations')
         );
     }
 

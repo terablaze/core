@@ -1,8 +1,8 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
-use Illuminate\Support\Traits\ForwardsCalls;
+use Terablaze\Support\Traits\ForwardsCalls;
 use Symfony\Component\Mailer\SentMessage as SymfonySentMessage;
 
 /**

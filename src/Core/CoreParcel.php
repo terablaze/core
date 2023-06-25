@@ -6,6 +6,8 @@ use Terablaze\Console\Application;
 use Terablaze\Core\Console\Command\DownCommand;
 use Terablaze\Core\Console\Command\JobMakeCommand;
 use Terablaze\Core\Console\Command\KeyGenerateCommand;
+use Terablaze\Core\Console\Command\MailMakeCommand;
+use Terablaze\Core\Console\Command\NotificationMakeCommand;
 use Terablaze\Core\Console\Command\ServeCommand;
 use Terablaze\Core\Console\Command\StorageLinkCommand;
 use Terablaze\Core\Console\Command\UpCommand;
@@ -32,6 +34,8 @@ class CoreParcel extends Parcel implements ParcelInterface
         StorageLinkCommand::class,
         UpCommand::class,
         JobMakeCommand::class,
+        MailMakeCommand::class,
+        NotificationMakeCommand::class,
 
         ScheduleClearCacheCommand::class,
         ScheduleFinishCommand::class,

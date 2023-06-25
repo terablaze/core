@@ -6,6 +6,7 @@ use BackedEnum;
 use Closure;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ReflectionException;
@@ -35,6 +36,7 @@ use Terablaze\Support\Interfaces\DeferringDisplayableValue;
 use Terablaze\Support\Interfaces\Htmlable;
 use Terablaze\Support\StringMethods;
 use Terablaze\Validation\Validator;
+use Terablaze\View\Template;
 
 class Helpers
 {
@@ -166,7 +168,7 @@ class Helpers
     /**
      * Report an exception.
      *
-     * @param  \Throwable|string  $exception
+     * @param \Throwable|string $exception
      * @return void
      */
     public static function report($exception)
@@ -181,8 +183,8 @@ class Helpers
     /**
      * Report an exception if the given condition is true.
      *
-     * @param  bool  $boolean
-     * @param  \Throwable|string  $exception
+     * @param bool $boolean
+     * @param \Throwable|string $exception
      * @return void
      */
     function report_if($boolean, $exception)
@@ -195,13 +197,13 @@ class Helpers
     /**
      * Report an exception unless the given condition is true.
      *
-     * @param  bool  $boolean
-     * @param  \Throwable|string  $exception
+     * @param bool $boolean
+     * @param \Throwable|string $exception
      * @return void
      */
     function report_unless($boolean, $exception)
     {
-        if (! $boolean) {
+        if (!$boolean) {
             static::report($exception);
         }
     }
@@ -223,26 +225,26 @@ class Helpers
     public static function flash($key = null, $default = null)
     {
         if (is_null($key)) {
-            return session()->getFlash();
+            return static::session()->getFlash();
         }
         if (is_array($key)) {
             foreach ($key as $sessionKey => $sessionValue) {
-                session()->getFlash()->flash($sessionKey, $sessionValue);
+                static::session()->getFlash()->flash($sessionKey, $sessionValue);
             }
             return null;
         }
-        return session()->getFlash()->getFlash($key, $default);
+        return static::session()->getFlash()->getFlash($key, $default);
     }
 
     public static function addFlash($key, $value = null): void
     {
         if (is_array($key)) {
             foreach ($key as $sessionKey => $sessionValue) {
-                addFlash($sessionKey, $sessionValue);
+                static::addFlash($sessionKey, $sessionValue);
             }
             return;
         }
-        flash()->flash($key, $value);
+        static::flash()->flash($key, $value);
     }
 
     public static function addFlashNow($key, $value = null): void
@@ -253,12 +255,12 @@ class Helpers
             }
             return;
         }
-        flash()->flashNow($key, $value);
+        static::flash()->flashNow($key, $value);
     }
 
     public static function csrf()
     {
-        return session()->getCsrf();
+        return static::session()->getCsrf();
     }
 
     /**
@@ -270,7 +272,7 @@ class Helpers
      */
     public static function old($key = null, $default = null)
     {
-        return request()->old($key, $default);
+        return static::request()->old($key, $default);
     }
 
     /**
@@ -293,7 +295,7 @@ class Helpers
         static $locales;
         if (!$locales) {
             $locales = array_unique(array_merge(
-                getConfig('app.locales'),
+                static::getConfig('app.locales'),
                 ArrayMethods::wrap(getConfig('app.locale'))
             ), SORT_REGULAR);
         }
@@ -310,7 +312,7 @@ class Helpers
     public static function getLocaleFromHost(string $host): string
     {
         $resolvedLocale = "";
-        foreach (getLocales() as $locale) {
+        foreach (static::getLocales() as $locale) {
             if (StringMethods::startsWith($host, "$locale.")) {
                 $resolvedLocale = $locale;
                 break;
@@ -331,7 +333,7 @@ class Helpers
         $resolvedLocale = "";
         $path = trim($path, '/');
         $possibleLocale = (explode('/', $path)[0]);
-        foreach (getLocales() as $locale) {
+        foreach (static::getLocales() as $locale) {
             if ($locale === $possibleLocale) {
                 $resolvedLocale = $locale;
                 break;
@@ -348,7 +350,7 @@ class Helpers
     public static function getLocaleFromSession(): string
     {
         $resolvedLocale = "";
-        if (in_array($locale = session('app_locale'), getLocales(), true)) {
+        if (in_array($locale = static::session('app_locale'), static::getLocales(), true)) {
             $resolvedLocale = $locale;
         }
         return $resolvedLocale;
@@ -366,7 +368,7 @@ class Helpers
     {
         static $currentLocale;
         if (!$currentLocale) {
-            $currentLocale = getExplicitlySetLocale() ?: getConfig('app.locale');
+            $currentLocale = static::getExplicitlySetLocale() ?: static::getConfig('app.locale');
         }
         return $currentLocale;
     }
@@ -385,16 +387,16 @@ class Helpers
         }
         static $explicitlySetLocale;
         if (is_null($explicitlySetLocale)) {
-            $localeType = getConfig('app.locale_type', 'path');
+            $localeType = static::getConfig('app.locale_type', 'path');
             switch ($localeType) {
                 case 'session':
-                    $explicitlySetLocale = getLocaleFromSession();
+                    $explicitlySetLocale = static::getLocaleFromSession();
                     break;
                 case 'path':
-                    $explicitlySetLocale = getLocaleFromPath(request()->path());
+                    $explicitlySetLocale = static::getLocaleFromPath(static::request()->path());
                     break;
                 case 'host':
-                    $explicitlySetLocale = getLocaleFromHost(request()->getUriString());
+                    $explicitlySetLocale = static::getLocaleFromHost(static::request()->getUriString());
                     break;
                 default:
                     $explicitlySetLocale = "";
@@ -414,7 +416,7 @@ class Helpers
         /** @var RouterInterface $router */
         static $router;
         if (!$router) {
-            $router = container()->get(Router::class);
+            $router = static::container()->get(Router::class);
         }
 
         return $router;
@@ -436,7 +438,7 @@ class Helpers
         ?string $locale = null
     )
     {
-        return router()->getGenerator()->generate($path, $parameters, $referenceType, $locale);
+        return static::router()->getGenerator()->generate($path, $parameters, $referenceType, $locale);
     }
 
     /**
@@ -449,16 +451,17 @@ class Helpers
      */
     public static function absoluteRoute(string $path = '', array $parameters = [], ?string $locale = null)
     {
-        return route($path, $parameters, UrlGeneratorInterface::ABSOLUTE_URL, $locale);
+        return static::route($path, $parameters, UrlGeneratorInterface::ABSOLUTE_URL, $locale);
     }
 
     public static function asset(string $uri = '', int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH)
     {
-        if ($assetUrl = getConfig('app.asset_url')) {
+        if ($assetUrl = static::getConfig('app.asset_url')) {
             $uri = "$assetUrl/$uri";
         }
-        return router()->getGenerator()->generateAsset($uri, $referenceType);
+        return static::router()->getGenerator()->generateAsset($uri, $referenceType);
     }
+
     /****************************
      ** ROUTER RELATED HELPERS **
      ****************************/
@@ -843,7 +846,7 @@ class Helpers
     {
         $baseDir = static::kernel()->getProjectDir();
 
-        return $baseDir . normalizeDir($path, $trailingSlash);
+        return $baseDir . static::normalizeDir($path, $trailingSlash);
     }
 
     public static function publicDir(string $path = '', bool $trailingSlash = false)
@@ -976,7 +979,7 @@ class Helpers
     /**
      * Dispatch a job to its appropriate handler.
      *
-     * @param  mixed  $job
+     * @param mixed $job
      * @return PendingDispatch
      */
     public static function dispatch($job)
@@ -989,13 +992,13 @@ class Helpers
     /**
      * Dispatch a command to its appropriate handler in the current process.
      *
-     * Queueable jobs will be dispatched to the "sync" queue.
+     * QueueableTrait jobs will be dispatched to the "sync" queue.
      *
-     * @param  mixed  $job
-     * @param  mixed  $handler
+     * @param mixed $job
+     * @param mixed $handler
      * @return mixed
      */
-    function dispatchSync($job, $handler = null)
+    public static function dispatchSync($job, $handler = null)
     {
         return static::container()->get(Dispatcher::class)->dispatchSync($job, $handler);
     }
@@ -1003,15 +1006,53 @@ class Helpers
     /**
      * Dispatch a command to its appropriate handler in the current process.
      *
-     * @param  mixed  $job
-     * @param  mixed  $handler
+     * @param mixed $job
+     * @param mixed $handler
      * @return mixed
      *
      * @deprecated Will be removed in a future Laravel version.
      */
-    function dispatchNow($job, $handler = null)
+    public static function dispatchNow($job, $handler = null)
     {
         return static::container()->get(Dispatcher::class)->dispatchNow($job, $handler);
+    }
+
+    /**
+     * Determine if a value is "filled".
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public static function filled($value)
+    {
+        return !static::blank($value);
+    }
+
+    /**
+     * Determine if the given value is "blank".
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public static function blank($value)
+    {
+        if (is_null($value)) {
+            return true;
+        }
+
+        if (is_string($value)) {
+            return trim($value) === '';
+        }
+
+        if (is_numeric($value) || is_bool($value)) {
+            return false;
+        }
+
+        if ($value instanceof \Countable) {
+            return count($value) === 0;
+        }
+
+        return empty($value);
     }
 
     /**
@@ -1030,7 +1071,7 @@ class Helpers
     /**
      * Returns all traits used by a class, its parent classes and trait of their traits.
      *
-     * @param  object|string  $class
+     * @param object|string $class
      * @return array
      */
     public static function classUsesRecursive($class)
@@ -1051,7 +1092,7 @@ class Helpers
     /**
      * Returns all traits used by a trait and its traits.
      *
-     * @param  string  $trait
+     * @param string $trait
      * @return array
      */
     public static function traitUsesRecursive($trait)
@@ -1063,5 +1104,37 @@ class Helpers
         }
 
         return $traits;
+    }
+
+    public static function view(
+        string $viewFile,
+        array  $parameters,
+        bool $asString = true
+    ): Template|string {
+        /** @var \Terablaze\View\View $view */
+        $view = static::container()->get(\Terablaze\View\View::class);
+        $template = $view->render($viewFile, $parameters);
+
+        if ($asString) {
+            return $template->render();
+        }
+        return $template;
+    }
+
+    public static function render(
+        string $viewFile,
+        array  $parameters,
+        int    $status = Response::HTTP_OK,
+        array  $headers = [],
+        string $version = '1.1',
+        string $reason = null
+    ): ResponseInterface {
+        return new \Terablaze\HttpBase\Response(
+            static::view($viewFile, $parameters),
+            $status,
+            $headers,
+            $version,
+            $reason
+        );
     }
 }

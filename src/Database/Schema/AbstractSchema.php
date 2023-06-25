@@ -19,6 +19,13 @@ use Terablaze\Support\ArrayMethods;
 
 abstract class AbstractSchema implements SchemaInterface
 {
+    /**
+     * The default relationship morph key type.
+     *
+     * @var string
+     */
+    public static $defaultMorphKeyType = 'int';
+
     public ConnectionInterface $connection;
 
     protected string $table;
@@ -165,6 +172,95 @@ abstract class AbstractSchema implements SchemaInterface
     public function json(string $column): JsonField
     {
         return $this->fields[] = new JsonField($column);
+    }
+
+    public function morphs(string $name, ?string $indexName = null)
+    {
+        if (static::$defaultMorphKeyType === 'uuid') {
+            $this->uuidMorphs($name, $indexName);
+        } else {
+            $this->numericMorphs($name, $indexName);
+        }
+    }
+
+    /**
+     * Add nullable columns for a polymorphic table.
+     *
+     * @param  string  $name
+     * @param  string|null  $indexName
+     * @return void
+     */
+    public function nullableMorphs(string $name, ?string $indexName = null)
+    {
+        if (static::$defaultMorphKeyType === 'uuid') {
+            $this->nullableUuidMorphs($name, $indexName);
+        } else {
+            $this->nullableNumericMorphs($name, $indexName);
+        }
+    }
+
+    /**
+     * Add the proper columns for a polymorphic table using numeric IDs (incremental).
+     *
+     * @param  string  $name
+     * @param  string|null  $indexName
+     * @return void
+     */
+    public function numericMorphs(string $name, ?string $indexName = null)
+    {
+        $this->string("{$name}_type");
+
+        $this->bigInt("{$name}_id")->unsigned();
+
+        $this->index(["{$name}_type", "{$name}_id"], $indexName);
+    }
+
+    /**
+     * Add nullable columns for a polymorphic table using numeric IDs (incremental).
+     *
+     * @param  string  $name
+     * @param  string|null  $indexName
+     * @return void
+     */
+    public function nullableNumericMorphs(string $name, ?string $indexName = null)
+    {
+        $this->string("{$name}_type")->nullable();
+
+        $this->bigInt("{$name}_id")->unsigned()->nullable();
+
+        $this->index(["{$name}_type", "{$name}_id"], $indexName);
+    }
+
+    /**
+     * Add the proper columns for a polymorphic table using UUIDs.
+     *
+     * @param  string  $name
+     * @param  string|null  $indexName
+     * @return void
+     */
+    public function uuidMorphs(string $name, ?string $indexName = null)
+    {
+        $this->string("{$name}_type");
+
+        $this->string("{$name}_id");
+
+        $this->index(["{$name}_type", "{$name}_id"], $indexName);
+    }
+
+    /**
+     * Add nullable columns for a polymorphic table using UUIDs.
+     *
+     * @param  string  $name
+     * @param  string|null  $indexName
+     * @return void
+     */
+    public function nullableUuidMorphs(string $name, ?string $indexName = null)
+    {
+        $this->string("{$name}_type")->nullable();
+
+        $this->string("{$name}_id")->nullable();
+
+        $this->index(["{$name}_type", "{$name}_id"], $indexName);
     }
 
     public function primary($column, ?string $name = null): void

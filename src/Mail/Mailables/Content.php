@@ -1,8 +1,8 @@
 <?php
 
-namespace Illuminate\Mail\Mailables;
+namespace Terablaze\Mail\Mailables;
 
-use Illuminate\Support\Traits\Conditionable;
+use Terablaze\Support\Traits\Conditionable;
 
 class Content
 {

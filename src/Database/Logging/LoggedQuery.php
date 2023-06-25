@@ -163,7 +163,7 @@ class LoggedQuery
     {
         $params = [];
         foreach ($this->parameters as $name => $param) {
-            $params[$name] = htmlentities($param, ENT_QUOTES, 'UTF-8', false);
+            $params[$name] = htmlentities((string)$param, ENT_QUOTES, 'UTF-8', false);
         }
         return $params;
     }

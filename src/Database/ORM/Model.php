@@ -154,7 +154,7 @@ abstract class Model implements ModelInterface, QueueableEntity
         if (is_array($initData) && (!empty($initData))) {
             $model->initExternalData($initData);
         }
-        if ($model->save()) {
+        if ($model->save(true)) {
             $model->_loadAssociations($initData);
             return $model;
         }
@@ -176,7 +176,7 @@ abstract class Model implements ModelInterface, QueueableEntity
         return $model;
     }
 
-    public function save()
+    public function save(bool $forceCreate = false)
     {
         [
             'primary' => $primary,
@@ -184,7 +184,7 @@ abstract class Model implements ModelInterface, QueueableEntity
             'primaryColumn' => $primaryColumn,
         ] = $this->_getPrimaryColumn();
         $query = static::query();
-        if (!empty($this->$primaryProperty)) {
+        if (!empty($this->$primaryProperty) && !$forceCreate) {
             $query->where("$primaryColumn = :{$primaryColumn}Where")
                 ->setParameter("{$primaryColumn}Where", $this->$primaryProperty);
         }
@@ -197,7 +197,7 @@ abstract class Model implements ModelInterface, QueueableEntity
                 continue;
             }
             $queryName = $this->_getClassMetadata()->getColumnForProperty($property);
-            if (false == ($mapping['id'] ?? false)) {
+            if (false == ($mapping['id'] ?? false) || ($forceCreate)) {
                 if (!property_exists($this, $property)) {
                     continue;
                 }

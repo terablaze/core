@@ -1,21 +1,19 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Mail\Factory as MailFactory;
-use Illuminate\Contracts\Mail\Mailable as MailableContract;
-use Illuminate\Contracts\Queue\ShouldBeEncrypted;
-use Illuminate\Queue\InteractsWithQueue;
+use Terablaze\Bus\Traits\QueueableTrait;
+use Terablaze\Queue\ShouldBeEncrypted;
+use Terablaze\Queue\InteractsWithQueue;
 
 class SendQueuedMailable
 {
-    use Queueable, InteractsWithQueue;
+    use QueueableTrait, InteractsWithQueue;
 
     /**
      * The mailable message instance.
      *
-     * @var \Illuminate\Contracts\Mail\Mailable
+     * @var \Terablaze\Mail\MailableInterface
      */
     public $mailable;
 
@@ -50,10 +48,10 @@ class SendQueuedMailable
     /**
      * Create a new job instance.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailable  $mailable
+     * @param  \Terablaze\Mail\MailableInterface  $mailable
      * @return void
      */
-    public function __construct(MailableContract $mailable)
+    public function __construct(MailableInterface $mailable)
     {
         $this->mailable = $mailable;
         $this->tries = property_exists($mailable, 'tries') ? $mailable->tries : null;
@@ -66,10 +64,10 @@ class SendQueuedMailable
     /**
      * Handle the queued job.
      *
-     * @param  \Illuminate\Contracts\Mail\Factory  $factory
+     * @param  \Terablaze\Mail\MailManagerInterface  $factory
      * @return void
      */
-    public function handle(MailFactory $factory)
+    public function handle(MailManagerInterface $factory)
     {
         $this->mailable->send($factory);
     }

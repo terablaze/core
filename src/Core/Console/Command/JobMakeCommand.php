@@ -2,7 +2,7 @@
 
 namespace Terablaze\Core\Console\Command;
 
-use Terablaze\Console\CreatesMatchingTest;
+use Terablaze\Console\Concerns\CreatesMatchingTest;
 use Terablaze\Console\GeneratorCommand;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;

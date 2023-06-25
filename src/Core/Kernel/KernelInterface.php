@@ -100,6 +100,17 @@ interface KernelInterface extends HttpKernelInterface
 
     public function getSessionsDir(): string;
 
+    public function resourceDir($path = ''): string;
+
+    /**
+     * Join the given paths together.
+     *
+     * @param  string  $basePath
+     * @param  string  $path
+     * @return string
+     */
+    public function joinPaths($basePath, $path = ''): string;
+
     /**
      * Returns an array of parcels to register.
      *

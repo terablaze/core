@@ -3,6 +3,7 @@
 namespace Terablaze\Routing\Events;
 
 use Psr\Http\Message\ServerRequestInterface;
+use Terablaze\ErrorHandler\Exception\Http\NotFoundHttpException;
 use Terablaze\Routing\Router;
 
 class PreControllerEvent extends RouterEvent
@@ -12,6 +13,10 @@ class PreControllerEvent extends RouterEvent
     public function __construct(Router $router, ServerRequestInterface $request, string $controller)
     {
         parent::__construct($router, $request);
+
+        if (!class_exists($controller)) {
+            throw new NotFoundHttpException("Controller '{$controller}' not found");
+        }
         $this->controller = $controller;
     }
 

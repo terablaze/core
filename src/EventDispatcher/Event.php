@@ -18,7 +18,7 @@ class Event implements StoppableEventInterface
     /**
      * Is propagation stopped?
      *
-     * This will typically only be used by the Dispatcher to determine if the
+     * This will typically only be used by the DispatcherInterface to determine if the
      * previous listener halted propagation.
      *
      * @return bool

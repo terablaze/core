@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Mail\Transport;
+namespace Terablaze\Mail\Transport;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\Envelope;

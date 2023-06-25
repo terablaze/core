@@ -4,16 +4,16 @@ namespace Terablaze\Queue;
 
 use Closure;
 use ReflectionFunction;
-use Terablaze\Bus\Traits\Batchable;
-use Terablaze\Bus\Traits\Dispatchable;
-use Terablaze\Bus\Traits\Queueable;
+use Terablaze\Bus\Traits\BatchableTrait;
+use Terablaze\Bus\Traits\DispatchableTrait;
+use Terablaze\Bus\Traits\QueueableTrait;
 use Terablaze\Container\Container;
 use Terablaze\SerializableClosure\SerializableClosure;
 use Throwable;
 
 class CallQueuedClosure
 {
-    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use BatchableTrait, DispatchableTrait, InteractsWithQueue, QueueableTrait, SerializesModels;
     /**
      * The serializable Closure instance.
      *

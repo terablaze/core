@@ -12,7 +12,7 @@ use Terablaze\Support\Helpers;
 /**
  * @mixin QueueInterface
  */
-class QueueManager implements FactoryInterface, MonitorInterface
+class QueueManager implements QueueManagerInterface, MonitorInterface
 {
     /**
      * The application's container instance.

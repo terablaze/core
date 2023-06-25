@@ -8,7 +8,7 @@ use Psr\EventDispatcher\StoppableEventInterface;
 use Terablaze\Support\ArrayMethods;
 
 /**
- * Class Dispatcher
+ * Class DispatcherInterface
  * @package Terablaze\Events
  */
 class Dispatcher implements EventDispatcherInterface

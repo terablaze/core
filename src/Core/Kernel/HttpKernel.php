@@ -23,6 +23,7 @@ use Terablaze\Routing\Events\PostControllerEvent;
 use Terablaze\Routing\Events\PreControllerEvent;
 use Terablaze\Routing\Exception\ImplementationException;
 use Terablaze\Routing\Route;
+use Terablaze\Support\Helpers;
 
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {
@@ -148,8 +149,8 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
         $action = $route->getAction();
         $parameters = $route->getParameters();
 
-//        $event = new PreControllerEvent(router(), $request, $controller);
-//        $controller = $event->getController();
+        $event = new PreControllerEvent(Helpers::router(), $request, $controller);
+        $controller = $event->getController();
 
         $className = ucfirst($controller);
 
@@ -166,7 +167,7 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
             $controllerInstance->setContainer($this->container);
         }
 
-        $event = new PostControllerEvent(router(), $request, $controllerInstance);
+        $event = new PostControllerEvent(Helpers::router(), $request, $controllerInstance);
         $controllerInstance = $event->getControllerInstance();
 
         if (!method_exists($controllerInstance, $action)) {

@@ -133,23 +133,34 @@ class Router implements RouterInterface
      * @param Route $route
      * @return self
      */
-    public function addRoute(string $name, Route $route): Router
+    public function addRoute(?string $name, Route $route): Router
     {
-        $this->routes[$name] = $route;
+        if (!is_null($name) && $this->hasRoute($name)) {
+            throw new \Exception(sprintf("Route name %s already exists", $name));
+        }
+        is_null($name) ?
+            $this->routes[] = $route :
+            $this->routes[$name] = $route;
         return $this;
     }
 
     /**
-     * @param int|string $route
+     * @param int|string $routeName
      * @return $this
      */
-    public function removeRoute($route): Router
+    public function removeRoute($routeName): Router
     {
-        foreach ($this->routes as $name => $stored) {
-            if ($name == $route) {
-                unset($this->routes[$name]);
-            }
-        }
+        unset($this->routes[$routeName]);
+        return $this;
+    }
+
+    public function syncRouteName(Route $route): RouterInterface
+    {
+        $oldKey = array_search($route, $this->routes);
+        $keys = array_keys($this->routes);
+        $keys[array_search($oldKey, $keys)] = $route->getName();
+
+        $this->routes = array_combine($keys, $this->routes);
         return $this;
     }
 

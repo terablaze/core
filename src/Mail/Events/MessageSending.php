@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Mail\Events;
+namespace Terablaze\Mail\Events;
 
 use Symfony\Component\Mime\Email;
 

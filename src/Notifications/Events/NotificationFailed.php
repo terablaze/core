@@ -1,13 +1,13 @@
 <?php
 
-namespace Illuminate\Notifications\Events;
+namespace Terablaze\Notifications\Events;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
+use Terablaze\Bus\Traits\QueueableTrait;
+use Terablaze\Queue\SerializesModels;
 
 class NotificationFailed
 {
-    use Queueable, SerializesModels;
+    use QueueableTrait, SerializesModels;
 
     /**
      * The notifiable entity who received the notification.
@@ -19,7 +19,7 @@ class NotificationFailed
     /**
      * The notification instance.
      *
-     * @var \Illuminate\Notifications\Notification
+     * @var \Terablaze\Notifications\Notification
      */
     public $notification;
 
@@ -41,7 +41,7 @@ class NotificationFailed
      * Create a new event instance.
      *
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Notification  $notification
      * @param  string  $channel
      * @param  array  $data
      * @return void

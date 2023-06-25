@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Notifications\Messages;
+namespace Terablaze\Notifications\Messages;
 
 class DatabaseMessage
 {

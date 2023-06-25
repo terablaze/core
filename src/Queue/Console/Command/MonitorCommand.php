@@ -6,7 +6,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Terablaze\Console\Command;
 use Terablaze\EventDispatcher\Dispatcher;
-use Terablaze\Queue\FactoryInterface;
+use Terablaze\Queue\QueueManagerInterface;
 use Terablaze\Queue\Events\QueueBusy;
 use Terablaze\Collection\CollectionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -36,7 +36,7 @@ class MonitorCommand extends Command
     /**
      * The queue manager instance.
      *
-     * @var \Terablaze\Queue\FactoryInterface
+     * @var \Terablaze\Queue\QueueManagerInterface
      */
     protected $manager;
 
@@ -57,11 +57,11 @@ class MonitorCommand extends Command
     /**
      * Create a new queue listen command.
      *
-     * @param \Terablaze\Queue\FactoryInterface $manager
+     * @param \Terablaze\Queue\QueueManagerInterface $manager
      * @param Dispatcher $events
      * @return void
      */
-    public function __construct(FactoryInterface $manager, Dispatcher $events)
+    public function __construct(QueueManagerInterface $manager, Dispatcher $events)
     {
         parent::__construct();
 

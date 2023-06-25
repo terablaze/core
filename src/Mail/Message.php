@@ -1,12 +1,11 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
-use Illuminate\Contracts\Mail\Attachable;
-use Illuminate\Support\Str;
-use Illuminate\Support\Traits\ForwardsCalls;
+use Terablaze\Support\StringMethods;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Terablaze\Support\Traits\ForwardsCalls;
 
 /**
  * @mixin \Symfony\Component\Mime\Email
@@ -293,7 +292,7 @@ class Message
     /**
      * Attach a file to the message.
      *
-     * @param  string|\Illuminate\Contracts\Mail\Attachable|\Illuminate\Mail\Attachment  $file
+     * @param  string|\Terablaze\Mail\Attachable|\Terablaze\Mail\Attachment  $file
      * @param  array  $options
      * @return $this
      */
@@ -330,7 +329,7 @@ class Message
     /**
      * Embed a file in the message and get the CID.
      *
-     * @param  string|\Illuminate\Contracts\Mail\Attachable|\Illuminate\Mail\Attachment  $file
+     * @param  string|\Terablaze\Mail\Attachable|\Terablaze\Mail\Attachment  $file
      * @return string
      */
     public function embed($file)
@@ -342,7 +341,7 @@ class Message
         if ($file instanceof Attachment) {
             return $file->attachWith(
                 function ($path) use ($file) {
-                    $cid = $file->as ?? Str::random();
+                    $cid = $file->as ?? StringMethods::random();
 
                     $this->message->embedFromPath($path, $cid, $file->mime);
 
@@ -356,7 +355,7 @@ class Message
             );
         }
 
-        $cid = Str::random(10);
+        $cid = StringMethods::random(10);
 
         $this->message->embedFromPath($file, $cid);
 

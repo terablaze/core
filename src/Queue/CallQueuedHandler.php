@@ -3,7 +3,7 @@
 namespace Terablaze\Queue;
 
 use Exception;
-use Terablaze\Bus\Traits\Batchable;
+use Terablaze\Bus\Traits\BatchableTrait;
 use Terablaze\Bus\UniqueLock;
 use Terablaze\Bus\DispatcherInterface;
 use Terablaze\Cache\Psr16\SimpleCacheInterface;
@@ -185,7 +185,7 @@ class CallQueuedHandler
     {
         $uses = Helpers::classUsesRecursive($command);
 
-        if (! in_array(Batchable::class, $uses) ||
+        if (! in_array(BatchableTrait::class, $uses) ||
             ! in_array(InteractsWithQueue::class, $uses)) {
             return;
         }
@@ -275,7 +275,7 @@ class CallQueuedHandler
      */
     protected function ensureFailedBatchJobIsRecorded(string $uuid, $command, $e)
     {
-        if (! in_array(Batchable::class, Helpers::classUsesRecursive($command))) {
+        if (! in_array(BatchableTrait::class, Helpers::classUsesRecursive($command))) {
             return;
         }
 

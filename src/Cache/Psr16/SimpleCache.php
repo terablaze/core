@@ -14,7 +14,7 @@ class SimpleCache implements SimpleCacheInterface
         $this->cacheDriver = $cacheDriver;
     }
 
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         return $this->cacheDriver->get($key);
     }

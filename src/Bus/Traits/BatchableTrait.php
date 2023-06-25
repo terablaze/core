@@ -9,7 +9,7 @@ use Terablaze\Container\Container;
 use Terablaze\Support\StringMethods;
 use Terablaze\Support\Testing\Fakes\BatchFake;
 
-trait Batchable
+trait BatchableTrait
 {
     /**
      * The batch ID (if applicable).

@@ -1,32 +1,30 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
-use Illuminate\Container\Container;
-use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
-use Illuminate\Contracts\Mail\Attachable;
-use Illuminate\Contracts\Mail\Factory as MailFactory;
-use Illuminate\Contracts\Mail\Mailable as MailableContract;
-use Illuminate\Contracts\Queue\Factory as Queue;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Contracts\Translation\HasLocalePreference;
-use Illuminate\Support\Collection;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Str;
-use Illuminate\Support\Traits\Conditionable;
-use Illuminate\Support\Traits\ForwardsCalls;
-use Illuminate\Support\Traits\Localizable;
-use Illuminate\Support\Traits\Macroable;
-use Illuminate\Testing\Constraints\SeeInOrder;
 use PHPUnit\Framework\Assert as PHPUnit;
 use ReflectionClass;
 use ReflectionProperty;
 use Symfony\Component\Mailer\Header\MetadataHeader;
 use Symfony\Component\Mailer\Header\TagHeader;
 use Symfony\Component\Mime\Address;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Collection\CollectionInterface;
+use Terablaze\Container\Container;
+use Terablaze\Filesystem\Driver\FileDriverInterface;
+use Terablaze\Queue\QueueManagerInterface;
+use Terablaze\Support\Helpers;
+use Terablaze\Support\HtmlString;
+use Terablaze\Support\Interfaces\Htmlable;
+use Terablaze\Support\Interfaces\Renderable;
+use Terablaze\Support\StringMethods;
+use Terablaze\Support\Traits\Conditionable;
+use Terablaze\Support\Traits\ForwardsCalls;
+use Terablaze\Support\Traits\Localizable;
+use Terablaze\Support\Traits\Macroable;
+use Terablaze\Translation\HasLocalePreference;
 
-class Mailable implements MailableContract, Renderable
+class Mailable implements MailableInterface, Renderable
 {
     use Conditionable, ForwardsCalls, Localizable, Macroable {
         __call as macroCall;
@@ -189,15 +187,15 @@ class Mailable implements MailableContract, Renderable
     /**
      * Send the message using the given mailer.
      *
-     * @param  \Illuminate\Contracts\Mail\Factory|\Illuminate\Contracts\Mail\Mailer  $mailer
-     * @return \Illuminate\Mail\SentMessage|null
+     * @param  \Terablaze\Mail\MailManagerInterface|\Terablaze\Mail\MailerInterface  $mailer
+     * @return \Terablaze\Mail\SentMessage|null
      */
     public function send($mailer)
     {
         return $this->withLocale($this->locale, function () use ($mailer) {
             $this->prepareMailableForDelivery();
 
-            $mailer = $mailer instanceof MailFactory
+            $mailer = $mailer instanceof MailManagerInterface
                             ? $mailer->mailer($this->mailer)
                             : $mailer;
 
@@ -216,10 +214,10 @@ class Mailable implements MailableContract, Renderable
     /**
      * Queue the message for sending.
      *
-     * @param  \Illuminate\Contracts\Queue\Factory  $queue
+     * @param  \Terablaze\Queue\QueueManagerInterface  $queue
      * @return mixed
      */
-    public function queue(Queue $queue)
+    public function queue(QueueManagerInterface $queue)
     {
         if (isset($this->delay)) {
             return $this->later($this->delay, $queue);
@@ -228,6 +226,7 @@ class Mailable implements MailableContract, Renderable
         $connection = property_exists($this, 'connection') ? $this->connection : null;
 
         $queueName = property_exists($this, 'queue') ? $this->queue : null;
+//        dd($connection, $queueName);
 
         return $queue->connection($connection)->pushOn(
             $queueName ?: null, $this->newQueuedJob()
@@ -238,10 +237,10 @@ class Mailable implements MailableContract, Renderable
      * Deliver the queued message after (n) seconds.
      *
      * @param  \DateTimeInterface|\DateInterval|int  $delay
-     * @param  \Illuminate\Contracts\Queue\Factory  $queue
+     * @param  \Terablaze\Queue\QueueManagerInterface  $queue
      * @return mixed
      */
-    public function later($delay, Queue $queue)
+    public function later($delay, QueueManagerInterface $queue)
     {
         $connection = property_exists($this, 'connection') ? $this->connection : null;
 
@@ -259,7 +258,7 @@ class Mailable implements MailableContract, Renderable
      */
     protected function newQueuedJob()
     {
-        return Container::getInstance()->make(SendQueuedMailable::class, ['mailable' => $this])
+        return Container::getContainer()->make(SendQueuedMailable::class, ['arguments' => ['mailable' => $this]])
                     ->through(array_merge(
                         method_exists($this, 'middleware') ? $this->middleware() : [],
                         $this->middleware ?? []
@@ -273,12 +272,12 @@ class Mailable implements MailableContract, Renderable
      *
      * @throws \ReflectionException
      */
-    public function render()
+    public function render(): string
     {
         return $this->withLocale($this->locale, function () {
             $this->prepareMailableForDelivery();
 
-            return Container::getInstance()->make('mailer')->render(
+            return Container::getContainer()->make('mailer')->render(
                 $this->buildView(), $this->buildViewData()
             );
         });
@@ -322,7 +321,7 @@ class Mailable implements MailableContract, Renderable
      */
     protected function buildMarkdownView()
     {
-        $markdown = Container::getInstance()->make(Markdown::class);
+        $markdown = Container::getContainer()->make(Markdown::class);
 
         if (isset($this->theme)) {
             $markdown->theme($this->theme);
@@ -363,7 +362,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Build the text view for a Markdown message.
      *
-     * @param  \Illuminate\Mail\Markdown  $markdown
+     * @param  \Terablaze\Mail\Markdown  $markdown
      * @param  array  $data
      * @return string
      */
@@ -376,7 +375,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Add the sender to the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return $this
      */
     protected function buildFrom($message)
@@ -391,7 +390,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Add all of the recipients to the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return $this
      */
     protected function buildRecipients($message)
@@ -408,7 +407,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Set the subject for the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return $this
      */
     protected function buildSubject($message)
@@ -416,7 +415,7 @@ class Mailable implements MailableContract, Renderable
         if ($this->subject) {
             $message->subject($this->subject);
         } else {
-            $message->subject(Str::title(Str::snake(class_basename($this), ' ')));
+            $message->subject(StringMethods::title(StringMethods::snake(classBasename($this), ' ')));
         }
 
         return $this;
@@ -425,7 +424,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Add all of the attachments to the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return $this
      */
     protected function buildAttachments($message)
@@ -448,18 +447,18 @@ class Mailable implements MailableContract, Renderable
     /**
      * Add all of the disk attachments to the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return void
      */
     protected function buildDiskAttachments($message)
     {
         foreach ($this->diskAttachments as $attachment) {
-            $storage = Container::getInstance()->make(
-                FilesystemFactory::class
-            )->disk($attachment['disk']);
+            $disk = $attachment['disk'] ? ('filesystems.disk.' . $attachment['disk']) : "filesystems.default";
+            /** @var FileDriverInterface $storage */
+            $storage = Container::getContainer()->get($disk);
 
             $message->attachData(
-                $storage->get($attachment['path']),
+                $storage->read($attachment['path']),
                 $attachment['name'] ?? basename($attachment['path']),
                 array_merge(['mime' => $storage->mimeType($attachment['path'])], $attachment['options'])
             );
@@ -469,7 +468,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Add all defined tags to the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return $this
      */
     protected function buildTags($message)
@@ -486,7 +485,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Add all defined metadata to the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return $this
      */
     protected function buildMetadata($message)
@@ -503,7 +502,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Run the callbacks for the message.
      *
-     * @param  \Illuminate\Mail\Message  $message
+     * @param  \Terablaze\Mail\Message  $message
      * @return $this
      */
     protected function runCallbacks($message)
@@ -711,7 +710,7 @@ class Mailable implements MailableContract, Renderable
      */
     protected function addressesToArray($address, $name)
     {
-        if (! is_array($address) && ! $address instanceof Collection) {
+        if (! is_array($address) && ! $address instanceof CollectionInterface) {
             $address = is_string($name) ? [['name' => $name, 'email' => $address]] : [$address];
         }
 
@@ -904,7 +903,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Attach a file to the message.
      *
-     * @param  string|\Illuminate\Contracts\Mail\Attachable|\Illuminate\Mail\Attachment  $file
+     * @param  string|\Terablaze\Mail\Attachable|\Terablaze\Mail\Attachment  $file
      * @param  array  $options
      * @return $this
      */
@@ -948,7 +947,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Determine if the mailable has the given attachment.
      *
-     * @param  string|\Illuminate\Contracts\Mail\Attachable|\Illuminate\Mail\Attachment  $file
+     * @param  string|\Terablaze\Mail\Attachable|\Terablaze\Mail\Attachment  $file
      * @param  array  $options
      * @return bool
      */
@@ -985,7 +984,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Determine if the mailable has the given envelope attachment.
      *
-     * @param  \Illuminate\Mail\Attachment  $attachment
+     * @param  \Terablaze\Mail\Attachment  $attachment
      * @return bool
      */
     private function hasEnvelopeAttachment($attachment)
@@ -996,7 +995,7 @@ class Mailable implements MailableContract, Renderable
 
         $attachments = $this->attachments();
 
-        return Collection::make(is_object($attachments) ? [$attachments] : $attachments)
+        return ArrayCollection::make(is_object($attachments) ? [$attachments] : $attachments)
                 ->map(fn ($attached) => $attached instanceof Attachable ? $attached->toMailAttachment() : $attached)
                 ->contains(fn ($attached) => $attached->isEquivalent($attachment));
     }
@@ -1277,7 +1276,7 @@ class Mailable implements MailableContract, Renderable
             $address = json_encode($address);
         }
 
-        if (filled($name)) {
+        if (Helpers::filled($name)) {
             $address .= ' ('.$name.')';
         }
 
@@ -1409,7 +1408,7 @@ class Mailable implements MailableContract, Renderable
     /**
      * Assert the mailable has the given attachment.
      *
-     * @param  string|\Illuminate\Contracts\Mail\Attachable|\Illuminate\Mail\Attachment  $file
+     * @param  string|\Terablaze\Mail\Attachable|\Terablaze\Mail\Attachment  $file
      * @param  array  $options
      * @return $this
      */
@@ -1535,7 +1534,7 @@ class Mailable implements MailableContract, Renderable
         return $this->assertionableRenderStrings = $this->withLocale($this->locale, function () {
             $this->prepareMailableForDelivery();
 
-            $html = Container::getInstance()->make('mailer')->render(
+            $html = Container::getContainer()->make('mailer')->render(
                 $view = $this->buildView(), $this->buildViewData()
             );
 
@@ -1546,7 +1545,7 @@ class Mailable implements MailableContract, Renderable
             $text ??= $view['text'] ?? '';
 
             if (! empty($text) && ! $text instanceof Htmlable) {
-                $text = Container::getInstance()->make('mailer')->render(
+                $text = Container::getContainer()->make('mailer')->render(
                     $text, $this->buildViewData()
                 );
             }
@@ -1563,7 +1562,7 @@ class Mailable implements MailableContract, Renderable
     private function prepareMailableForDelivery()
     {
         if (method_exists($this, 'build')) {
-            Container::getInstance()->call([$this, 'build']);
+            Container::getContainer()->call([$this, 'build']);
         }
 
         $this->ensureHeadersAreHydrated();
@@ -1691,7 +1690,7 @@ class Mailable implements MailableContract, Renderable
 
         $attachments = $this->attachments();
 
-        Collection::make(is_object($attachments) ? [$attachments] : $attachments)
+        ArrayCollection::make(is_object($attachments) ? [$attachments] : $attachments)
             ->each(function ($attachment) {
                 $this->attach($attachment);
             });
@@ -1750,7 +1749,7 @@ class Mailable implements MailableContract, Renderable
         }
 
         if (str_starts_with($method, 'with')) {
-            return $this->with(Str::camel(substr($method, 4)), $parameters[0]);
+            return $this->with(StringMethods::camel(substr($method, 4)), $parameters[0]);
         }
 
         static::throwBadMethodCallException($method);

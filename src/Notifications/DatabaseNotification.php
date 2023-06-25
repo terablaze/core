@@ -1,58 +1,75 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
+use DateTime;
+use Terablaze\Database\Query\QueryBuilderInterface;
+use Terablaze\Database\ORM\Model;
+use Terablaze\Database\ORM\Mapping;
 
+/**
+ * @Mapping\Table(name="notifications")
+ */
 class DatabaseNotification extends Model
 {
     /**
-     * The "type" of the primary key ID.
-     *
      * @var string
+     * @Mapping\Column(name="id", type="string", length=255)
+     * @Mapping\Id
      */
-    protected $keyType = 'string';
+    public string $id;
 
     /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
-
-    /**
-     * The table associated with the model.
-     *
      * @var string
+     * @Mapping\Column(name="type", type="string", length=255)
      */
-    protected $table = 'notifications';
+    public string $type;
 
     /**
-     * The guarded attributes on the model.
-     *
-     * @var array
+     * @var string
+     * @Mapping\Column(name="notifiable_type", type="string", length=255)
      */
-    protected $guarded = [];
+    public string $notifiableType;
 
     /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
+     * @var string
+     * @Mapping\Column(name="notifiable_id")
      */
-    protected $casts = [
-        'data' => 'array',
-        'read_at' => 'datetime',
-    ];
+    public string $notifiableId;
+
+    /**
+     * @var string
+     * @Mapping\Column(name="data", type="string")
+     */
+    public string $data;
+
+    /**
+     * @var ?DateTime
+     * @Mapping\Column(name="read_at", type="datetime", nullable=true, options={"default"=null})
+     */
+    public ?DateTime $readAt;
+
+    /**
+     * @var DateTime
+     * @Mapping\Column(name="created_at", type="datetime", options={"default"="now"})
+     */
+    public DateTime $createdAt;
+
+    /**
+     * @var DateTime
+     * @Mapping\Column(name="updated_at", type="datetime", options={"default"="now"})
+     */
+    public DateTime $updatedAt;
 
     /**
      * Get the notifiable entity that the notification belongs to.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     * @return \Terablaze\Database\ORM\Model
      */
     public function notifiable()
     {
-        return $this->morphTo();
+        return $this->notifiable_type::find($this->notifiable_id);
     }
 
     /**
@@ -63,7 +80,8 @@ class DatabaseNotification extends Model
     public function markAsRead()
     {
         if (is_null($this->read_at)) {
-            $this->forceFill(['read_at' => $this->freshTimestamp()])->save();
+            $this->read_at =  Carbon::now();
+            $this->save();
         }
     }
 
@@ -75,7 +93,8 @@ class DatabaseNotification extends Model
     public function markAsUnread()
     {
         if (! is_null($this->read_at)) {
-            $this->forceFill(['read_at' => null])->save();
+            $this->read_at = null;
+            $this->save();
         }
     }
 
@@ -102,30 +121,30 @@ class DatabaseNotification extends Model
     /**
      * Scope a query to only include read notifications.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  \Terablaze\Database\Query\QueryBuilderInterface  $query
+     * @return \Terablaze\Database\Query\QueryBuilderInterface
      */
-    public function scopeRead(Builder $query)
+    public function scopeRead(QueryBuilderInterface $query)
     {
-        return $query->whereNotNull('read_at');
+        return $query->andWhere('read_at != :scopeRead')->setParameter('scopeRead', null);
     }
 
     /**
      * Scope a query to only include unread notifications.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  \Terablaze\Database\Query\QueryBuilderInterface  $query
+     * @return \Terablaze\Database\Query\QueryBuilderInterface
      */
-    public function scopeUnread(Builder $query)
+    public function scopeUnread(QueryBuilderInterface $query)
     {
-        return $query->whereNull('read_at');
+        return $query->andWhere('read_at = :scopeUnread')->setParameter('scopeUnread', null);
     }
 
     /**
      * Create a new database notification collection instance.
      *
      * @param  array  $models
-     * @return \Illuminate\Notifications\DatabaseNotificationCollection
+     * @return \Terablaze\Notifications\DatabaseNotificationCollection
      */
     public function newCollection(array $models = [])
     {

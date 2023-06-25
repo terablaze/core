@@ -8,8 +8,8 @@ class LiteralEngine implements EngineInterface
 {
     use HasManagerTrait;
 
-    public function render(Template $view): string
+    public function render(Template $template): string
     {
-        return file_get_contents($view->path);
+        return file_get_contents($template->path);
     }
 }

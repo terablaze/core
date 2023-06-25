@@ -6,7 +6,7 @@ use Carbon\CarbonImmutable;
 use Closure;
 use Terablaze\Collection\ArrayCollection;
 use Terablaze\Collection\CollectionInterface;
-use Terablaze\Queue\FactoryInterface;
+use Terablaze\Queue\QueueManagerInterface;
 use Terablaze\Support\ArrayMethods;
 use Terablaze\Support\Helpers;
 use Terablaze\Support\Interfaces\Arrayable;
@@ -19,7 +19,7 @@ class Batch implements Arrayable, JsonSerializable
     /**
      * The queue factory implementation.
      *
-     * @var FactoryInterface
+     * @var QueueManagerInterface
      */
     protected $queue;
 
@@ -103,7 +103,7 @@ class Batch implements Arrayable, JsonSerializable
     /**
      * Create a new batch instance.
      *
-     * @param  FactoryInterface  $queue
+     * @param  QueueManagerInterface  $queue
      * @param  \Terablaze\Bus\BatchRepositoryInterface  $repository
      * @param  string  $id
      * @param  string  $name
@@ -117,7 +117,7 @@ class Batch implements Arrayable, JsonSerializable
      * @param  \Carbon\CarbonImmutable|null  $finishedAt
      * @return void
      */
-    public function __construct(FactoryInterface         $queue,
+    public function __construct(QueueManagerInterface    $queue,
                                 BatchRepositoryInterface $repository,
                                 string                   $id,
                                 string                   $name,

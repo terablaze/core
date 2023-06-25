@@ -4,7 +4,7 @@ namespace Terablaze\Bus;
 
 use Terablaze\Bus\Dispatcher;
 use Terablaze\Core\Parcel\Parcel;
-use Terablaze\Queue\FactoryInterface as QueueFactoryInterface;
+use Terablaze\Queue\QueueManagerInterface as QueueFactoryInterface;
 use Terablaze\Support\Helpers;
 
 class BusParcel extends Parcel

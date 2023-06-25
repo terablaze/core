@@ -1,14 +1,15 @@
 <?php
 
-namespace Illuminate\Notifications\Channels;
+namespace Terablaze\Notifications\Channels;
 
-use Illuminate\Contracts\Mail\Factory as MailFactory;
-use Illuminate\Contracts\Mail\Mailable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Markdown;
-use Illuminate\Notifications\Notification;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Terablaze\Mail\MailManagerInterface;
+use Terablaze\Mail\Mailable;
+use Terablaze\Queue\ShouldQueue;
+use Terablaze\Mail\Markdown;
+use Terablaze\Notifications\Notification;
+use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\Helpers;
+use Terablaze\Support\StringMethods;
 use Symfony\Component\Mailer\Header\MetadataHeader;
 use Symfony\Component\Mailer\Header\TagHeader;
 
@@ -17,25 +18,25 @@ class MailChannel
     /**
      * The mailer implementation.
      *
-     * @var \Illuminate\Contracts\Mail\Factory
+     * @var \Terablaze\Mail\MailManagerInterface
      */
     protected $mailer;
 
     /**
      * The markdown implementation.
      *
-     * @var \Illuminate\Mail\Markdown
+     * @var \Terablaze\Mail\Markdown
      */
     protected $markdown;
 
     /**
      * Create a new mail channel instance.
      *
-     * @param  \Illuminate\Contracts\Mail\Factory  $mailer
-     * @param  \Illuminate\Mail\Markdown  $markdown
+     * @param  \Terablaze\Mail\MailManagerInterface  $mailer
+     * @param  \Terablaze\Mail\Markdown  $markdown
      * @return void
      */
-    public function __construct(MailFactory $mailer, Markdown $markdown)
+    public function __construct(MailManagerInterface $mailer, Markdown $markdown)
     {
         $this->mailer = $mailer;
         $this->markdown = $markdown;
@@ -45,7 +46,7 @@ class MailChannel
      * Send the given notification.
      *
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Notification  $notification
      * @return void
      */
     public function send($notifiable, Notification $notification)
@@ -72,8 +73,8 @@ class MailChannel
      * Get the mailer Closure for the message.
      *
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return \Closure
      */
     protected function messageBuilder($notifiable, $notification, $message)
@@ -86,7 +87,7 @@ class MailChannel
     /**
      * Build the notification's view.
      *
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return string|array
      */
     protected function buildView($message)
@@ -108,15 +109,15 @@ class MailChannel
     /**
      * Get additional meta-data to pass along with the view data.
      *
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Notification  $notification
      * @return array
      */
     protected function additionalMessageData($notification)
     {
         return [
-            '__laravel_notification_id' => $notification->id,
-            '__laravel_notification' => get_class($notification),
-            '__laravel_notification_queued' => in_array(
+            '__terablaze_notification_id' => $notification->id,
+            '__terablaze_notification' => get_class($notification),
+            '__terablaze_notification_queued' => in_array(
                 ShouldQueue::class,
                 class_implements($notification)
             ),
@@ -126,18 +127,18 @@ class MailChannel
     /**
      * Build the mail message.
      *
-     * @param  \Illuminate\Mail\Message  $mailMessage
+     * @param  \Terablaze\Mail\Message  $mailMessage
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return void
      */
     protected function buildMessage($mailMessage, $notifiable, $notification, $message)
     {
         $this->addressMessage($mailMessage, $notifiable, $notification, $message);
 
-        $mailMessage->subject($message->subject ?: Str::title(
-            Str::snake(class_basename($notification), ' ')
+        $mailMessage->subject($message->subject ?: StringMethods::title(
+            StringMethods::snake(Helpers::classBasename($notification), ' ')
         ));
 
         $this->addAttachments($mailMessage, $message);
@@ -164,10 +165,10 @@ class MailChannel
     /**
      * Address the mail message.
      *
-     * @param  \Illuminate\Mail\Message  $mailMessage
+     * @param  \Terablaze\Mail\Message  $mailMessage
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return void
      */
     protected function addressMessage($mailMessage, $notifiable, $notification, $message)
@@ -178,13 +179,13 @@ class MailChannel
 
         if (! empty($message->cc)) {
             foreach ($message->cc as $cc) {
-                $mailMessage->cc($cc[0], Arr::get($cc, 1));
+                $mailMessage->cc($cc[0], ArrayMethods::get($cc, 1));
             }
         }
 
         if (! empty($message->bcc)) {
             foreach ($message->bcc as $bcc) {
-                $mailMessage->bcc($bcc[0], Arr::get($bcc, 1));
+                $mailMessage->bcc($bcc[0], ArrayMethods::get($bcc, 1));
             }
         }
     }
@@ -192,19 +193,19 @@ class MailChannel
     /**
      * Add the "from" and "reply to" addresses to the message.
      *
-     * @param  \Illuminate\Mail\Message  $mailMessage
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Mail\Message  $mailMessage
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return void
      */
     protected function addSender($mailMessage, $message)
     {
         if (! empty($message->from)) {
-            $mailMessage->from($message->from[0], Arr::get($message->from, 1));
+            $mailMessage->from($message->from[0], ArrayMethods::get($message->from, 1));
         }
 
         if (! empty($message->replyTo)) {
             foreach ($message->replyTo as $replyTo) {
-                $mailMessage->replyTo($replyTo[0], Arr::get($replyTo, 1));
+                $mailMessage->replyTo($replyTo[0], ArrayMethods::get($replyTo, 1));
             }
         }
     }
@@ -213,8 +214,8 @@ class MailChannel
      * Get the recipients of the given message.
      *
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return mixed
      */
     protected function getRecipients($notifiable, $notification, $message)
@@ -233,8 +234,8 @@ class MailChannel
     /**
      * Add the attachments to the message.
      *
-     * @param  \Illuminate\Mail\Message  $mailMessage
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Mail\Message  $mailMessage
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return void
      */
     protected function addAttachments($mailMessage, $message)
@@ -251,8 +252,8 @@ class MailChannel
     /**
      * Run the callbacks for the message.
      *
-     * @param  \Illuminate\Mail\Message  $mailMessage
-     * @param  \Illuminate\Notifications\Messages\MailMessage  $message
+     * @param  \Terablaze\Mail\Message  $mailMessage
+     * @param  \Terablaze\Notifications\Messages\MailMessage  $message
      * @return $this
      */
     protected function runCallbacks($mailMessage, $message)

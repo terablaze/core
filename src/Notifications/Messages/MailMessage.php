@@ -1,14 +1,14 @@
 <?php
 
-namespace Illuminate\Notifications\Messages;
+namespace Terablaze\Notifications\Messages;
 
-use Illuminate\Container\Container;
-use Illuminate\Contracts\Mail\Attachable;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Mail\Attachment;
-use Illuminate\Mail\Markdown;
-use Illuminate\Support\Traits\Conditionable;
+use Terablaze\Container\Container;
+use Terablaze\Mail\Attachable;
+use Terablaze\Support\Interfaces\Arrayable;
+use Terablaze\Support\Interfaces\Renderable;
+use Terablaze\Mail\Attachment;
+use Terablaze\Mail\Markdown;
+use Terablaze\Support\Traits\Conditionable;
 
 class MailMessage extends SimpleMessage implements Renderable
 {
@@ -243,7 +243,7 @@ class MailMessage extends SimpleMessage implements Renderable
     /**
      * Attach a file to the message.
      *
-     * @param  string|\Illuminate\Contracts\Mail\Attachable|\Illuminate\Mail\Attachment  $file
+     * @param  string|\Terablaze\Mail\Attachable|\Terablaze\Mail\Attachment  $file
      * @param  array  $options
      * @return $this
      */
@@ -356,17 +356,17 @@ class MailMessage extends SimpleMessage implements Renderable
     /**
      * Render the mail notification message into an HTML string.
      *
-     * @return \Illuminate\Support\HtmlString
+     * @return \Terablaze\Support\HtmlString
      */
-    public function render()
+    public function render(): string
     {
         if (isset($this->view)) {
-            return Container::getInstance()->make('mailer')->render(
+            return Container::getContainer()->make('mailer')->render(
                 $this->view, $this->data()
             );
         }
 
-        $markdown = Container::getInstance()->make(Markdown::class);
+        $markdown = Container::getContainer()->make(Markdown::class);
 
         return $markdown->theme($this->theme ?: $markdown->getTheme())
                 ->render($this->markdown, $this->data());

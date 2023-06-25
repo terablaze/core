@@ -1,14 +1,14 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
-use Illuminate\Contracts\View\Factory as ViewFactory;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Str;
+use Terablaze\Support\HtmlString;
+use Terablaze\Support\StringMethods;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\MarkdownConverter;
+use Terablaze\View\View;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
 class Markdown
@@ -16,7 +16,7 @@ class Markdown
     /**
      * The view factory implementation.
      *
-     * @var \Illuminate\Contracts\View\Factory
+     * @var \Terablaze\View\View
      */
     protected $view;
 
@@ -37,11 +37,11 @@ class Markdown
     /**
      * Create a new Markdown renderer instance.
      *
-     * @param  \Illuminate\Contracts\View\Factory  $view
+     * @param  \Terablaze\View\View  $view
      * @param  array  $options
      * @return void
      */
-    public function __construct(ViewFactory $view, array $options = [])
+    public function __construct(View $view, array $options = [])
     {
         $this->view = $view;
         $this->theme = $options['theme'] ?? 'default';
@@ -54,7 +54,7 @@ class Markdown
      * @param  string  $view
      * @param  array  $data
      * @param  \TijsVerkoyen\CssToInlineStyles\CssToInlineStyles|null  $inliner
-     * @return \Illuminate\Support\HtmlString
+     * @return \Terablaze\Support\HtmlString
      */
     public function render($view, array $data = [], $inliner = null)
     {
@@ -64,7 +64,7 @@ class Markdown
             'mail', $this->htmlComponentPaths()
         )->make($view, $data)->render();
 
-        if ($this->view->exists($customTheme = Str::start($this->theme, 'mail.'))) {
+        if ($this->view->exists($customTheme = StringMethods::start($this->theme, 'mail.'))) {
             $theme = $customTheme;
         } else {
             $theme = str_contains($this->theme, '::')
@@ -82,7 +82,7 @@ class Markdown
      *
      * @param  string  $view
      * @param  array  $data
-     * @return \Illuminate\Support\HtmlString
+     * @return \Terablaze\Support\HtmlString
      */
     public function renderText($view, array $data = [])
     {
@@ -101,7 +101,7 @@ class Markdown
      * Parse the given Markdown text into HTML.
      *
      * @param  string  $text
-     * @return \Illuminate\Support\HtmlString
+     * @return \Terablaze\Support\HtmlString
      */
     public static function parse($text)
     {

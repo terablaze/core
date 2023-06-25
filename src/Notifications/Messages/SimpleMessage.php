@@ -1,9 +1,9 @@
 <?php
 
-namespace Illuminate\Notifications\Messages;
+namespace Terablaze\Notifications\Messages;
 
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Notifications\Action;
+use Terablaze\Support\Interfaces\Htmlable;
+use Terablaze\Notifications\Action;
 
 class SimpleMessage
 {
@@ -226,8 +226,8 @@ class SimpleMessage
     /**
      * Format the given line of text.
      *
-     * @param  \Illuminate\Contracts\Support\Htmlable|string|array  $line
-     * @return \Illuminate\Contracts\Support\Htmlable|string
+     * @param  \Terablaze\Support\Interfaces\Htmlable|string|array  $line
+     * @return \Terablaze\Support\Interfaces\Htmlable|string
      */
     protected function formatLine($line)
     {

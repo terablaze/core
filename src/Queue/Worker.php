@@ -7,7 +7,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Terablaze\Cache\Psr16\SimpleCacheInterface;
 use Terablaze\ErrorHandler\ExceptionHandlerInterface;
 use Terablaze\Queue\Exception\MaxAttemptsExceededException;
-use Terablaze\Queue\FactoryInterface as QueueFactoryInterface;
+use Terablaze\Queue\QueueManagerInterface as QueueFactoryInterface;
 use Terablaze\Database\Connection\DetectsLostConnections;
 use Terablaze\Queue\Events\JobExceptionOccurred;
 use Terablaze\Queue\Events\JobProcessed;

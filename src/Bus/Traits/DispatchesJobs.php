@@ -35,7 +35,7 @@ trait DispatchesJobs
     /**
      * Dispatch a job to its appropriate handler in the current process.
      *
-     * Queueable jobs will be dispatched to the "sync" queue.
+     * QueueableTrait jobs will be dispatched to the "sync" queue.
      *
      * @param  mixed  $job
      * @return mixed

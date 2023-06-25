@@ -1,8 +1,8 @@
 <?php
 
-namespace Illuminate\Mail\Mailables;
+namespace Terablaze\Mail\Mailables;
 
-use Illuminate\Mail\Attachment as BaseAttachment;
+use Terablaze\Mail\Attachment as BaseAttachment;
 
 class Attachment extends BaseAttachment
 {

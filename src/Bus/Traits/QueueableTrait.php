@@ -8,7 +8,7 @@ use Terablaze\Queue\CallQueuedClosure;
 use Terablaze\Support\ArrayMethods;
 use Terablaze\Support\Helpers;
 
-trait Queueable
+trait QueueableTrait
 {
     /**
      * The name of the connection the job should be sent to.

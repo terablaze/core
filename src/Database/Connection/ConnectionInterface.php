@@ -5,6 +5,7 @@ namespace Terablaze\Database\Connection;
 use Closure;
 use PDO;
 use Terablaze\Database\Exception\QueryException;
+use Terablaze\Database\Query\DatabaseTransactionsManager;
 use Terablaze\Database\Query\Expression\ExpressionBuilder;
 use Terablaze\Database\Query\QueryBuilderInterface;
 use Terablaze\Database\Logging\QueryLogger;
@@ -206,6 +207,77 @@ interface ConnectionInterface
      * @return void
      */
     public function flushQueryLog();
+
+    /**
+     * Set the transaction manager instance on the connection.
+     *
+     * @param  DatabaseTransactionsManager  $manager
+     * @return $this
+     */
+    public function setTransactionManager(DatabaseTransactionsManager $manager);
+
+    /**
+     * Unset the transaction manager for this connection.
+     *
+     * @return void
+     */
+    public function unsetTransactionManager();
+
+    /**
+     * Execute a Closure within a transaction.
+     *
+     * @param  \Closure  $callback
+     * @param  int  $attempts
+     * @return mixed
+     *
+     * @throws \Throwable
+     */
+    public function transaction(Closure $callback, $attempts = 1);
+
+    /**
+     * Start a new database transaction.
+     *
+     * @return void
+     *
+     * @throws \Throwable
+     */
+    public function beginTransaction();
+
+    /**
+     * Commit the active database transaction.
+     *
+     * @return void
+     *
+     * @throws \Throwable
+     */
+    public function commit();
+
+    /**
+     * Rollback the active database transaction.
+     *
+     * @param  int|null  $toLevel
+     * @return void
+     *
+     * @throws \Throwable
+     */
+    public function rollBack($toLevel = null);
+
+    /**
+     * Get the number of active transactions.
+     *
+     * @return int
+     */
+    public function transactionLevel();
+
+    /**
+     * Execute the callback after a transaction commits.
+     *
+     * @param  callable  $callback
+     * @return void
+     *
+     * @throws \RuntimeException
+     */
+    public function afterCommit($callback);
 
     /**
      * Enable foreign key constraints.

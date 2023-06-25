@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Mail\Mailables;
+namespace Terablaze\Mail\Mailables;
 
 class Address
 {

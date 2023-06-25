@@ -2,11 +2,11 @@
 
 namespace {{ namespace }};
 
-use Terablaze\Bus\Traits\Dispatchable;
+use Terablaze\Bus\Traits\DispatchableTrait;
 
 class {{ class }}
 {
-    use Dispatchable;
+    use DispatchableTrait;
 
     /**
      * Create a new job instance.

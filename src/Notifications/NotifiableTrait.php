@@ -1,8 +1,8 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-trait Notifiable
+trait NotifiableTrait
 {
     use HasDatabaseNotifications, RoutesNotifications;
 }

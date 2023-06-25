@@ -1,9 +1,10 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Contracts\Notifications\Dispatcher;
-use Illuminate\Support\Str;
+use Terablaze\Notifications\DispatcherInterface;
+use Terablaze\Support\Helpers;
+use Terablaze\Support\StringMethods;
 
 trait RoutesNotifications
 {
@@ -15,7 +16,7 @@ trait RoutesNotifications
      */
     public function notify($instance)
     {
-        app(Dispatcher::class)->send($this, $instance);
+        Helpers::container()->get(DispatcherInterface::class)->send($this, $instance);
     }
 
     /**
@@ -27,25 +28,25 @@ trait RoutesNotifications
      */
     public function notifyNow($instance, array $channels = null)
     {
-        app(Dispatcher::class)->sendNow($this, $instance, $channels);
+        Helpers::container()->get(DispatcherInterface::class)->sendNow($this, $instance, $channels);
     }
 
     /**
      * Get the notification routing information for the given driver.
      *
      * @param  string  $driver
-     * @param  \Illuminate\Notifications\Notification|null  $notification
+     * @param  \Terablaze\Notifications\Notification|null  $notification
      * @return mixed
      */
     public function routeNotificationFor($driver, $notification = null)
     {
-        if (method_exists($this, $method = 'routeNotificationFor'.Str::studly($driver))) {
+        if (method_exists($this, $method = 'routeNotificationFor'.StringMethods::studly($driver))) {
             return $this->{$method}($notification);
         }
 
         return match ($driver) {
-            'database' => $this->notifications(),
-            'mail' => $this->email,
+            'database' => DatabaseNotification::class,
+            'mail' => $this->getEmail() ?? $this->email, // TODO: Look into email fetching implementation
             default => null,
         };
     }

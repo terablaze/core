@@ -17,25 +17,21 @@ class RedirectResponse extends Response
     protected $encodingOptions = self::DEFAULT_ENCODING_OPTIONS;
 
 
-    public function __construct(string $url, int $status = 302)
+    public function __construct(string $url, int $status = 302, array $headers = [])
     {
         $this->setTargetUrl($url);
+        parent::__construct($this->body, $status, $this->headers);
 
-        if (!in_array($status, [201, 301, 302, 303, 307, 308])) {
+        if (!$this->isRedirect()) {
             throw new \InvalidArgumentException(
                 sprintf('The HTTP status code is not a redirect ("%s" given).', $status)
             );
         }
 
-        if (
-            301 == $status && !\array_key_exists(
-                'cache-control',
-                array_change_key_case($this->headers, \CASE_LOWER)
-            )
-        ) {
-            $this->headers['cache-control'] = null;
+        if (301 == $status && !\array_key_exists('cache-control', array_change_key_case($headers, \CASE_LOWER))) {
+            unset($this->headers['cache-control']);
         }
-        parent::__construct($this->body, $status, $this->headers);
+
     }
 
     /**

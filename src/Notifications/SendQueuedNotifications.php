@@ -1,31 +1,32 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeEncrypted;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Collection;
+use Terablaze\Bus\Traits\QueueableTrait;
+use Terablaze\Collection\ArrayCollection;
+use Terablaze\Queue\ShouldBeEncrypted;
+use Terablaze\Queue\ShouldQueue;
+use Terablaze\Database\ORM\EntityCollection;
+use Terablaze\Database\ORM\Model;
+use Terablaze\Queue\InteractsWithQueue;
+use Terablaze\Queue\SerializesModels;
+use Terablaze\Collection\CollectionInterface;
 
 class SendQueuedNotifications implements ShouldQueue
 {
-    use InteractsWithQueue, Queueable, SerializesModels;
+    use InteractsWithQueue, QueueableTrait, SerializesModels;
 
     /**
      * The notifiable entities that should receive the notification.
      *
-     * @var \Illuminate\Support\Collection
+     * @var \Terablaze\Collection\CollectionInterface
      */
     public $notifiables;
 
     /**
      * The notification to be sent.
      *
-     * @var \Illuminate\Notifications\Notification
+     * @var \Terablaze\Notifications\Notification
      */
     public $notification;
 
@@ -67,8 +68,8 @@ class SendQueuedNotifications implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param  \Illuminate\Notifications\Notifiable|\Illuminate\Support\Collection  $notifiables
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\NotifiableTrait|\Terablaze\Collection\CollectionInterface  $notifiables
+     * @param  \Terablaze\Notifications\Notification  $notification
      * @param  array|null  $channels
      * @return void
      */
@@ -87,24 +88,24 @@ class SendQueuedNotifications implements ShouldQueue
     /**
      * Wrap the notifiable(s) in a collection.
      *
-     * @param  \Illuminate\Notifications\Notifiable|\Illuminate\Support\Collection  $notifiables
-     * @return \Illuminate\Support\Collection
+     * @param  \Terablaze\Notifications\NotifiableTrait|\Terablaze\Collection\CollectionInterface  $notifiables
+     * @return \Terablaze\Collection\CollectionInterface
      */
     protected function wrapNotifiables($notifiables)
     {
-        if ($notifiables instanceof Collection) {
+        if ($notifiables instanceof CollectionInterface) {
             return $notifiables;
         } elseif ($notifiables instanceof Model) {
-            return EloquentCollection::wrap($notifiables);
+            return EntityCollection::wrap($notifiables);
         }
 
-        return Collection::wrap($notifiables);
+        return ArrayCollection::wrap($notifiables);
     }
 
     /**
      * Send the notifications.
      *
-     * @param  \Illuminate\Notifications\ChannelManager  $manager
+     * @param  \Terablaze\Notifications\ChannelManager  $manager
      * @return void
      */
     public function handle(ChannelManager $manager)

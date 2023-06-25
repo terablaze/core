@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
 class Action
 {

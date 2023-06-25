@@ -1,8 +1,8 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Queue\SerializesModels;
+use Terablaze\Queue\SerializesModels;
 
 class Notification
 {

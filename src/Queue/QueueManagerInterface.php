@@ -2,7 +2,7 @@
 
 namespace Terablaze\Queue;
 
-interface FactoryInterface
+interface QueueManagerInterface
 {
     /**
      * Resolve a queue connection instance.

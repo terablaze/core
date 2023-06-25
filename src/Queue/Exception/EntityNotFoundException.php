@@ -17,6 +17,6 @@ class EntityNotFoundException extends InvalidArgumentException
     {
         $id = (string) $id;
 
-        parent::__construct("Queueable entity [{$type}] not found for ID [{$id}].");
+        parent::__construct("QueueableTrait entity [{$type}] not found for ID [{$id}].");
     }
 }

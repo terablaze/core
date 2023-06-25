@@ -1,8 +1,8 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Contracts\Notifications\Dispatcher;
+use Illuminate\Contracts\Notifications\DispatcherInterface;
 use InvalidArgumentException;
 
 class AnonymousNotifiable
@@ -42,7 +42,7 @@ class AnonymousNotifiable
      */
     public function notify($notification)
     {
-        app(Dispatcher::class)->send($this, $notification);
+        app(DispatcherInterface::class)->send($this, $notification);
     }
 
     /**
@@ -53,7 +53,7 @@ class AnonymousNotifiable
      */
     public function notifyNow($notification)
     {
-        app(Dispatcher::class)->sendNow($this, $notification);
+        app(DispatcherInterface::class)->sendNow($this, $notification);
     }
 
     /**

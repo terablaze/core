@@ -5,7 +5,7 @@ namespace Terablaze\Bus;
 use Closure;
 use RuntimeException;
 use Terablaze\Bus\Pipeline\Pipeline;
-use Terablaze\Bus\Traits\Queueable;
+use Terablaze\Bus\Traits\QueueableTrait;
 use Terablaze\Collection\ArrayCollection;
 use Terablaze\Collection\CollectionInterface;
 use Terablaze\Container\ContainerInterface;
@@ -84,7 +84,7 @@ class Dispatcher implements QueueingDispatcherInterface
     /**
      * Dispatch a command to its appropriate handler in the current process.
      *
-     * Queueable jobs will be dispatched to the "sync" queue.
+     * QueueableTrait jobs will be dispatched to the "sync" queue.
      *
      * @param  mixed  $command
      * @param  mixed  $handler
@@ -113,7 +113,7 @@ class Dispatcher implements QueueingDispatcherInterface
         $uses = Helpers::classUsesRecursive($command);
 
         if (in_array(InteractsWithQueue::class, $uses) &&
-            in_array(Queueable::class, $uses) &&
+            in_array(QueueableTrait::class, $uses) &&
             ! $command->job) {
             $command->setJob(new SyncJob($this->container, json_encode([]), 'sync', 'sync'));
         }

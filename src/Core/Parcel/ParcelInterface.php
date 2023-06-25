@@ -3,6 +3,8 @@
 namespace Terablaze\Core\Parcel;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Terablaze\Config\Config;
+use Terablaze\Config\Exception\InvalidContextException;
 use Terablaze\Container\ContainerInterface;
 use Terablaze\Console\Application;
 use Terablaze\Core\Kernel\KernelInterface;
@@ -76,4 +78,19 @@ interface ParcelInterface
     public function registerCommands(Application $application);
 
     public function schedule(Schedule $schedule);
+
+    /**
+     * @param string|string[] $path
+     * @param string|null $namespace
+     */
+    public function loadViewsFrom($path, ?string $namespace = null): void;
+
+    /**
+     * @param string $context
+     * @param string|null $prefix
+     * @param string[] $paths
+     * @return Config
+     * @throws InvalidContextException
+     */
+    public function loadConfig(string $context, ?string $prefix = null, array $paths = []): Config;
 }

@@ -51,7 +51,7 @@ class RedisDriver extends CacheDriver implements CacheDriverInterface
         return $this->connection()->get($key) !== false;
     }
 
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         $key = $this->fixKey($key);
         $value = $this->connection()->get($key);

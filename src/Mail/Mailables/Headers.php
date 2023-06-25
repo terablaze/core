@@ -1,9 +1,9 @@
 <?php
 
-namespace Illuminate\Mail\Mailables;
+namespace Terablaze\Mail\Mailables;
 
-use Illuminate\Support\Str;
-use Illuminate\Support\Traits\Conditionable;
+use Terablaze\Support\StringMethods;
+use Terablaze\Support\Traits\Conditionable;
 
 class Headers
 {
@@ -94,7 +94,7 @@ class Headers
     public function referencesString(): string
     {
         return collect($this->references)->map(function ($messageId) {
-            return Str::finish(Str::start($messageId, '<'), '>');
+            return StringMethods::finish(StringMethods::start($messageId, '<'), '>');
         })->implode(' ');
     }
 }

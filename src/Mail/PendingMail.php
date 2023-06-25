@@ -1,11 +1,9 @@
 <?php
 
-namespace Illuminate\Mail;
+namespace Terablaze\Mail;
 
-use Illuminate\Contracts\Mail\Mailable as MailableContract;
-use Illuminate\Contracts\Mail\Mailer as MailerContract;
-use Illuminate\Contracts\Translation\HasLocalePreference;
-use Illuminate\Support\Traits\Conditionable;
+use Terablaze\Support\Traits\Conditionable;
+use Terablaze\Translation\HasLocalePreference;
 
 class PendingMail
 {
@@ -14,7 +12,7 @@ class PendingMail
     /**
      * The mailer instance.
      *
-     * @var \Illuminate\Contracts\Mail\Mailer
+     * @var \Terablaze\Mail\MailerInterface
      */
     protected $mailer;
 
@@ -49,10 +47,10 @@ class PendingMail
     /**
      * Create a new mailable mailer instance.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailer  $mailer
+     * @param  \Terablaze\Mail\MailerInterface  $mailer
      * @return void
      */
-    public function __construct(MailerContract $mailer)
+    public function __construct(MailerInterface $mailer)
     {
         $this->mailer = $mailer;
     }
@@ -116,10 +114,10 @@ class PendingMail
     /**
      * Send a new mailable message instance.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailable  $mailable
-     * @return \Illuminate\Mail\SentMessage|null
+     * @param  \Terablaze\Mail\MailableInterface  $mailable
+     * @return \Terablaze\Mail\SentMessage|null
      */
-    public function send(MailableContract $mailable)
+    public function send(MailableInterface $mailable)
     {
         return $this->mailer->send($this->fill($mailable));
     }
@@ -127,10 +125,10 @@ class PendingMail
     /**
      * Push the given mailable onto the queue.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailable  $mailable
+     * @param  \Terablaze\Mail\MailableInterface  $mailable
      * @return mixed
      */
-    public function queue(MailableContract $mailable)
+    public function queue(MailableInterface $mailable)
     {
         return $this->mailer->queue($this->fill($mailable));
     }
@@ -139,10 +137,10 @@ class PendingMail
      * Deliver the queued message after (n) seconds.
      *
      * @param  \DateTimeInterface|\DateInterval|int  $delay
-     * @param  \Illuminate\Contracts\Mail\Mailable  $mailable
+     * @param  \Terablaze\Mail\MailableInterface  $mailable
      * @return mixed
      */
-    public function later($delay, MailableContract $mailable)
+    public function later($delay, MailableInterface $mailable)
     {
         return $this->mailer->later($delay, $this->fill($mailable));
     }
@@ -150,14 +148,14 @@ class PendingMail
     /**
      * Populate the mailable with the addresses.
      *
-     * @param  \Illuminate\Contracts\Mail\Mailable  $mailable
-     * @return \Illuminate\Mail\Mailable
+     * @param  \Terablaze\Mail\MailableInterface  $mailable
+     * @return \Terablaze\Mail\Mailable
      */
-    protected function fill(MailableContract $mailable)
+    protected function fill(MailableInterface $mailable)
     {
         return tap($mailable->to($this->to)
             ->cc($this->cc)
-            ->bcc($this->bcc), function (MailableContract $mailable) {
+            ->bcc($this->bcc), function (MailableInterface $mailable) {
                 if ($this->locale) {
                     $mailable->locale($this->locale);
                 }

@@ -2,16 +2,22 @@
 
 namespace Terablaze\Routing;
 
+use Exception;
 use Terablaze\Container\Container;
+use Terablaze\HttpBase\RedirectResponse;
 use Terablaze\Support\ArrayMethods;
+use Terablaze\Support\Helpers;
 
 /**
  * Class Route
+ *
  * @package Terablaze\Routing
  */
 class Route
 {
     private Container $container;
+
+    private Router $router;
 
     /** @var string $name */
     public string $name;
@@ -53,6 +59,13 @@ class Route
     private string $localeType;
 
     /**
+     * All of the verbs supported by the router.
+     *
+     * @var string[]
+     */
+    public static $verbs = ['get', 'head', 'post', 'put', 'patch', 'delete', 'options'];
+
+    /**
      * Route constructor.
      * @param int|string $name
      * @param callable|array<string, mixed> $route
@@ -61,30 +74,59 @@ class Route
     {
         $this->container = $container;
 
+        /** @var RouterInterface $router */
+        $this->router = $this->container->get(RouterInterface::class);
+
         $this->name = (string)$name;
+
         $this->pattern = $route['pattern'] ?? '/';
         unset($route['pattern']);
-        $this->controller = $route['controller'] ?? null;
-        unset($route['controller']);
-        $this->action = $route['action'] ?? null;
-        unset($route['action']);
+
+        if (isset($route['action']) && is_array($route['action'])) {
+            [$this->controller, $this->action] = $route['action'] ?? null;
+            unset($route['action']);
+        } else {
+            $this->controller = $route['controller'] ?? null;
+            unset($route['controller']);
+            $this->action = $route['action'] ?? null;
+            unset($route['action']);
+        }
+
         $this->method = ArrayMethods::wrap($route['method'] ?? $route['methods'] ?? '');
         unset($route['method']);
         unset($route['methods']);
+
         $this->expectsJson = $route['expects_json'] ?? false;
         unset($route['expects_json']);
+
         $this->middlewares = ArrayMethods::wrap($route['middleware'] ?? $route['middlewares'] ?? []);
         unset($route['middleware']);
         unset($route['middlewares']);
+
         foreach ($route as $callable) {
             if (is_callable($callable)) {
                 $this->callableRoute = $callable;
             }
         }
 
-        $this->explicitlySetLocale = getExplicitlySetLocale();
-        $this->currentLocale = getCurrentLocale();
-        $this->localeType = getConfig('app.locale_type', 'path');
+        $this->explicitlySetLocale = Helpers::getExplicitlySetLocale();
+        $this->currentLocale = Helpers::getCurrentLocale();
+        $this->localeType = Helpers::getConfig('app.locale_type', 'path');
+    }
+
+    /**
+     * @param string $name
+     * @return static
+     */
+    public function setName(string $name): static
+    {
+        if ($this->router->hasRoute($name)) {
+            throw new Exception(sprintf("Route name %s already exists", $name));
+        }
+
+        $this->name = $name;
+        $this->router->syncRouteName($this);
+        return $this;
     }
 
     /**
@@ -93,6 +135,11 @@ class Route
     public function getName(): ?string
     {
         return $this->name;
+    }
+
+    public function name(?string $name = null): string|static
+    {
+        return is_null($name) ? $this->getName() : $this->setName($name);
     }
 
     /**
@@ -148,11 +195,44 @@ class Route
     }
 
     /**
+     * @param bool $expectsJson
+     *
+     * @return static
+     */
+    public function setExpectsJson(bool $expectsJson = true): static
+    {
+        $this->expectsJson = $expectsJson;
+        return $this;
+    }
+
+    /**
      * @return bool
      */
     public function isExpectsJson(): bool
     {
         return $this->expectsJson;
+    }
+
+    public function expectsJson(?bool $expectsJson = null): bool|static
+    {
+        return is_null($expectsJson) ? $this->isExpectsJson() : $this->setExpectsJson($expectsJson);
+    }
+
+    /**
+     * @return static
+     */
+    public function setMiddlewares($middlewares): static
+    {
+        $this->middlewares += ArrayMethods::wrap($middlewares);
+        return $this;
+    }
+
+    /**
+     * @return static
+     */
+    public function setMiddleware($middleware): static
+    {
+        return $this->setMiddlewares($middleware);
     }
 
     /**
@@ -161,6 +241,24 @@ class Route
     public function getMiddlewares(): array
     {
         return $this->middlewares;
+    }
+
+    /**
+     * @return array|mixed|string[]
+     */
+    public function getMiddleware(): array
+    {
+        return $this->getMiddlewares();
+    }
+
+    public function middlewares(array|string|null $middlewares = null): array|static
+    {
+        return is_null($middlewares) ? $this->getMiddlewares() : $this->setMiddlewares($middlewares);
+    }
+
+    public function middleware(array|string|null $middlewares = null): array|static
+    {
+        return $this->middlewares($middlewares);
     }
 
     public function isCallableRoute(): bool
@@ -273,19 +371,179 @@ class Route
         }
     }
 
-    public static function get(string $path, $action = [])
+    /**
+     * Register a new GET route with the router.
+     *
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function get($uri, $action = null)
+    {
+        return static::addRoute(['get', 'head'], $uri, $action);
+    }
+
+    /**
+     * Register a new POST route with the router.
+     *
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function post($uri, $action = null)
+    {
+        return static::addRoute('post', $uri, $action);
+    }
+
+    /**
+     * Register a new PUT route with the router.
+     *
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function put($uri, $action = null)
+    {
+        return static::addRoute('put', $uri, $action);
+    }
+
+    /**
+     * Register a new PATCH route with the router.
+     *
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function patch($uri, $action = null)
+    {
+        return static::addRoute('patch', $uri, $action);
+    }
+
+    /**
+     * Register a new DELETE route with the router.
+     *
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function delete($uri, $action = null)
+    {
+        return static::addRoute('delete', $uri, $action);
+    }
+
+    /**
+     * Register a new OPTIONS route with the router.
+     *
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function options($uri, $action = null)
+    {
+        return static::addRoute('options', $uri, $action);
+    }
+
+    /**
+     * Register a new route responding to all verbs.
+     *
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function any($uri, $action = null)
+    {
+        return static::addRoute(self::$verbs, $uri, $action);
+    }
+
+    /**
+     * Register a new fallback route with the router.
+     *
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function fallback($action)
+    {
+        $placeholder = 'fallbackPlaceholder';
+
+        return static::addRoute('get', "{{$placeholder}}", $action);
+    }
+
+    /**
+     * Create a redirect from one URI to another.
+     *
+     * @param  string  $uri
+     * @param  string  $destination
+     * @param  int  $status
+     * @return \Terablaze\Routing\Route
+     */
+    public static function redirect($uri, $destination, int $status = 302)
+    {
+        return static::any($uri, function () use ($destination, $status) {
+            return new RedirectResponse($destination, $status);
+        });
+    }
+
+    /**
+     * Create a permanent redirect from one URI to another.
+     *
+     * @param  string  $uri
+     * @param  string  $destination
+     * @return \Terablaze\Routing\Route
+     */
+    public static function permanentRedirect($uri, $destination)
+    {
+        return static::redirect($uri, $destination, 301);
+    }
+
+    /**
+     * Register a new route that returns a view.
+     *
+     * @param  string  $uri
+     * @param  string  $view
+     * @param  array  $data
+     * @param  int|array  $status
+     * @param  array  $headers
+     * @return \Terablaze\Routing\Route
+     */
+    public static function view($uri, $view, $data = [], $status = 200, array $headers = [])
+    {
+        return static::match(['get', 'head'], $uri, function () use ($view, $data, $status, $headers) {
+            return Helpers::render($view, $data, $status, $headers);
+        });
+    }
+
+    /**
+     * Register a new route with the given verbs.
+     *
+     * @param  array|string  $methods
+     * @param  string  $uri
+     * @param  array|string|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function match($methods, $uri, $action = null)
+    {
+        return static::addRoute(array_map('strtolower', (array) $methods), $uri, $action);
+    }
+
+    /**
+     * Add a route to the underlying route collection.
+     *
+     * @param  array|string  $methods
+     * @param  string  $uri
+     * @param  array|callable|null  $action
+     * @return \Terablaze\Routing\Route
+     */
+    public static function addRoute(string|array $methods, string $uri, $action)
     {
         $route = new self(Container::getContainer());
-        $route->pattern = $path;
+        $route->pattern = $uri;
         if (is_array($action)) {
-            if (is_string($action[0])) {
-                $route->controller = $action[0];
-                $route->action = $action[1];
-            }
+            [$route->controller, $route->action] = $action;
+        } elseif (is_callable($action)) {
+            $route->callableRoute = $action;
         }
-        /** @var RouterInterface $router */
-        $router = $route->container->get(RouterInterface::class);
-        $router->addRoute($route->getName(), $route);
+        $route->method = $methods;
+        $route->router->addRoute(null, $route);
         return $route;
     }
 }

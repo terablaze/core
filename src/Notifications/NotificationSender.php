@@ -1,16 +1,16 @@
 <?php
 
-namespace Illuminate\Notifications;
+namespace Terablaze\Notifications;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Translation\HasLocalePreference;
-use Illuminate\Database\Eloquent\Collection as ModelCollection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Events\NotificationSending;
-use Illuminate\Notifications\Events\NotificationSent;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use Illuminate\Support\Traits\Localizable;
+use Terablaze\Queue\ShouldQueue;
+use Terablaze\Translation\HasLocalePreference;
+use Terablaze\Database\ORM\EntityCollection;
+use Terablaze\Database\ORM\Model;
+use Terablaze\Notifications\Events\NotificationSending;
+use Terablaze\Notifications\Events\NotificationSent;
+use Terablaze\Collection\CollectionInterface;
+use Terablaze\Support\StringMethods;
+use Terablaze\Support\Traits\Localizable;
 
 class NotificationSender
 {
@@ -19,21 +19,21 @@ class NotificationSender
     /**
      * The notification manager instance.
      *
-     * @var \Illuminate\Notifications\ChannelManager
+     * @var \Terablaze\Notifications\ChannelManager
      */
     protected $manager;
 
     /**
      * The Bus dispatcher instance.
      *
-     * @var \Illuminate\Contracts\Bus\Dispatcher
+     * @var \Terablaze\Bus\DispatcherInterface
      */
     protected $bus;
 
     /**
      * The event dispatcher.
      *
-     * @var \Illuminate\Contracts\Events\Dispatcher
+     * @var \Terablaze\EventDispatcher\Dispatcher
      */
     protected $events;
 
@@ -47,9 +47,9 @@ class NotificationSender
     /**
      * Create a new notification sender instance.
      *
-     * @param  \Illuminate\Notifications\ChannelManager  $manager
-     * @param  \Illuminate\Contracts\Bus\Dispatcher  $bus
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  \Terablaze\Notifications\ChannelManager  $manager
+     * @param  \Terablaze\Bus\DispatcherInterface  $bus
+     * @param  \Terablaze\EventDispatcher\Dispatcher  $events
      * @param  string|null  $locale
      * @return void
      */
@@ -64,7 +64,7 @@ class NotificationSender
     /**
      * Send the given notification to the given notifiable entities.
      *
-     * @param  \Illuminate\Support\Collection|array|mixed  $notifiables
+     * @param  \Terablaze\Collection\CollectionInterface|array|mixed  $notifiables
      * @param  mixed  $notification
      * @return void
      */
@@ -73,7 +73,8 @@ class NotificationSender
         $notifiables = $this->formatNotifiables($notifiables);
 
         if ($notification instanceof ShouldQueue) {
-            return $this->queueNotification($notifiables, $notification);
+            $this->queueNotification($notifiables, $notification);
+            return;
         }
 
         $this->sendNow($notifiables, $notification);
@@ -82,7 +83,7 @@ class NotificationSender
     /**
      * Send the given notification immediately.
      *
-     * @param  \Illuminate\Support\Collection|array|mixed  $notifiables
+     * @param  \Terablaze\Collection\CollectionInterface|array|mixed  $notifiables
      * @param  mixed  $notification
      * @param  array|null  $channels
      * @return void
@@ -99,7 +100,7 @@ class NotificationSender
             }
 
             $this->withLocale($this->preferredLocale($notifiable, $notification), function () use ($viaChannels, $notifiable, $original) {
-                $notificationId = Str::uuid()->toString();
+                $notificationId = StringMethods::uuid()->toString();
 
                 foreach ((array) $viaChannels as $channel) {
                     if (! ($notifiable instanceof AnonymousNotifiable && $channel === 'database')) {
@@ -167,7 +168,7 @@ class NotificationSender
             return false;
         }
 
-        return $this->events->until(
+        return $this->events->dispatch(
             new NotificationSending($notifiable, $notification, $channel)
         ) !== false;
     }
@@ -176,7 +177,7 @@ class NotificationSender
      * Queue the given notification instances.
      *
      * @param  mixed  $notifiables
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param  \Terablaze\Notifications\Notification  $notification
      * @return void
      */
     protected function queueNotification($notifiables, $notification)
@@ -186,7 +187,7 @@ class NotificationSender
         $original = clone $notification;
 
         foreach ($notifiables as $notifiable) {
-            $notificationId = Str::uuid()->toString();
+            $notificationId = StringMethods::uuid()->toString();
 
             foreach ((array) $original->via($notifiable) as $channel) {
                 $notification = clone $original;
@@ -241,13 +242,13 @@ class NotificationSender
      * Format the notifiables into a Collection / array if necessary.
      *
      * @param  mixed  $notifiables
-     * @return \Illuminate\Database\Eloquent\Collection|array
+     * @return \Terablaze\Database\ORM\EntityCollection|array
      */
     protected function formatNotifiables($notifiables)
     {
-        if (! $notifiables instanceof Collection && ! is_array($notifiables)) {
+        if (! $notifiables instanceof CollectionInterface && ! is_array($notifiables)) {
             return $notifiables instanceof Model
-                            ? new ModelCollection([$notifiables]) : [$notifiables];
+                            ? new EntityCollection([$notifiables]) : [$notifiables];
         }
 
         return $notifiables;
